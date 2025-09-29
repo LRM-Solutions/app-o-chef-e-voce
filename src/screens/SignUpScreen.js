@@ -5,13 +5,13 @@ import {
   TextInput,
   TouchableOpacity,
   ActivityIndicator,
-  SafeAreaView,
   KeyboardAvoidingView,
   Platform,
   StyleSheet,
   Image,
   ScrollView,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { signUp } from "../api/authApi";
 import { validateEmail } from "../utils/helpers";
 import { theme, createButtonStyle, createTextStyle } from "../utils/theme";

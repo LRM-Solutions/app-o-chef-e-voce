@@ -5,12 +5,12 @@ import {
   StyleSheet,
   TouchableOpacity,
   Alert,
-  SafeAreaView,
   TextInput,
   ScrollView,
   KeyboardAvoidingView,
   Platform,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { logout } from "../api/authApi";
 import { useAuth } from "../components/AuthProvider";
 import { theme, createTextStyle, createButtonStyle } from "../utils/theme";
