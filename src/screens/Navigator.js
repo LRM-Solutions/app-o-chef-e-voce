@@ -13,6 +13,7 @@ import {
   SafeAreaView,
 } from "react-native-safe-area-context";
 import { BaseView } from "./BaseView";
+import CustomHeader from "../components/CustomHeader";
 
 const Tab = createBottomTabNavigator();
 
@@ -56,7 +57,8 @@ const Navigator = () => {
               height: Platform.OS === "android" ? 60 + insets.bottom : 60,
             },
           ],
-          headerShown: false,
+          headerShown: true,
+          header: () => <CustomHeader />,
         })}
       >
         <Tab.Screen

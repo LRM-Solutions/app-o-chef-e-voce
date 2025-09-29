@@ -20,7 +20,6 @@ import {
   formatViewCount,
 } from "../api/youtube";
 import Toast from "react-native-toast-message";
-import Logo from "../assets/images/logo.png";
 const { width: screenWidth } = Dimensions.get("window");
 const ITEM_WIDTH = screenWidth - 32; // 16px margin on each side
 
@@ -308,10 +307,6 @@ export default function EpisodiosScreen() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <Image source={Logo} style={styles.logo} resizeMode="contain" />
-      </View>
-
       <FlatList
         ref={flatListRef}
         data={videos}
@@ -351,21 +346,9 @@ export default function EpisodiosScreen() {
 }
 
 const styles = StyleSheet.create({
-  logo: {
-    width: 150,
-    height: 100,
-  },
   container: {
     flex: 1,
     backgroundColor: theme.colors.background,
-  },
-  header: {
-    paddingHorizontal: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: theme.colors.border,
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
   },
   titleSection: {
     paddingHorizontal: 16,
@@ -382,16 +365,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#666",
     fontWeight: "400",
-  },
-  headerTitle: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: theme.colors.foreground,
-    marginBottom: 4,
-  },
-  headerSubtitle: {
-    fontSize: 14,
-    color: theme.colors.muted,
   },
   loadingContainer: {
     flex: 1,
