@@ -34,12 +34,15 @@ export const getChannelVideos = async (pageToken = "", maxResults = 10) => {
       params.pageToken = pageToken;
     }
 
+    console.log("Fazendo requisição para buscar vídeos...");
     const response = await youtubeApi.get("/search", { params });
 
     // Buscar estatísticas dos vídeos (views, likes, etc.)
     const videoIds = response.data.items
       .map((item) => item.id.videoId)
       .join(",");
+
+    console.log("IDs dos vídeos:", videoIds);
 
     const statsResponse = await youtubeApi.get("/videos", {
       params: {
@@ -49,23 +52,49 @@ export const getChannelVideos = async (pageToken = "", maxResults = 10) => {
       },
     });
 
+    console.log(
+      "Resposta da API search:",
+      response.data.items.length,
+      "vídeos"
+    );
+    console.log(
+      "Resposta da API stats:",
+      statsResponse.data.items.length,
+      "estatísticas"
+    );
+
     // Combinar dados do vídeo com estatísticas
     const videosWithStats = response.data.items.map((video) => {
       const stats = statsResponse.data.items.find(
         (stat) => stat.id === video.id.videoId
       );
-      return {
+
+      const videoData = {
         id: video.id.videoId,
         title: video.snippet.title,
         description: video.snippet.description,
-        thumbnail: video.snippet.thumbnails.medium.url,
+        thumbnail:
+          video.snippet.thumbnails?.medium?.url ||
+          video.snippet.thumbnails?.default?.url ||
+          "",
         channelTitle: video.snippet.channelTitle,
         publishedAt: video.snippet.publishedAt,
         viewCount: stats?.statistics?.viewCount || "0",
         likeCount: stats?.statistics?.likeCount || "0",
         duration: stats?.contentDetails?.duration || "PT0S",
       };
+
+      console.log("Video processado:", {
+        id: videoData.id,
+        title: videoData.title.substring(0, 30) + "...",
+        viewCount: videoData.viewCount,
+        duration: videoData.duration,
+        thumbnail: videoData.thumbnail ? "✓" : "✗",
+      });
+      return videoData;
     });
+
+    console.log("Total de vídeos processados:", videosWithStats.length);
 
     return {
       videos: videosWithStats,
@@ -74,6 +103,7 @@ export const getChannelVideos = async (pageToken = "", maxResults = 10) => {
     };
   } catch (error) {
     console.error("Erro ao buscar vídeos do YouTube:", error);
+    console.error("Detalhes do erro:", error.response?.data);
     throw error;
   }
 };
@@ -150,7 +180,11 @@ export const searchVideos = async (query, pageToken = "", maxResults = 10) => {
  * @returns {string} Duração formatada (ex: 4:13)
  */
 export const formatDuration = (duration) => {
+  if (!duration || duration === "PT0S") return "0:00";
+
   const match = duration.match(/PT(\d+H)?(\d+M)?(\d+S)?/);
+
+  if (!match) return "0:00";
 
   const hours = (match[1] || "").replace("H", "");
   const minutes = (match[2] || "").replace("M", "");
@@ -169,7 +203,11 @@ export const formatDuration = (duration) => {
  * @returns {string} Número formatado (ex: 1.2M, 15K)
  */
 export const formatViewCount = (count) => {
+  if (!count || count === "0") return "0";
+
   const num = parseInt(count);
+
+  if (isNaN(num)) return "0";
 
   if (num >= 1000000) {
     return (num / 1000000).toFixed(1) + "M";

@@ -40,7 +40,11 @@ export default function EpisodiosScreen() {
   const loadInitialVideos = async () => {
     try {
       setLoading(true);
+      console.log("Carregando vídeos iniciais...");
       const response = await getChannelVideos("", 10);
+      console.log("Resposta recebida:", response);
+      console.log("Número de vídeos:", response.videos.length);
+      console.log("Primeiro vídeo:", response.videos[0]);
       setVideos(response.videos);
       setNextPageToken(response.nextPageToken || "");
     } catch (error) {
@@ -105,54 +109,93 @@ export default function EpisodiosScreen() {
   };
 
   const formatPublishedDate = (dateString) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffTime = Math.abs(now - date);
-    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    if (!dateString) return "Data não disponível";
 
-    if (diffDays === 0) return "Hoje";
-    if (diffDays === 1) return "Ontem";
-    if (diffDays < 7) return `${diffDays} dias atrás`;
-    if (diffDays < 30) return `${Math.floor(diffDays / 7)} semanas atrás`;
-    if (diffDays < 365) return `${Math.floor(diffDays / 30)} meses atrás`;
-    return `${Math.floor(diffDays / 365)} anos atrás`;
+    try {
+      const date = new Date(dateString);
+      const now = new Date();
+      const diffTime = Math.abs(now - date);
+      const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+      if (diffDays === 0) return "Hoje";
+      if (diffDays === 1) return "Ontem";
+      if (diffDays < 7) return `${diffDays} dias atrás`;
+      if (diffDays < 30) return `${Math.floor(diffDays / 7)} semanas atrás`;
+      if (diffDays < 365) return `${Math.floor(diffDays / 30)} meses atrás`;
+      return `${Math.floor(diffDays / 365)} anos atrás`;
+    } catch (error) {
+      console.error("Erro ao formatar data:", error);
+      return "Data inválida";
+    }
   };
 
-  const VideoItem = ({ item }) => (
-    <TouchableOpacity
-      style={styles.videoItem}
-      onPress={() => openVideo(item.id)}
-      activeOpacity={0.7}
-    >
-      <View style={styles.thumbnailContainer}>
-        <Image source={{ uri: item.thumbnail }} style={styles.thumbnail} />
-        <View style={styles.durationBadge}>
-          <Text style={styles.durationText}>
-            {formatDuration(item.duration)}
-          </Text>
+  const VideoItem = ({ item }) => {
+    console.log("Renderizando item:", {
+      id: item.id,
+      title: item.title?.substring(0, 30) + "...",
+      viewCount: item.viewCount,
+      channelTitle: item.channelTitle,
+      publishedAt: item.publishedAt,
+      thumbnail: item.thumbnail ? "✓" : "✗",
+    });
+
+    const formattedViews = formatViewCount(item.viewCount);
+    const formattedDate = formatPublishedDate(item.publishedAt);
+
+    console.log("Dados formatados:", {
+      viewCount: item.viewCount,
+      formattedViews,
+      publishedAt: item.publishedAt,
+      formattedDate,
+    });
+
+    return (
+      <TouchableOpacity
+        style={styles.videoItem}
+        onPress={() => openVideo(item.id)}
+        activeOpacity={0.7}
+      >
+        <View style={styles.thumbnailContainer}>
+          {item.thumbnail ? (
+            <Image source={{ uri: item.thumbnail }} style={styles.thumbnail} />
+          ) : (
+            <View
+              style={[
+                styles.thumbnail,
+                {
+                  backgroundColor: "#f0f0f0",
+                  justifyContent: "center",
+                  alignItems: "center",
+                },
+              ]}
+            >
+              <MaterialIcons name="videocam-off" size={40} color="#ccc" />
+            </View>
+          )}
+          <View style={styles.durationBadge}>
+            <Text style={styles.durationText}>
+              {formatDuration(item.duration)}
+            </Text>
+          </View>
         </View>
-      </View>
 
-      <View style={styles.videoInfo}>
-        <Text style={styles.videoTitle} numberOfLines={2}>
-          {item.title}
-        </Text>
-
-        <Text style={styles.channelName} numberOfLines={1}>
-          {item.channelTitle}
-        </Text>
-
-        <View style={styles.videoStats}>
-          <Text style={styles.viewCount}>
-            {formatViewCount(item.viewCount)} visualizações
+        <View style={styles.videoInfo}>
+          <Text style={styles.videoTitle} numberOfLines={2}>
+            {item.title || "Título não disponível"}
           </Text>
-          <Text style={styles.publishedDate}>
-            • {formatPublishedDate(item.publishedAt)}
+
+          <Text style={styles.channelName} numberOfLines={1}>
+            {item.channelTitle || "Canal não disponível"}
           </Text>
+
+          <View style={styles.videoStats}>
+            <Text style={styles.viewCount}>{formattedViews} visualizações</Text>
+            <Text style={styles.publishedDate}>• {formattedDate}</Text>
+          </View>
         </View>
-      </View>
-    </TouchableOpacity>
-  );
+      </TouchableOpacity>
+    );
+  };
 
   const renderFooter = () => {
     if (!loadingMore) return null;
@@ -321,21 +364,25 @@ const styles = StyleSheet.create({
   },
   channelName: {
     fontSize: 14,
-    color: theme.colors.muted,
-    marginBottom: 4,
+    color: "#888",
+    marginBottom: 6,
+    fontWeight: "400",
   },
   videoStats: {
     flexDirection: "row",
     alignItems: "center",
+    marginTop: 4,
   },
   viewCount: {
     fontSize: 12,
-    color: theme.colors.muted,
+    color: "#666",
+    fontWeight: "400",
   },
   publishedDate: {
     fontSize: 12,
-    color: theme.colors.muted,
+    color: "#666",
     marginLeft: 4,
+    fontWeight: "400",
   },
   loadingFooter: {
     flexDirection: "row",
