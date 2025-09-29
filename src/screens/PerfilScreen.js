@@ -83,11 +83,6 @@ const PerfilScreen = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Meu Perfil</Text>
-        <Text style={styles.subtitle}>Gerenciar conta</Text>
-      </View>
-
       <KeyboardAvoidingView
         style={styles.keyboardView}
         behavior={Platform.OS === "ios" ? "padding" : "height"}

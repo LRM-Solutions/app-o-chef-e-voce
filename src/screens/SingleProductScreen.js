@@ -19,6 +19,7 @@ import {
   isInStock,
   getProductImages,
 } from "../api/products";
+import { CartService } from "../services/cartService";
 import Toast from "react-native-toast-message";
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
@@ -63,20 +64,28 @@ export default function SingleProductScreen({ route, navigation }) {
     }
   };
 
-  const handleAddToCart = () => {
-    // TODO: Implementar adição ao carrinho quando o endpoint estiver disponível
-    Toast.show({
-      type: "success",
-      text1: "Produto adicionado!",
-      text2: `${quantity}x ${product.product_name} adicionado ao carrinho`,
-      visibilityTime: 3000,
-    });
+  const handleAddToCart = async () => {
+    try {
+      await CartService.addToCart(product, quantity);
 
-    Alert.alert(
-      "Carrinho",
-      `${quantity}x ${product.product_name} foi adicionado ao carrinho!`,
-      [{ text: "OK" }]
-    );
+      Toast.show({
+        type: "success",
+        text1: "Produto adicionado!",
+        text2: `${quantity}x ${product.product_name} adicionado ao carrinho`,
+        visibilityTime: 3000,
+      });
+
+      // Reset da quantidade para 1 após adicionar
+      setQuantity(1);
+    } catch (error) {
+      console.error("Erro ao adicionar ao carrinho:", error);
+      Toast.show({
+        type: "error",
+        text1: "Erro",
+        text2: "Não foi possível adicionar o produto ao carrinho",
+        visibilityTime: 3000,
+      });
+    }
   };
 
   const ImageCarousel = () => {

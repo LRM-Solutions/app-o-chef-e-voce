@@ -10,7 +10,7 @@ export const theme = {
     secondaryForeground: "#0f172a",
 
     // Muted colors
-    muted: "#f8fafc",
+    muted: "#64748b",
     mutedForeground: "#64748b",
 
     success: "#4ade80",
