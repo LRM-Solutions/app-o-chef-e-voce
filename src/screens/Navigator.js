@@ -42,61 +42,69 @@ const Navigator = () => {
   const insets = useSafeAreaInsets();
 
   return (
-    <SafeAreaView
-      style={styles.container}
-      edges={["top", "left", "right", "bottom"]}
-    >
-      <Tab.Navigator
-        screenOptions={({ route }) => ({
-          tabBarIcon: ({ focused }) => (
-            <TabIcon name={route.name} focused={focused} />
-          ),
-          tabBarActiveTintColor: theme.colors.primary,
-          tabBarInactiveTintColor: "#666",
-          tabBarStyle: [
-            styles.tabBar,
-            {
-              paddingBottom: Platform.OS === "android" ? insets.bottom + 5 : 5,
-              height: Platform.OS === "android" ? 60 + insets.bottom : 60,
-            },
-          ],
-          headerShown: route.name !== "produtos", // Não mostrar header na stack de produtos
-          header: () => <CustomHeader />,
-        })}
-      >
-        <Tab.Screen
-          name="produtos"
-          component={ProductsStack}
-          options={{
-            tabBarLabel: "Produtos",
-          }}
-        />
-        <Tab.Screen
-          name="ultimosEpisodios"
-          component={EpisodiosScreen}
-          options={{
-            tabBarLabel: "Episódios",
-          }}
-        />
-        <Tab.Screen
-          name="config"
-          component={PerfilScreen}
-          options={{
-            tabBarLabel: "Conta",
-          }}
-        />
-      </Tab.Navigator>
-    </SafeAreaView>
+    <View style={styles.wrapper}>
+      <SafeAreaView style={styles.container} edges={["top", "left", "right"]}>
+        <Tab.Navigator
+          screenOptions={({ route }) => ({
+            tabBarIcon: ({ focused }) => (
+              <TabIcon name={route.name} focused={focused} />
+            ),
+            tabBarActiveTintColor: theme.colors.primary,
+            tabBarInactiveTintColor: "#666",
+            tabBarStyle: [
+              styles.tabBar,
+              {
+                paddingBottom: Platform.OS === "ios" ? insets.bottom : 5,
+                height: Platform.OS === "ios" ? 30 + insets.bottom : 60,
+              },
+            ],
+            headerShown: route.name !== "produtos", // Não mostrar header na stack de produtos
+            header: () => <CustomHeader />,
+          })}
+        >
+          <Tab.Screen
+            name="produtos"
+            component={ProductsStack}
+            options={{
+              tabBarLabel: "Produtos",
+            }}
+          />
+          <Tab.Screen
+            name="ultimosEpisodios"
+            component={EpisodiosScreen}
+            options={{
+              tabBarLabel: "Episódios",
+            }}
+          />
+          <Tab.Screen
+            name="config"
+            component={PerfilScreen}
+            options={{
+              tabBarLabel: "Conta",
+            }}
+          />
+        </Tab.Navigator>
+      </SafeAreaView>
+      {/* Área inferior para cobrir o home indicator com a cor da tab bar */}
+      <SafeAreaView style={styles.bottomSafeArea} edges={["bottom"]} />
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
+  wrapper: {
+    flex: 1,
+    backgroundColor: theme.colors.background,
+  },
   container: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: theme.colors.background,
+  },
+  bottomSafeArea: {
+    backgroundColor: theme.colors.background,
   },
   tabBar: {
-    backgroundColor: "#ffffff",
+    backgroundColor: theme.colors.background,
     borderTopWidth: 1,
     borderTopColor: "#e0e0e0",
     paddingTop: 5,

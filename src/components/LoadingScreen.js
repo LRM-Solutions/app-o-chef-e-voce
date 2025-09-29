@@ -1,10 +1,11 @@
 import React from "react";
 import { View, ActivityIndicator, Text, StyleSheet } from "react-native";
+import { theme } from "../utils/theme";
 
 export default function LoadingScreen() {
   return (
     <View style={styles.container}>
-      <ActivityIndicator size="large" color="#2563eb" />
+      <ActivityIndicator size="large" color={theme.colors.primary} />
       <Text style={styles.text}>Carregando...</Text>
     </View>
   );
@@ -15,10 +16,10 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "white",
+    backgroundColor: theme.colors.background,
   },
   text: {
-    color: "#6b7280",
+    color: theme.colors.muted,
     marginTop: 16,
     fontSize: 18,
   },
