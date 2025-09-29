@@ -62,13 +62,28 @@ export default function EpisodiosScreen() {
   };
 
   const loadMoreVideos = async () => {
-    if (loadingMore || !nextPageToken) return;
+    console.log("loadMoreVideos chamado:", { loadingMore, nextPageToken });
+
+    if (loadingMore || !nextPageToken) {
+      console.log("Condição de parada:", { loadingMore, nextPageToken });
+      return;
+    }
 
     try {
       setLoadingMore(true);
+      console.log("Carregando mais vídeos com token:", nextPageToken);
+
       const response = await getPlaylistVideos(nextPageToken, 10);
-      setVideos((prev) => [...prev, ...response.videos]);
+      console.log("Novos vídeos carregados:", response.videos.length);
+
+      setVideos((prev) => {
+        const newVideos = [...prev, ...response.videos];
+        console.log("Total de vídeos após adição:", newVideos.length);
+        return newVideos;
+      });
+
       setNextPageToken(response.nextPageToken || "");
+      console.log("Próximo token:", response.nextPageToken);
     } catch (error) {
       console.error("Erro ao carregar mais vídeos:", error);
       Toast.show({
@@ -243,12 +258,24 @@ export default function EpisodiosScreen() {
   );
 
   const renderFooter = () => {
+    if (!loadingMore && !nextPageToken) {
+      // Fim da playlist
+      return (
+        <View style={styles.endOfListContainer}>
+          <Text style={styles.endOfListText}>Fim dos episódios</Text>
+          <Text style={styles.endOfListSubtext}>
+            Todos os vídeos foram carregados
+          </Text>
+        </View>
+      );
+    }
+
     if (!loadingMore) return null;
 
     return (
       <View style={styles.loadingFooter}>
         <ActivityIndicator size="small" color={theme.colors.primary} />
-        <Text style={styles.loadingText}>Carregando mais vídeos...</Text>
+        <Text style={styles.loadingText}>Carregando mais episódios...</Text>
       </View>
     );
   };
@@ -292,7 +319,7 @@ export default function EpisodiosScreen() {
         renderItem={VideoItem}
         ListHeaderComponent={renderHeader}
         onEndReached={loadMoreVideos}
-        onEndReachedThreshold={0.5}
+        onEndReachedThreshold={0.3}
         onScroll={handleScroll}
         scrollEventThrottle={400}
         refreshControl={
@@ -461,6 +488,22 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     padding: 16,
+  },
+  endOfListContainer: {
+    alignItems: "center",
+    padding: 20,
+    marginVertical: 16,
+  },
+  endOfListText: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#666",
+    marginBottom: 4,
+  },
+  endOfListSubtext: {
+    fontSize: 14,
+    color: "#999",
+    textAlign: "center",
   },
   emptyContainer: {
     alignItems: "center",
