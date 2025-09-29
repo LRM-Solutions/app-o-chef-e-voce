@@ -77,7 +77,7 @@ const Navigator = () => {
           name="config"
           component={PerfilScreen}
           options={{
-            tabBarLabel: "Perfil",
+            tabBarLabel: "Conta",
           }}
         />
       </Tab.Navigator>

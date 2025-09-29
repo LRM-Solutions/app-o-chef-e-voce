@@ -235,6 +235,13 @@ export default function EpisodiosScreen() {
     );
   };
 
+  const renderHeader = () => (
+    <View style={styles.titleSection}>
+      <Text style={styles.sectionTitle}>Últimos Episódios</Text>
+      <Text style={styles.sectionSubtitle}>Episódios toda semana</Text>
+    </View>
+  );
+
   const renderFooter = () => {
     if (!loadingMore) return null;
 
@@ -283,6 +290,7 @@ export default function EpisodiosScreen() {
         data={videos}
         keyExtractor={(item) => item.id}
         renderItem={VideoItem}
+        ListHeaderComponent={renderHeader}
         onEndReached={loadMoreVideos}
         onEndReachedThreshold={0.5}
         onScroll={handleScroll}
@@ -331,6 +339,22 @@ const styles = StyleSheet.create({
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
+  },
+  titleSection: {
+    paddingHorizontal: 16,
+    paddingVertical: 20,
+    backgroundColor: theme.colors.background,
+  },
+  sectionTitle: {
+    fontSize: 24,
+    fontWeight: "bold",
+    color: theme.colors.foreground,
+    marginBottom: 4,
+  },
+  sectionSubtitle: {
+    fontSize: 16,
+    color: "#666",
+    fontWeight: "400",
   },
   headerTitle: {
     fontSize: 24,
