@@ -1,0 +1,39 @@
+{
+  "expo": {
+    "name": "Fortelyne App",
+    "slug": "fortelyne-app",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/Icon_app.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.lrmsolutions.fortelyne"
+    },
+    "android": {
+      "package": "com.lrmsolutions.fortelyne",
+      "versionCode": 1,
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/Icon_app.png",
+        "backgroundColor": "#8BC34A"
+      }
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "79a3dcdb-0174-4219-9623-f311ffeb9ef4"
+      }
+    },
+    "owner": "lrmsolutions"
+  }
+}
