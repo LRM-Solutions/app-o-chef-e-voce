@@ -10,6 +10,7 @@ import {
   Dimensions,
   Alert,
   RefreshControl,
+  Linking,
 } from "react-native";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import { theme } from "../utils/theme";
@@ -97,15 +98,42 @@ export default function EpisodiosScreen() {
     setShowScrollToTop(offsetY > 1000); // Mostrar botão após 1000px de scroll
   };
 
-  const openVideo = (videoId) => {
-    Alert.alert(
-      "Abrir Vídeo",
-      "Esta funcionalidade abrirá o vídeo no YouTube",
-      [
-        { text: "Cancelar", style: "cancel" },
-        { text: "Abrir", onPress: () => console.log("Abrir vídeo:", videoId) },
-      ]
-    );
+  const openVideo = async (videoId, videoTitle) => {
+    try {
+      // URLs do YouTube
+      const youtubeAppUrl = `vnd.youtube://www.youtube.com/watch?v=${videoId}`;
+      const youtubeBrowserUrl = `https://www.youtube.com/watch?v=${videoId}`;
+
+      // Tenta abrir no app do YouTube primeiro
+      const canOpenYouTubeApp = await Linking.canOpenURL(youtubeAppUrl);
+
+      // Toast de feedback
+      Toast.show({
+        type: "info",
+        text1: "Abrindo vídeo...",
+        text2:
+          videoTitle.length > 50
+            ? videoTitle.substring(0, 50) + "..."
+            : videoTitle,
+        visibilityTime: 2000,
+      });
+
+      if (canOpenYouTubeApp) {
+        // Abre no app do YouTube
+        await Linking.openURL(youtubeAppUrl);
+      } else {
+        // Abre no navegador se não tiver o app
+        await Linking.openURL(youtubeBrowserUrl);
+      }
+    } catch (error) {
+      console.error("Erro ao abrir vídeo:", error);
+
+      Alert.alert(
+        "Erro",
+        "Não foi possível abrir o vídeo. Verifique sua conexão com a internet.",
+        [{ text: "OK" }]
+      );
+    }
   };
 
   const formatPublishedDate = (dateString) => {
@@ -152,7 +180,7 @@ export default function EpisodiosScreen() {
     return (
       <TouchableOpacity
         style={styles.videoItem}
-        onPress={() => openVideo(item.id)}
+        onPress={() => openVideo(item.id, item.title)}
         activeOpacity={0.7}
       >
         <View style={styles.thumbnailContainer}>
@@ -172,6 +200,16 @@ export default function EpisodiosScreen() {
               <MaterialIcons name="videocam-off" size={40} color="#ccc" />
             </View>
           )}
+
+          {/* Ícone de play centralizado */}
+          <View style={styles.playIconContainer}>
+            <MaterialIcons
+              name="play-circle-filled"
+              size={50}
+              color="rgba(255, 255, 255, 0.9)"
+            />
+          </View>
+
           <View style={styles.durationBadge}>
             <Text style={styles.durationText}>
               {formatDuration(item.duration)}
@@ -337,6 +375,16 @@ const styles = StyleSheet.create({
     width: ITEM_WIDTH,
     height: (ITEM_WIDTH * 9) / 16, // Aspect ratio 16:9
     backgroundColor: "#f0f0f0",
+  },
+  playIconContainer: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.3)",
   },
   durationBadge: {
     position: "absolute",
