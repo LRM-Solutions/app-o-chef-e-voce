@@ -3,6 +3,7 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 
 import PerfilScreen from "./PerfilScreen";
 import EpisodiosScreen from "./EpisodiosScreen";
+import ProductsStack from "./ProductsStack";
 import { View, StyleSheet, Platform } from "react-native";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import Ionicons from "react-native-vector-icons/Ionicons";
@@ -12,7 +13,6 @@ import {
   useSafeAreaInsets,
   SafeAreaView,
 } from "react-native-safe-area-context";
-import { BaseView } from "./BaseView";
 import CustomHeader from "../components/CustomHeader";
 
 const Tab = createBottomTabNavigator();
@@ -25,7 +25,7 @@ const TabIcon = ({ name, focused }) => {
 
     switch (name) {
       case "produtos":
-        return <MaterialIcons name="restaurant" size={size} color={color} />;
+        return <MaterialIcons name="store" size={size} color={color} />;
       case "ultimosEpisodios":
         return <AntDesign name="youtube" size={size} color={color} />;
       case "config":
@@ -57,13 +57,13 @@ const Navigator = () => {
               height: Platform.OS === "android" ? 60 + insets.bottom : 60,
             },
           ],
-          headerShown: true,
+          headerShown: route.name !== "produtos", // Não mostrar header na stack de produtos
           header: () => <CustomHeader />,
         })}
       >
         <Tab.Screen
           name="produtos"
-          component={BaseView}
+          component={ProductsStack}
           options={{
             tabBarLabel: "Produtos",
           }}
