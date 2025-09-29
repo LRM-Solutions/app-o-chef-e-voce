@@ -3,6 +3,9 @@ import axios from "axios";
 const YOUTUBE_API_KEY = "AIzaSyCKCIiusSbSos2kNA0zm5ObDvqGThDd9f0";
 const YOUTUBE_BASE_URL = "https://www.googleapis.com/youtube/v3";
 
+// ID da playlist do YouTube
+const PLAYLIST_ID = "PLcPliuHMGlZuyNYBAdNWBs2EHOEQ77dNy";
+
 // ID do canal do YouTube para culinária (substitua pelo seu canal específico)
 // Estou usando um canal de culinária popular como exemplo
 const CHANNEL_ID = "UCYVwQ4TPRjJ6vBvDM2_i9eg"; // Tasty channel ID
@@ -12,6 +15,102 @@ const youtubeApi = axios.create({
   baseURL: YOUTUBE_BASE_URL,
   timeout: 10000, // 10 segundos
 });
+
+/**
+ * Busca vídeos de uma playlist do YouTube
+ * @param {string} pageToken - Token para paginação (próxima página)
+ * @param {number} maxResults - Número máximo de resultados (padrão: 10)
+ * @returns {Promise<Object>} Dados dos vídeos e token para próxima página
+ */
+export const getPlaylistVideos = async (pageToken = "", maxResults = 10) => {
+  try {
+    const params = {
+      part: "snippet",
+      playlistId: PLAYLIST_ID,
+      maxResults,
+      key: YOUTUBE_API_KEY,
+    };
+
+    if (pageToken) {
+      params.pageToken = pageToken;
+    }
+
+    console.log("Fazendo requisição para buscar vídeos da playlist...");
+    const response = await youtubeApi.get("/playlistItems", { params });
+
+    // Buscar estatísticas dos vídeos (views, likes, etc.)
+    const videoIds = response.data.items
+      .map((item) => item.snippet.resourceId.videoId)
+      .join(",");
+
+    console.log("IDs dos vídeos da playlist:", videoIds);
+
+    const statsResponse = await youtubeApi.get("/videos", {
+      params: {
+        part: "statistics,contentDetails",
+        id: videoIds,
+        key: YOUTUBE_API_KEY,
+      },
+    });
+
+    console.log(
+      "Resposta da API playlist:",
+      response.data.items.length,
+      "vídeos"
+    );
+    console.log(
+      "Resposta da API stats:",
+      statsResponse.data.items.length,
+      "estatísticas"
+    );
+
+    // Combinar dados do vídeo com estatísticas
+    const videosWithStats = response.data.items.map((video) => {
+      const stats = statsResponse.data.items.find(
+        (stat) => stat.id === video.snippet.resourceId.videoId
+      );
+
+      const videoData = {
+        id: video.snippet.resourceId.videoId,
+        title: video.snippet.title,
+        description: video.snippet.description,
+        thumbnail:
+          video.snippet.thumbnails?.medium?.url ||
+          video.snippet.thumbnails?.default?.url ||
+          "",
+        channelTitle: video.snippet.channelTitle,
+        publishedAt: video.snippet.publishedAt,
+        viewCount: stats?.statistics?.viewCount || "0",
+        likeCount: stats?.statistics?.likeCount || "0",
+        duration: stats?.contentDetails?.duration || "PT0S",
+      };
+
+      console.log("Video da playlist processado:", {
+        id: videoData.id,
+        title: videoData.title.substring(0, 30) + "...",
+        viewCount: videoData.viewCount,
+        duration: videoData.duration,
+        thumbnail: videoData.thumbnail ? "✓" : "✗",
+      });
+      return videoData;
+    });
+
+    console.log(
+      "Total de vídeos da playlist processados:",
+      videosWithStats.length
+    );
+
+    return {
+      videos: videosWithStats,
+      nextPageToken: response.data.nextPageToken || null,
+      totalResults: response.data.pageInfo.totalResults,
+    };
+  } catch (error) {
+    console.error("Erro ao buscar vídeos da playlist do YouTube:", error);
+    console.error("Detalhes do erro:", error.response?.data);
+    throw error;
+  }
+};
 
 /**
  * Busca vídeos de um canal do YouTube

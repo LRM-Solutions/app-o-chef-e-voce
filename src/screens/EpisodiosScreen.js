@@ -15,7 +15,7 @@ import {
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import { theme } from "../utils/theme";
 import {
-  getChannelVideos,
+  getPlaylistVideos,
   formatDuration,
   formatViewCount,
 } from "../api/youtube";
@@ -41,8 +41,8 @@ export default function EpisodiosScreen() {
   const loadInitialVideos = async () => {
     try {
       setLoading(true);
-      console.log("Carregando vídeos iniciais...");
-      const response = await getChannelVideos("", 10);
+      console.log("Carregando vídeos iniciais da playlist...");
+      const response = await getPlaylistVideos("", 10);
       console.log("Resposta recebida:", response);
       console.log("Número de vídeos:", response.videos.length);
       console.log("Primeiro vídeo:", response.videos[0]);
@@ -66,7 +66,7 @@ export default function EpisodiosScreen() {
 
     try {
       setLoadingMore(true);
-      const response = await getChannelVideos(nextPageToken, 10);
+      const response = await getPlaylistVideos(nextPageToken, 10);
       setVideos((prev) => [...prev, ...response.videos]);
       setNextPageToken(response.nextPageToken || "");
     } catch (error) {
