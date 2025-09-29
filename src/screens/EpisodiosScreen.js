@@ -380,24 +380,29 @@ const styles = StyleSheet.create({
   videoItem: {
     marginHorizontal: 16,
     marginVertical: 8,
-    backgroundColor: "white",
+    backgroundColor: "#ffffff",
     borderRadius: 12,
-    shadowColor: "#000",
+    shadowColor: "#000000",
     shadowOffset: {
       width: 0,
-      height: 2,
+      height: 4,
     },
-    shadowOpacity: 0.1,
-    shadowRadius: 3.84,
-    elevation: 5,
-    overflow: "hidden",
+    shadowOpacity: 0.12,
+    shadowRadius: 6,
+    elevation: 6,
+    overflow: "visible",
   },
   thumbnailContainer: {
     position: "relative",
+    borderTopLeftRadius: 12,
+    borderTopRightRadius: 12,
   },
   thumbnail: {
     width: ITEM_WIDTH,
     height: (ITEM_WIDTH * 9) / 16, // Aspect ratio 16:9
+    borderTopLeftRadius: 12,
+    borderTopRightRadius: 12,
+
     backgroundColor: "#f0f0f0",
   },
   playIconContainer: {
@@ -409,6 +414,8 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: "rgba(0, 0, 0, 0.3)",
+    borderTopLeftRadius: 12,
+    borderTopRightRadius: 12,
   },
   durationBadge: {
     position: "absolute",
@@ -513,13 +520,13 @@ const styles = StyleSheet.create({
     height: 56,
     justifyContent: "center",
     alignItems: "center",
-    shadowColor: "#000",
+    shadowColor: "#000000",
     shadowOffset: {
       width: 0,
-      height: 4,
+      height: 6,
     },
-    shadowOpacity: 0.3,
-    shadowRadius: 4.65,
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
     elevation: 8,
   },
 });

@@ -42,7 +42,10 @@ const Navigator = () => {
   const insets = useSafeAreaInsets();
 
   return (
-    <SafeAreaView style={styles.container} edges={["top", "left", "right"]}>
+    <SafeAreaView
+      style={styles.container}
+      edges={["top", "left", "right", "bottom"]}
+    >
       <Tab.Navigator
         screenOptions={({ route }) => ({
           tabBarIcon: ({ focused }) => (
@@ -93,18 +96,18 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
   },
   tabBar: {
-    backgroundColor: "#fff",
+    backgroundColor: "#ffffff",
     borderTopWidth: 1,
     borderTopColor: "#e0e0e0",
     paddingTop: 5,
     elevation: 8,
-    shadowColor: "#000",
+    shadowColor: "#000000",
     shadowOffset: {
       width: 0,
-      height: -2,
+      height: -5,
     },
-    shadowOpacity: 0.1,
-    shadowRadius: 3.84,
+    shadowOpacity: 0.12,
+    shadowRadius: 6,
   },
   tabIcon: {
     alignItems: "center",

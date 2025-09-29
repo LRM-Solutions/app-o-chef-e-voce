@@ -230,18 +230,22 @@ const styles = StyleSheet.create({
   },
   productItem: {
     width: ITEM_WIDTH,
-    backgroundColor: "white",
+    backgroundColor: "#ffffff",
     borderRadius: 12,
     marginBottom: 16,
-    shadowColor: "#000",
+    // iOS Shadow
+    shadowColor: "#000000",
     shadowOffset: {
       width: 0,
-      height: 2,
+      height: 4,
     },
-    shadowOpacity: 0.1,
-    shadowRadius: 3.84,
-    elevation: 5,
-    overflow: "hidden",
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    // Android Shadow
+    elevation: 8,
+    overflow: "visible",
+    // Garante que o background seja renderizado para a sombra funcionar no iOS
+    borderWidth: 0,
   },
   imageContainer: {
     position: "relative",
@@ -251,6 +255,8 @@ const styles = StyleSheet.create({
   productImage: {
     width: "100%",
     height: "100%",
+    borderTopLeftRadius: 12,
+    borderTopRightRadius: 12,
     backgroundColor: "#f0f0f0",
   },
   noImageContainer: {

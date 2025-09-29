@@ -14,6 +14,7 @@ import { theme } from "../utils/theme";
 import { CartService } from "../services/cartService";
 import { formatPrice, getProductMainImage } from "../api/products";
 import Toast from "react-native-toast-message";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function CarrinhoComponent({ visible, onClose, onGoToCart }) {
   const [cartItems, setCartItems] = useState([]);
@@ -156,7 +157,7 @@ export default function CarrinhoComponent({ visible, onClose, onGoToCart }) {
       presentationStyle="pageSheet"
       onRequestClose={onClose}
     >
-      <View style={styles.container}>
+      <SafeAreaView style={styles.container}>
         {/* Header do Modal */}
         <View style={styles.header}>
           <TouchableOpacity style={styles.closeButton} onPress={onClose}>
@@ -212,7 +213,7 @@ export default function CarrinhoComponent({ visible, onClose, onGoToCart }) {
             </View>
           </>
         )}
-      </View>
+      </SafeAreaView>
     </Modal>
   );
 }
@@ -279,18 +280,18 @@ const styles = StyleSheet.create({
   },
   cartItem: {
     flexDirection: "row",
-    backgroundColor: "white",
+    backgroundColor: "#ffffff",
     padding: 16,
     marginVertical: 4,
     borderRadius: 12,
-    shadowColor: "#000",
+    shadowColor: "#000000",
     shadowOffset: {
       width: 0,
-      height: 1,
+      height: 2,
     },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    elevation: 3,
   },
   itemImageContainer: {
     width: 60,
