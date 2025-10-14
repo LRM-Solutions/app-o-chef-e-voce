@@ -87,8 +87,8 @@ export default function SignUpScreen({ navigation }) {
     try {
       const response = await signUp(name.trim(), email, password);
       if (response) {
-        // Navegar de volta para login após cadastro bem-sucedido
-        navigation.navigate("Login");
+        // Navegar para tela de verificação de email
+        navigation.navigate("NewUserEmailCode", { userEmail: email });
       }
     } catch (error) {
       // O erro já é tratado na função signUp

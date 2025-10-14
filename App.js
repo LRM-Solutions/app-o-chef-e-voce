@@ -7,6 +7,7 @@ import { AuthProvider, useAuth } from "./src/components/AuthProvider";
 import ErrorBoundary from "./src/components/ErrorBoundary";
 import LoginScreen from "./src/screens/LoginScreen";
 import SignUpScreen from "./src/screens/SignUpScreen";
+import NewUserEmailCodeScreen from "./src/screens/NewUserEmailCodeScreen";
 import LoadingScreen from "./src/components/LoadingScreen";
 import Navigator from "./src/screens/Navigator";
 
@@ -33,6 +34,10 @@ function AppContent() {
         >
           <Stack.Screen name="Login" component={LoginScreen} />
           <Stack.Screen name="SignUp" component={SignUpScreen} />
+          <Stack.Screen
+            name="NewUserEmailCode"
+            component={NewUserEmailCodeScreen}
+          />
         </Stack.Navigator>
       </NavigationContainer>
     );

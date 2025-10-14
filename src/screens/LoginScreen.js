@@ -60,9 +60,21 @@ export default function LoginScreen({ navigation }) {
     setIsLoading(true);
 
     const response = await login(email, password);
+
     if (response) {
-      authLogin(); // Atualizar estado de autenticação
+      // Verificar se precisa de verificação de email
+      if (response.needVerification) {
+        // Redirecionar para tela de verificação
+        navigation.navigate("NewUserEmailCode", {
+          userEmail: response.userEmail || email,
+          fromLogin: true,
+        });
+      } else {
+        // Login bem-sucedido
+        authLogin(); // Atualizar estado de autenticação
+      }
     }
+
     setIsLoading(false);
   };
 
