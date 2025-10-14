@@ -11,8 +11,13 @@ import {
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import { theme } from "../utils/theme";
 import { getUserEnderecos, createEndereco } from "../api/enderecosApi";
+import { getUserId } from "../api/authApi";
+import {
+  buscarEnderecoPorCep,
+  formatarCep,
+  validarCep,
+} from "../services/cepService";
 import Toast from "react-native-toast-message";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function EnderecoSelector({
   onEnderecoSelect,
@@ -22,7 +27,9 @@ export default function EnderecoSelector({
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [creating, setCreating] = useState(false);
+  const [loadingCep, setLoadingCep] = useState(false);
   const [formData, setFormData] = useState({
+    cep: "",
     rua: "",
     numero: "",
     bairro: "",
@@ -60,6 +67,7 @@ export default function EnderecoSelector({
   const handleCreateEndereco = async () => {
     // Validação simples
     if (
+      !formData.cep ||
       !formData.rua ||
       !formData.numero ||
       !formData.bairro ||
@@ -70,6 +78,17 @@ export default function EnderecoSelector({
         type: "error",
         text1: "Erro",
         text2: "Preencha todos os campos obrigatórios",
+        visibilityTime: 3000,
+      });
+      return;
+    }
+
+    // Validar CEP
+    if (!validarCep(formData.cep)) {
+      Toast.show({
+        type: "error",
+        text1: "Erro",
+        text2: "CEP deve ter 8 dígitos",
         visibilityTime: 3000,
       });
       return;
@@ -89,12 +108,13 @@ export default function EnderecoSelector({
     try {
       setCreating(true);
 
-      // Buscar user_id do storage ou usar um valor padrão
-      const userId = await AsyncStorage.getItem("user_id");
+      // Buscar user_id do storage
+      const userId = await getUserId();
 
       const enderecoData = {
         ...formData,
-        user_id: userId ? parseInt(userId) : 1, // Usar 1 como fallback
+        cep: formData.cep.replace(/\D/g, ""), // Enviar CEP limpo (apenas números)
+        user_id: userId || 1, // Usar 1 como fallback
       };
 
       const response = await createEndereco(enderecoData);
@@ -113,6 +133,7 @@ export default function EnderecoSelector({
 
         // Resetar formulário
         setFormData({
+          cep: "",
           rua: "",
           numero: "",
           bairro: "",
@@ -134,10 +155,64 @@ export default function EnderecoSelector({
     }
   };
 
+  const handleCepChange = async (cep) => {
+    const cepFormatado = formatarCep(cep);
+    setFormData({ ...formData, cep: cepFormatado });
+
+    // Se o CEP tem 8 dígitos, buscar automaticamente
+    if (validarCep(cepFormatado)) {
+      setLoadingCep(true);
+
+      try {
+        const resultado = await buscarEnderecoPorCep(cepFormatado);
+
+        if (resultado.success) {
+          // Preencher automaticamente os campos
+          setFormData({
+            ...formData,
+            cep: cepFormatado,
+            rua: resultado.data.rua,
+            bairro: resultado.data.bairro,
+            cidade: resultado.data.cidade,
+            estado: resultado.data.estado,
+          });
+
+          Toast.show({
+            type: "success",
+            text1: "CEP encontrado!",
+            text2: "Endereço preenchido automaticamente",
+            visibilityTime: 2000,
+          });
+        } else {
+          Toast.show({
+            type: "error",
+            text1: "CEP não encontrado",
+            text2: resultado.error || "Verifique o CEP digitado",
+            visibilityTime: 3000,
+          });
+        }
+      } catch (error) {
+        Toast.show({
+          type: "error",
+          text1: "Erro ao buscar CEP",
+          text2: "Tente novamente mais tarde",
+          visibilityTime: 3000,
+        });
+      } finally {
+        setLoadingCep(false);
+      }
+    }
+  };
+
   const formatEndereco = (endereco) => {
+    const cepFormatado = endereco.cep
+      ? ` - CEP: ${formatarCep(endereco.cep)}`
+      : "";
     return `${endereco.rua}, ${endereco.numero}${
       endereco.complemento ? `, ${endereco.complemento}` : ""
-    } - ${endereco.bairro}, ${endereco.cidade}/${endereco.estado}`;
+    } - ${endereco.bairro}, ${endereco.cidade}/${
+      endereco.estado
+    }${cepFormatado}`;
   };
 
   if (loading) {
@@ -233,15 +308,41 @@ export default function EnderecoSelector({
 
           <Text style={styles.formTitle}>Adicionar Novo Endereço</Text>
 
+          {/* CEP Input */}
+          <View style={styles.cepContainer}>
+            <TextInput
+              style={[styles.input, styles.cepInput]}
+              placeholder="CEP *"
+              value={formData.cep}
+              onChangeText={handleCepChange}
+              keyboardType="numeric"
+              maxLength={9} // 00000-000
+            />
+            {loadingCep && (
+              <View style={styles.cepLoading}>
+                <ActivityIndicator size="small" color={theme.colors.primary} />
+              </View>
+            )}
+          </View>
+
           <View style={styles.inputRow}>
             <TextInput
-              style={[styles.input, styles.inputFlex]}
+              style={[
+                styles.input,
+                styles.inputFlex,
+                loadingCep && styles.inputDisabled,
+              ]}
               placeholder="Rua *"
               value={formData.rua}
               onChangeText={(text) => setFormData({ ...formData, rua: text })}
+              editable={!loadingCep}
             />
             <TextInput
-              style={[styles.input, styles.inputSmall]}
+              style={[
+                styles.input,
+                styles.inputSmall,
+                loadingCep && styles.inputDisabled,
+              ]}
               placeholder="Nº *"
               value={formData.numero}
               onChangeText={(text) =>
@@ -251,36 +352,48 @@ export default function EnderecoSelector({
                 })
               }
               keyboardType="numeric"
+              editable={!loadingCep}
             />
           </View>
 
           <TextInput
-            style={styles.input}
+            style={[styles.input, loadingCep && styles.inputDisabled]}
             placeholder="Complemento (opcional)"
             value={formData.complemento}
             onChangeText={(text) =>
               setFormData({ ...formData, complemento: text })
             }
+            editable={!loadingCep}
           />
 
           <TextInput
-            style={styles.input}
+            style={[styles.input, loadingCep && styles.inputDisabled]}
             placeholder="Bairro *"
             value={formData.bairro}
             onChangeText={(text) => setFormData({ ...formData, bairro: text })}
+            editable={!loadingCep}
           />
 
           <View style={styles.inputRow}>
             <TextInput
-              style={[styles.input, styles.inputFlex]}
+              style={[
+                styles.input,
+                styles.inputFlex,
+                loadingCep && styles.inputDisabled,
+              ]}
               placeholder="Cidade *"
               value={formData.cidade}
               onChangeText={(text) =>
                 setFormData({ ...formData, cidade: text })
               }
+              editable={!loadingCep}
             />
             <TextInput
-              style={[styles.input, styles.inputSmall]}
+              style={[
+                styles.input,
+                styles.inputSmall,
+                loadingCep && styles.inputDisabled,
+              ]}
               placeholder="UF *"
               value={formData.estado}
               onChangeText={(text) =>
@@ -291,6 +404,7 @@ export default function EnderecoSelector({
               }
               maxLength={2}
               autoCapitalize="characters"
+              editable={!loadingCep}
             />
           </View>
 
@@ -419,11 +533,27 @@ const styles = StyleSheet.create({
     fontSize: 14,
     backgroundColor: "white",
   },
+  inputDisabled: {
+    backgroundColor: "#f5f5f5",
+    color: "#999",
+  },
   inputFlex: {
     flex: 1,
   },
   inputSmall: {
     width: 80,
+  },
+  cepContainer: {
+    position: "relative",
+    marginBottom: 12,
+  },
+  cepInput: {
+    paddingRight: 40, // Espaço para o loading
+  },
+  cepLoading: {
+    position: "absolute",
+    right: 12,
+    top: 12,
   },
   createButton: {
     backgroundColor: theme.colors.primary,

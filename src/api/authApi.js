@@ -84,10 +84,32 @@ export const login = async (userEmail, userPassword) => {
       },
     });
 
-    // Armazenar o token no AsyncStorage
+    // Armazenar o token e user_id no AsyncStorage
     if (response.data.token) {
       await AsyncStorage.setItem("auth_token", response.data.token);
       console.log("💾 [DEBUG] Token salvo no AsyncStorage");
+    }
+
+    if (response.data.user && response.data.user.user_id) {
+      await AsyncStorage.setItem(
+        "user_id",
+        response.data.user.user_id.toString()
+      );
+      console.log(
+        "💾 [DEBUG] User ID salvo no AsyncStorage:",
+        response.data.user.user_id
+      );
+
+      // Salvar também outros dados do usuário que podem ser úteis
+      await AsyncStorage.setItem(
+        "user_name",
+        response.data.user.user_name || ""
+      );
+      await AsyncStorage.setItem(
+        "user_email",
+        response.data.user.user_email || ""
+      );
+      console.log("💾 [DEBUG] Dados do usuário salvos no AsyncStorage");
     }
 
     return response.data;
@@ -137,6 +159,12 @@ export const login = async (userEmail, userPassword) => {
 export const logout = async () => {
   try {
     await AsyncStorage.removeItem("auth_token");
+    await AsyncStorage.removeItem("user_id");
+    await AsyncStorage.removeItem("user_name");
+    await AsyncStorage.removeItem("user_email");
+    console.log(
+      "💾 [DEBUG] Todos os dados do usuário removidos do AsyncStorage"
+    );
     return true;
   } catch (error) {
     console.error("Erro no logout:", error);
@@ -260,6 +288,37 @@ export const getAuthToken = async () => {
     return await AsyncStorage.getItem("auth_token");
   } catch (error) {
     console.error("Erro ao obter token:", error);
+    return null;
+  }
+};
+
+// Função para obter o user_id atual
+export const getUserId = async () => {
+  try {
+    const userId = await AsyncStorage.getItem("user_id");
+    return userId ? parseInt(userId) : null;
+  } catch (error) {
+    console.error("Erro ao obter user_id:", error);
+    return null;
+  }
+};
+
+// Função para obter o nome do usuário
+export const getUserName = async () => {
+  try {
+    return await AsyncStorage.getItem("user_name");
+  } catch (error) {
+    console.error("Erro ao obter user_name:", error);
+    return null;
+  }
+};
+
+// Função para obter o email do usuário
+export const getUserEmail = async () => {
+  try {
+    return await AsyncStorage.getItem("user_email");
+  } catch (error) {
+    console.error("Erro ao obter user_email:", error);
     return null;
   }
 };

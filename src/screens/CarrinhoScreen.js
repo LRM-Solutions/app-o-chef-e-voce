@@ -16,7 +16,7 @@ import { CartService } from "../services/cartService";
 import { formatPrice, getProductMainImage } from "../api/products";
 import Toast from "react-native-toast-message";
 import EnderecoSelector from "../components/EnderecoSelector";
-import PaymentMethodSelector from "../components/PaymentMethodSelector";
+import PaymentDataSelector from "../components/PaymentDataSelector";
 import { createPedido } from "../api/pedidosApi";
 import { createPayment, getNotificationUrl } from "../api/paymentsApi";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -26,7 +26,6 @@ export default function CarrinhoScreen({ navigation }) {
   const [loading, setLoading] = useState(false);
   const [total, setTotal] = useState(0);
   const [selectedEndereco, setSelectedEndereco] = useState(null);
-  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState(null);
   const [paymentData, setPaymentData] = useState({});
   const [processing, setProcessing] = useState(false);
 
@@ -157,10 +156,6 @@ export default function CarrinhoScreen({ navigation }) {
     setSelectedEndereco(endereco);
   };
 
-  const handlePaymentMethodSelect = (method) => {
-    setSelectedPaymentMethod(method);
-  };
-
   const handlePaymentDataChange = (data) => {
     setPaymentData(data);
   };
@@ -266,15 +261,6 @@ export default function CarrinhoScreen({ navigation }) {
       return;
     }
 
-    if (!selectedPaymentMethod) {
-      Alert.alert(
-        "Método de Pagamento",
-        "Selecione um método de pagamento para continuar.",
-        [{ text: "OK" }]
-      );
-      return;
-    }
-
     if (
       !paymentData ||
       !paymentData.payer_email ||
@@ -334,10 +320,6 @@ export default function CarrinhoScreen({ navigation }) {
         "🔍 PaymentData recebido:",
         JSON.stringify(paymentData, null, 2)
       );
-      console.log(
-        "🔍 SelectedPaymentMethod:",
-        JSON.stringify(selectedPaymentMethod, null, 2)
-      );
 
       console.log("🛒 Criando pedido...");
       const pedidoResponse = await createPedido(pedidoPayload);
@@ -346,11 +328,9 @@ export default function CarrinhoScreen({ navigation }) {
         throw new Error("Erro ao criar pedido: ID não retornado");
       }
 
-      // 2. Criar o pagamento
+      // 2. Criar o pagamento com nova estrutura
       const paymentPayload = {
         pedidoId: pedidoResponse.pedido_id,
-        paymentMethod:
-          paymentData.payment_method_id || selectedPaymentMethod.id,
         installments: paymentData.installments || 1,
         payerData: {
           email: paymentData.payer_email,
@@ -392,7 +372,6 @@ export default function CarrinhoScreen({ navigation }) {
       let message = `Pedido #${pedidoResponse.pedido_id} criado com sucesso!\n\n`;
       message += `📍 Endereço: ${selectedEndereco.rua}, ${selectedEndereco.numero}\n`;
       message += `${selectedEndereco.bairro}, ${selectedEndereco.cidade}/${selectedEndereco.estado}\n\n`;
-      message += `💳 Pagamento: ${selectedPaymentMethod.name}\n`;
 
       // Adicionar informações específicas do método de pagamento
       if (paymentData.installments > 1) {
@@ -402,17 +381,8 @@ export default function CarrinhoScreen({ navigation }) {
       }
 
       message += `💰 Total: ${formatPrice(total)}\n\n`;
-
-      // Informações específicas por método de pagamento
-      if (selectedPaymentMethod.id === "pix") {
-        message += `📱 Um QR Code PIX será gerado para pagamento instantâneo.`;
-      } else if (selectedPaymentMethod.id === "bank_transfer") {
-        message += `🧾 Seu boleto será gerado com vencimento em 3 dias úteis.`;
-      } else {
-        message += `💳 Complete o pagamento no gateway do Mercado Pago.`;
-      }
-
-      message += `\n\n🔐 Ambiente seguro do Mercado Pago.`;
+      message += `� Você escolherá o método de pagamento no gateway do Mercado Pago.\n`;
+      message += `🔐 Ambiente seguro do Mercado Pago.`;
 
       // 6. Mostrar confirmação e redirecionar
       Alert.alert("Pedido Confirmado!", message, [
@@ -584,12 +554,8 @@ export default function CarrinhoScreen({ navigation }) {
           selectedEnderecoId={selectedEndereco?.endereco_id}
         />
 
-        {/* Seleção de Método de Pagamento */}
-        <PaymentMethodSelector
-          onPaymentMethodSelect={handlePaymentMethodSelect}
-          selectedPaymentMethod={selectedPaymentMethod}
-          onPaymentDataChange={handlePaymentDataChange}
-        />
+        {/* Dados para Pagamento */}
+        <PaymentDataSelector onPaymentDataChange={handlePaymentDataChange} />
       </ScrollView>
 
       {/* Footer com resumo e botão de pagamento */}
