@@ -8,6 +8,7 @@ import {
   ScrollView,
   ActivityIndicator,
   Alert,
+  Linking,
 } from "react-native";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import { theme } from "../utils/theme";
@@ -15,12 +16,19 @@ import { CartService } from "../services/cartService";
 import { formatPrice, getProductMainImage } from "../api/products";
 import Toast from "react-native-toast-message";
 import EnderecoSelector from "../components/EnderecoSelector";
+import PaymentMethodSelector from "../components/PaymentMethodSelector";
+import { createPedido } from "../api/pedidosApi";
+import { createPayment, getNotificationUrl } from "../api/paymentsApi";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function CarrinhoScreen({ navigation }) {
   const [cartItems, setCartItems] = useState([]);
   const [loading, setLoading] = useState(false);
   const [total, setTotal] = useState(0);
   const [selectedEndereco, setSelectedEndereco] = useState(null);
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState(null);
+  const [paymentData, setPaymentData] = useState({});
+  const [processing, setProcessing] = useState(false);
 
   useEffect(() => {
     loadCartItems();
@@ -149,7 +157,106 @@ export default function CarrinhoScreen({ navigation }) {
     setSelectedEndereco(endereco);
   };
 
-  const handleGoToPayment = () => {
+  const handlePaymentMethodSelect = (method) => {
+    setSelectedPaymentMethod(method);
+  };
+
+  const handlePaymentDataChange = (data) => {
+    setPaymentData(data);
+  };
+
+  const openPaymentUrl = async (paymentData) => {
+    try {
+      // Log completo dos dados de pagamento recebidos
+      console.log(
+        "💳 Dados completos do pagamento recebidos:",
+        JSON.stringify(paymentData, null, 2)
+      );
+
+      // Usar sandbox_init_point para desenvolvimento ou init_point para produção
+      // Priorizar sandbox para desenvolvimento
+      const paymentUrl =
+        paymentData.sandbox_init_point || paymentData.init_point;
+
+      if (!paymentUrl) {
+        console.error("❌ URLs de pagamento não encontradas:", {
+          init_point: paymentData.init_point,
+          sandbox_init_point: paymentData.sandbox_init_point,
+        });
+        throw new Error("URL de pagamento não encontrada na resposta");
+      }
+
+      console.log("🌐 Tentando abrir URL de pagamento:", paymentUrl);
+      console.log("🔍 Informações do pagamento:", {
+        payment_id: paymentData.payment_id,
+        preference_id: paymentData.preference_id,
+        transaction_amount: paymentData.transaction_amount,
+        status: paymentData.payment?.status,
+      });
+
+      // Verificar se a URL pode ser aberta
+      const supported = await Linking.canOpenURL(paymentUrl);
+
+      if (supported) {
+        console.log("✅ URL suportada, abrindo no navegador...");
+
+        // Mostrar feedback antes de redirecionar
+        Toast.show({
+          type: "info",
+          text1: "Redirecionando",
+          text2: "Abrindo gateway do Mercado Pago...",
+          visibilityTime: 2000,
+        });
+
+        // Aguardar um pouco antes de abrir para o usuário ver o toast
+        setTimeout(async () => {
+          await Linking.openURL(paymentUrl);
+          console.log("🚀 URL aberta com sucesso!");
+        }, 500);
+      } else {
+        console.error("❌ URL não suportada pelo dispositivo");
+        throw new Error("URL de pagamento não suportada pelo dispositivo");
+      }
+    } catch (error) {
+      console.error("❌ Erro ao abrir URL de pagamento:", error);
+      console.error("❌ Stack trace:", error.stack);
+
+      Toast.show({
+        type: "error",
+        text1: "Erro no Redirecionamento",
+        text2: "Não foi possível abrir o gateway de pagamento",
+        visibilityTime: 4000,
+      });
+
+      // Mostrar alert com informações do pagamento e opção de tentar novamente
+      const paymentUrl =
+        paymentData.sandbox_init_point || paymentData.init_point;
+      Alert.alert(
+        "Erro ao Abrir Pagamento",
+        `Não foi possível redirecionar automaticamente.\n\nPedido: ${
+          paymentData.payment?.pedido_id || "N/A"
+        }\nValor: R$ ${
+          paymentData.transaction_amount || "N/A"
+        }\n\nVocê pode acessar o link manualmente ou tentar novamente.`,
+        [
+          { text: "Cancelar", style: "cancel" },
+          {
+            text: "Tentar Novamente",
+            onPress: () => openPaymentUrl(paymentData),
+          },
+          {
+            text: "Ver Link",
+            onPress: () => {
+              Alert.alert("Link do Pagamento", paymentUrl, [{ text: "OK" }]);
+            },
+          },
+        ]
+      );
+    }
+  };
+
+  const handleGoToPayment = async () => {
+    // Validações
     if (!selectedEndereco) {
       Alert.alert(
         "Endereço Obrigatório",
@@ -159,14 +266,198 @@ export default function CarrinhoScreen({ navigation }) {
       return;
     }
 
-    // TODO: Implementar navegação para tela de pagamento
-    Alert.alert(
-      "Pagamento",
-      `Pedido será entregue em:\n${selectedEndereco.rua}, ${selectedEndereco.numero} - ${selectedEndereco.bairro}, ${selectedEndereco.cidade}/${selectedEndereco.estado}\n\nFuncionalidade de pagamento será implementada em breve!`,
-      [{ text: "OK" }]
-    );
-  };
+    if (!selectedPaymentMethod) {
+      Alert.alert(
+        "Método de Pagamento",
+        "Selecione um método de pagamento para continuar.",
+        [{ text: "OK" }]
+      );
+      return;
+    }
 
+    if (
+      !paymentData ||
+      !paymentData.payer_email ||
+      !paymentData.payer_identification_number
+    ) {
+      Alert.alert(
+        "Dados Obrigatórios",
+        "Preencha todos os dados de pagamento para continuar.",
+        [{ text: "OK" }]
+      );
+      return;
+    }
+
+    // Validação simples de email
+    if (!/\S+@\S+\.\S+/.test(paymentData.payer_email)) {
+      Alert.alert("Email Inválido", "Por favor, insira um email válido.", [
+        { text: "OK" },
+      ]);
+      return;
+    }
+
+    // Validação de CPF (11 dígitos)
+    if (
+      !paymentData.payer_identification_number ||
+      paymentData.payer_identification_number.length !== 11
+    ) {
+      Alert.alert(
+        "CPF Inválido",
+        "Por favor, insira um CPF válido com 11 dígitos.",
+        [{ text: "OK" }]
+      );
+      return;
+    }
+
+    try {
+      setProcessing(true);
+
+      // 1. Criar o pedido
+      const produtos = cartItems.map((item) => ({
+        produto_id: item.product_id,
+        quantidade: item.quantity,
+        observacao: "", // Pode ser expandido futuramente
+      }));
+
+      const pedidoPayload = {
+        endereco_id: selectedEndereco.endereco_id,
+        status: "PENDENTE",
+        statusEntrega: "PENDENTE",
+        statusPagamento: "PENDING",
+        observacoes: "", // Pode ser expandido futuramente
+        produtos: produtos,
+        vouchers: [], // Pode ser expandido futuramente
+      };
+
+      // Debug dos dados de pagamento
+      console.log(
+        "🔍 PaymentData recebido:",
+        JSON.stringify(paymentData, null, 2)
+      );
+      console.log(
+        "🔍 SelectedPaymentMethod:",
+        JSON.stringify(selectedPaymentMethod, null, 2)
+      );
+
+      console.log("🛒 Criando pedido...");
+      const pedidoResponse = await createPedido(pedidoPayload);
+
+      if (!pedidoResponse.pedido_id) {
+        throw new Error("Erro ao criar pedido: ID não retornado");
+      }
+
+      // 2. Criar o pagamento
+      const paymentPayload = {
+        pedidoId: pedidoResponse.pedido_id,
+        paymentMethod:
+          paymentData.payment_method_id || selectedPaymentMethod.id,
+        installments: paymentData.installments || 1,
+        payerData: {
+          email: paymentData.payer_email,
+          identification: {
+            type: paymentData.payer_identification_type || "CPF",
+            number: paymentData.payer_identification_number,
+          },
+        },
+      };
+
+      console.log("💳 Processando pagamento...");
+      const paymentResponse = await createPayment(paymentPayload);
+
+      // Verificar se a resposta tem a estrutura esperada
+      if (
+        !paymentResponse ||
+        (!paymentResponse.data &&
+          !paymentResponse.init_point &&
+          !paymentResponse.sandbox_init_point)
+      ) {
+        throw new Error("Resposta inválida da API de pagamento");
+      }
+
+      // Normalizar a resposta (pode vir direto ou dentro de 'data')
+      const paymentResponseData = paymentResponse.data || paymentResponse;
+
+      // 3. Limpar carrinho após sucesso da criação do pedido/pagamento
+      await CartService.clearCart();
+
+      // 4. Mostrar sucesso
+      Toast.show({
+        type: "success",
+        text1: "Pedido Criado!",
+        text2: "Redirecionando para pagamento...",
+        visibilityTime: 2000,
+      });
+
+      // 5. Preparar informações do pedido
+      let message = `Pedido #${pedidoResponse.pedido_id} criado com sucesso!\n\n`;
+      message += `📍 Endereço: ${selectedEndereco.rua}, ${selectedEndereco.numero}\n`;
+      message += `${selectedEndereco.bairro}, ${selectedEndereco.cidade}/${selectedEndereco.estado}\n\n`;
+      message += `💳 Pagamento: ${selectedPaymentMethod.name}\n`;
+
+      // Adicionar informações específicas do método de pagamento
+      if (paymentData.installments > 1) {
+        message += `📊 Parcelas: ${paymentData.installments}x de ${formatPrice(
+          total / paymentData.installments
+        )}\n`;
+      }
+
+      message += `💰 Total: ${formatPrice(total)}\n\n`;
+
+      // Informações específicas por método de pagamento
+      if (selectedPaymentMethod.id === "pix") {
+        message += `📱 Um QR Code PIX será gerado para pagamento instantâneo.`;
+      } else if (selectedPaymentMethod.id === "bank_transfer") {
+        message += `🧾 Seu boleto será gerado com vencimento em 3 dias úteis.`;
+      } else {
+        message += `💳 Complete o pagamento no gateway do Mercado Pago.`;
+      }
+
+      message += `\n\n🔐 Ambiente seguro do Mercado Pago.`;
+
+      // 6. Mostrar confirmação e redirecionar
+      Alert.alert("Pedido Confirmado!", message, [
+        {
+          text: "Finalizar Pagamento",
+          onPress: async () => {
+            // Redirecionar para gateway de pagamento
+            await openPaymentUrl(paymentResponseData);
+
+            // Aguardar um pouco antes de navegar de volta
+            setTimeout(() => {
+              navigation.navigate("produtos");
+            }, 1000);
+          },
+        },
+        {
+          text: "Pagar Depois",
+          style: "cancel",
+          onPress: () => {
+            // Apenas voltar sem abrir o gateway
+            navigation.navigate("produtos");
+          },
+        },
+      ]);
+    } catch (error) {
+      console.error("Erro no processo de pagamento:", error);
+
+      Toast.show({
+        type: "error",
+        text1: "Erro no Pagamento",
+        text2:
+          error.response?.data?.message ||
+          "Não foi possível processar o pedido",
+        visibilityTime: 4000,
+      });
+
+      Alert.alert(
+        "Erro no Pagamento",
+        "Não foi possível processar seu pedido. Tente novamente.",
+        [{ text: "OK" }]
+      );
+    } finally {
+      setProcessing(false);
+    }
+  };
   const CartItem = ({ item }) => {
     const mainImage = getProductMainImage(item);
 
@@ -292,6 +583,13 @@ export default function CarrinhoScreen({ navigation }) {
           onEnderecoSelect={handleEnderecoSelect}
           selectedEnderecoId={selectedEndereco?.endereco_id}
         />
+
+        {/* Seleção de Método de Pagamento */}
+        <PaymentMethodSelector
+          onPaymentMethodSelect={handlePaymentMethodSelect}
+          selectedPaymentMethod={selectedPaymentMethod}
+          onPaymentDataChange={handlePaymentDataChange}
+        />
       </ScrollView>
 
       {/* Footer com resumo e botão de pagamento */}
@@ -312,16 +610,26 @@ export default function CarrinhoScreen({ navigation }) {
         </View>
 
         <TouchableOpacity
-          style={styles.paymentButton}
+          style={[
+            styles.paymentButton,
+            processing && styles.paymentButtonDisabled,
+          ]}
           onPress={handleGoToPayment}
+          disabled={processing}
         >
-          <MaterialIcons
-            name="payment"
-            size={20}
-            color="white"
-            style={styles.paymentIcon}
-          />
-          <Text style={styles.paymentText}>Seguir para Pagamento</Text>
+          {processing ? (
+            <ActivityIndicator size="small" color="white" />
+          ) : (
+            <MaterialIcons
+              name="payment"
+              size={20}
+              color="white"
+              style={styles.paymentIcon}
+            />
+          )}
+          <Text style={styles.paymentText}>
+            {processing ? "Processando..." : "Finalizar Pedido"}
+          </Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -547,6 +855,9 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     borderRadius: 12,
   },
+  paymentButtonDisabled: {
+    opacity: 0.7,
+  },
   paymentIcon: {
     marginRight: 8,
   },
@@ -554,5 +865,6 @@ const styles = StyleSheet.create({
     color: "white",
     fontSize: 16,
     fontWeight: "600",
+    marginLeft: 8,
   },
 });
