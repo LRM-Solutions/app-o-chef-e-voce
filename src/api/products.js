@@ -12,12 +12,21 @@ const api = axios.create({
  */
 export const getProducts = async () => {
   try {
-    console.log("Buscando lista de produtos...");
+    console.log("🛍️ [DEBUG] GET /products - Buscando lista de produtos");
     const response = await api.get("/products");
-    console.log("Produtos recebidos:", response.data.length);
+    console.log("✅ [DEBUG] GET /products - Response:", {
+      status: response.status,
+      count: response.data?.length || 0,
+      firstProduct: response.data?.[0]?.product_name || "N/A",
+    });
     return response.data;
   } catch (error) {
-    console.error("Erro ao buscar produtos:", error);
+    console.error("❌ [DEBUG] GET /products - Erro:", {
+      message: error.message,
+      status: error.response?.status,
+      data: error.response?.data,
+      url: error.config?.url,
+    });
     throw new Error(
       error.response?.data?.message || "Erro ao carregar produtos"
     );
@@ -29,12 +38,25 @@ export const getProducts = async () => {
  */
 export const getProductById = async (productId) => {
   try {
-    console.log(`Buscando produto com ID: ${productId}`);
+    console.log(
+      `🔍 [DEBUG] GET /products/${productId} - Buscando produto específico`
+    );
     const response = await api.get(`/products/${productId}`);
-    console.log("Produto recebido:", response.data);
+    console.log("✅ [DEBUG] GET /products/:id - Response:", {
+      status: response.status,
+      productId: productId,
+      productName: response.data?.product_name || "N/A",
+      productPrice: response.data?.product_price || "N/A",
+    });
     return response.data;
   } catch (error) {
-    console.error("Erro ao buscar produto:", error);
+    console.error("❌ [DEBUG] GET /products/:id - Erro:", {
+      message: error.message,
+      status: error.response?.status,
+      data: error.response?.data,
+      productId: productId,
+      url: error.config?.url,
+    });
     throw new Error(
       error.response?.data?.message || "Erro ao carregar produto"
     );

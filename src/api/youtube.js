@@ -35,7 +35,8 @@ export const getPlaylistVideos = async (pageToken = "", maxResults = 10) => {
       params.pageToken = pageToken;
     }
 
-    console.log("Fazendo requisição para buscar vídeos da playlist...");
+    console.log("📹 [DEBUG] GET /playlistItems - Buscando vídeos da playlist");
+    console.log("📤 [DEBUG] GET /playlistItems - Params:", params);
     const response = await youtubeApi.get("/playlistItems", { params });
 
     // Buscar estatísticas dos vídeos (views, likes, etc.)
@@ -133,7 +134,8 @@ export const getChannelVideos = async (pageToken = "", maxResults = 10) => {
       params.pageToken = pageToken;
     }
 
-    console.log("Fazendo requisição para buscar vídeos...");
+    console.log("🔍 [DEBUG] GET /search - Buscando vídeos do canal");
+    console.log("📤 [DEBUG] GET /search - Params:", params);
     const response = await youtubeApi.get("/search", { params });
 
     // Buscar estatísticas dos vídeos (views, likes, etc.)

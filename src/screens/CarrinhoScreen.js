@@ -14,11 +14,13 @@ import { theme } from "../utils/theme";
 import { CartService } from "../services/cartService";
 import { formatPrice, getProductMainImage } from "../api/products";
 import Toast from "react-native-toast-message";
+import EnderecoSelector from "../components/EnderecoSelector";
 
 export default function CarrinhoScreen({ navigation }) {
   const [cartItems, setCartItems] = useState([]);
   const [loading, setLoading] = useState(false);
   const [total, setTotal] = useState(0);
+  const [selectedEndereco, setSelectedEndereco] = useState(null);
 
   useEffect(() => {
     loadCartItems();
@@ -143,11 +145,24 @@ export default function CarrinhoScreen({ navigation }) {
     );
   };
 
+  const handleEnderecoSelect = (endereco) => {
+    setSelectedEndereco(endereco);
+  };
+
   const handleGoToPayment = () => {
+    if (!selectedEndereco) {
+      Alert.alert(
+        "Endereço Obrigatório",
+        "Selecione um endereço de entrega para continuar.",
+        [{ text: "OK" }]
+      );
+      return;
+    }
+
     // TODO: Implementar navegação para tela de pagamento
     Alert.alert(
       "Pagamento",
-      "Funcionalidade de pagamento será implementada em breve!",
+      `Pedido será entregue em:\n${selectedEndereco.rua}, ${selectedEndereco.numero} - ${selectedEndereco.bairro}, ${selectedEndereco.cidade}/${selectedEndereco.estado}\n\nFuncionalidade de pagamento será implementada em breve!`,
       [{ text: "OK" }]
     );
   };
@@ -271,6 +286,12 @@ export default function CarrinhoScreen({ navigation }) {
         {cartItems.map((item) => (
           <CartItem key={item.product_id} item={item} />
         ))}
+
+        {/* Seleção de Endereço */}
+        <EnderecoSelector
+          onEnderecoSelect={handleEnderecoSelect}
+          selectedEnderecoId={selectedEndereco?.endereco_id}
+        />
       </ScrollView>
 
       {/* Footer com resumo e botão de pagamento */}

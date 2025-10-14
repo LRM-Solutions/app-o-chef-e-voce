@@ -4,6 +4,7 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import PerfilScreen from "./PerfilScreen";
 import EpisodiosScreen from "./EpisodiosScreen";
 import ProductsStack from "./ProductsStack";
+import CarrinhoScreen from "./CarrinhoScreen";
 import { View, StyleSheet, Platform } from "react-native";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import Ionicons from "react-native-vector-icons/Ionicons";
@@ -81,6 +82,15 @@ const Navigator = () => {
             component={PerfilScreen}
             options={{
               tabBarLabel: "Conta",
+            }}
+          />
+          {/* Tela do carrinho - oculta da tab bar mas acessível via navegação */}
+          <Tab.Screen
+            name="Carrinho"
+            component={CarrinhoScreen}
+            options={{
+              tabBarButton: () => null, // Remove da tab bar
+              headerShown: false, // CarrinhoScreen tem seu próprio header
             }}
           />
         </Tab.Navigator>

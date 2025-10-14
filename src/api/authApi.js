@@ -5,11 +5,27 @@ import Toast from "react-native-toast-message";
 // Função de cadastro
 export const signUp = async (userName, userEmail, userPassword) => {
   try {
-    const response = await api.post("/sign-up", {
+    const payload = {
       user_name: userName,
       user_email: userEmail,
       user_password: userPassword,
       user_type_id: 1,
+    };
+
+    console.log("👤 [DEBUG] POST /sign-up - Criando nova conta");
+    console.log("📤 [DEBUG] POST /sign-up - Payload:", {
+      ...payload,
+      user_password: "[HIDDEN]", // Não mostrar senha no log
+    });
+
+    const response = await api.post("/sign-up", payload);
+
+    console.log("✅ [DEBUG] POST /sign-up - Response:", {
+      status: response.status,
+      data: {
+        ...response.data,
+        token: response.data.token ? "[HIDDEN]" : undefined,
+      },
     });
 
     Toast.show({
@@ -21,7 +37,12 @@ export const signUp = async (userName, userEmail, userPassword) => {
 
     return response.data;
   } catch (error) {
-    console.error("Erro no cadastro:", error);
+    console.error("❌ [DEBUG] POST /sign-up - Erro:", {
+      message: error.message,
+      status: error.response?.status,
+      data: error.response?.data,
+      url: error.config?.url,
+    });
 
     let errorMessage = "Erro interno do servidor";
     if (error.response && error.response.data && error.response.data.error) {
@@ -42,19 +63,41 @@ export const signUp = async (userName, userEmail, userPassword) => {
 // Função de login
 export const login = async (userEmail, userPassword) => {
   try {
-    const response = await api.post("/login", {
+    const payload = {
       user_email: userEmail,
       user_password: userPassword,
+    };
+
+    console.log("🔐 [DEBUG] POST /login - Fazendo login");
+    console.log("📤 [DEBUG] POST /login - Payload:", {
+      user_email: userEmail,
+      user_password: "[HIDDEN]", // Não mostrar senha no log
+    });
+
+    const response = await api.post("/login", payload);
+
+    console.log("✅ [DEBUG] POST /login - Response:", {
+      status: response.status,
+      data: {
+        ...response.data,
+        token: response.data.token ? "[HIDDEN]" : undefined,
+      },
     });
 
     // Armazenar o token no AsyncStorage
     if (response.data.token) {
       await AsyncStorage.setItem("auth_token", response.data.token);
+      console.log("💾 [DEBUG] Token salvo no AsyncStorage");
     }
 
     return response.data;
   } catch (error) {
-    console.error("Erro no login:", error);
+    console.error("❌ [DEBUG] POST /login - Erro:", {
+      message: error.message,
+      status: error.response?.status,
+      data: error.response?.data,
+      url: error.config?.url,
+    });
 
     let errorMessage = error.response.data.error;
 
