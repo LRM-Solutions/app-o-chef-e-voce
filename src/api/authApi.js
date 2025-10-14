@@ -159,8 +159,8 @@ export const checkAuthToken = async () => {
 export const verifyEmail = async (userEmail, verificationCode) => {
   try {
     const payload = {
-      user_email: userEmail,
-      verification_code: verificationCode,
+      email: userEmail,
+      code: verificationCode,
     };
 
     console.log("✉️ [DEBUG] PATCH /user-verify - Verificando email");
@@ -209,7 +209,7 @@ export const verifyEmail = async (userEmail, verificationCode) => {
 export const resendVerificationCode = async (userEmail) => {
   try {
     const payload = {
-      user_email: userEmail,
+      email: userEmail,
     };
 
     console.log("📧 [DEBUG] POST /resend-verification - Reenviando código");
