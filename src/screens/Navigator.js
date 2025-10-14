@@ -90,6 +90,7 @@ const Navigator = () => {
             component={CarrinhoScreen}
             options={{
               tabBarButton: () => null, // Remove da tab bar
+              tabBarItemStyle: { display: "none" },
               headerShown: false, // CarrinhoScreen tem seu próprio header
             }}
           />
