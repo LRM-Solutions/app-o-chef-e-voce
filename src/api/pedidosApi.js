@@ -27,7 +27,7 @@ export const getUserPedidos = async () => {
   try {
     console.log("📋 [PEDIDOS API] Buscando pedidos do usuário...");
 
-    const response = await api.get("/user/pedidos");
+    const response = await api.get("/pedidos/usuario");
 
     console.log(
       "✅ [PEDIDOS API] Pedidos encontrados:",

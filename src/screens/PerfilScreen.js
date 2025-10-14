@@ -10,8 +10,7 @@ const PerfilScreen = ({ navigation }) => {
   const { logout: authLogout } = useAuth();
 
   const handleMeusPedidos = () => {
-    // TODO: Navegar para tela de pedidos
-    Alert.alert("Em breve", "Tela de pedidos será implementada em breve!");
+    navigation.navigate("MeusPedidos");
   };
 
   const handleAlterarSenha = () => {
