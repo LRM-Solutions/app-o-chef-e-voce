@@ -6,7 +6,7 @@ import EpisodiosScreen from "./EpisodiosScreen";
 import ProductsStack from "./ProductsStack";
 import CarrinhoScreen from "./CarrinhoScreen";
 import MeusPedidosScreen from "./MeusPedidosScreen";
-import VouchersScreen from "./VouchersScreen";
+import VouchersStack from "./VouchersStack";
 import { View, StyleSheet, Platform } from "react-native";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import Ionicons from "react-native-vector-icons/Ionicons";
@@ -63,7 +63,7 @@ const Navigator = () => {
                 height: Platform.OS === "ios" ? 30 + insets.bottom : 60,
               },
             ],
-            headerShown: route.name !== "produtos", // Não mostrar header na stack de produtos
+            headerShown: route.name !== "produtos" && route.name !== "vouchers", // Não mostrar header nas stacks de produtos e vouchers
             header: () => <CustomHeader />,
           })}
         >
@@ -76,7 +76,7 @@ const Navigator = () => {
           />
           <Tab.Screen
             name="vouchers"
-            component={VouchersScreen}
+            component={VouchersStack}
             options={{
               tabBarLabel: "Vouchers",
             }}

@@ -60,14 +60,7 @@ export default function VouchersScreen({ navigation }) {
   };
 
   const navigateToVoucher = (voucherId) => {
-    // TODO: Implementar navegação para detalhes do voucher se necessário
-    console.log("Navegar para voucher:", voucherId);
-    Toast.show({
-      type: "info",
-      text1: "Voucher selecionado",
-      text2: "Funcionalidade em desenvolvimento",
-      visibilityTime: 2000,
-    });
+    navigation.navigate("SingleVoucher", { voucherId });
   };
 
   const VoucherItem = ({ item }) => {

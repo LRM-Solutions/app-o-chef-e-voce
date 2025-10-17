@@ -38,6 +38,47 @@ export const getVouchers = async () => {
 };
 
 /**
+ * Busca um voucher específico por ID
+ */
+export const getVoucherById = async (voucherId) => {
+  try {
+    console.log(
+      `🔍 [DEBUG] GET /vouchers/${voucherId} - Buscando voucher específico`
+    );
+
+    const response = await api.get(`/vouchers/${voucherId}`);
+
+    console.log("✅ [DEBUG] GET /vouchers/:id - Response:", {
+      status: response.status,
+      voucherId: voucherId,
+      voucherName: response.data?.data?.voucher_name || "N/A",
+      voucherPrice: response.data?.data?.voucher_price || "N/A",
+      partnerName: response.data?.data?.partner?.partner_name || "N/A",
+    });
+
+    if (response.data.success && response.data.data) {
+      return response.data.data;
+    } else {
+      console.warn(
+        "⚠️ [DEBUG] GET /vouchers/:id - Resposta da API não contém dados válidos:",
+        response.data
+      );
+      throw new Error("Voucher não encontrado");
+    }
+  } catch (error) {
+    console.error("❌ [DEBUG] GET /vouchers/:id - Erro:", {
+      message: error.message,
+      status: error.response?.status,
+      data: error.response?.data,
+      url: error.config?.url,
+    });
+    throw new Error(
+      error.response?.data?.message || "Erro ao carregar voucher"
+    );
+  }
+};
+
+/**
  * Formatar o preço do voucher
  */
 export const formatVoucherPrice = (price) => {
