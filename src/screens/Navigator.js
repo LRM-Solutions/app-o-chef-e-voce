@@ -6,6 +6,7 @@ import EpisodiosScreen from "./EpisodiosScreen";
 import ProductsStack from "./ProductsStack";
 import CarrinhoScreen from "./CarrinhoScreen";
 import MeusPedidosScreen from "./MeusPedidosScreen";
+import VouchersScreen from "./VouchersScreen";
 import { View, StyleSheet, Platform } from "react-native";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import Ionicons from "react-native-vector-icons/Ionicons";
@@ -28,6 +29,8 @@ const TabIcon = ({ name, focused }) => {
     switch (name) {
       case "produtos":
         return <MaterialIcons name="store" size={size} color={color} />;
+      case "vouchers":
+        return <MaterialIcons name="card-giftcard" size={size} color={color} />;
       case "ultimosEpisodios":
         return <AntDesign name="youtube" size={size} color={color} />;
       case "config":
@@ -69,6 +72,13 @@ const Navigator = () => {
             component={ProductsStack}
             options={{
               tabBarLabel: "Produtos",
+            }}
+          />
+          <Tab.Screen
+            name="vouchers"
+            component={VouchersScreen}
+            options={{
+              tabBarLabel: "Vouchers",
             }}
           />
           <Tab.Screen
