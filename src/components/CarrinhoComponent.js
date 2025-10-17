@@ -13,11 +13,13 @@ import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import { theme } from "../utils/theme";
 import { CartService } from "../services/cartService";
 import { formatPrice, getProductMainImage } from "../api/products";
+import { formatVoucherPrice, getVoucherMainImage } from "../api/vouchers";
 import Toast from "react-native-toast-message";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function CarrinhoComponent({ visible, onClose, onGoToCart }) {
   const [cartItems, setCartItems] = useState([]);
+  const [voucherCartItems, setVoucherCartItems] = useState([]);
   const [loading, setLoading] = useState(false);
   const [total, setTotal] = useState(0);
 
@@ -31,9 +33,11 @@ export default function CarrinhoComponent({ visible, onClose, onGoToCart }) {
     try {
       setLoading(true);
       const items = await CartService.getCartItems();
-      const cartTotal = await CartService.getCartTotal();
+      const voucherItems = await CartService.getVoucherCartItems();
+      const grandTotal = await CartService.getGrandTotal();
       setCartItems(items);
-      setTotal(cartTotal);
+      setVoucherCartItems(voucherItems);
+      setTotal(grandTotal);
     } catch (error) {
       console.error("Erro ao carregar carrinho:", error);
       Toast.show({
@@ -82,6 +86,41 @@ export default function CarrinhoComponent({ visible, onClose, onGoToCart }) {
         type: "error",
         text1: "Erro",
         text2: "Não foi possível remover o produto",
+        visibilityTime: 3000,
+      });
+    }
+  };
+
+  const handleUpdateVoucherQuantity = async (voucherId, newQuantity) => {
+    try {
+      await CartService.updateVoucherQuantity(voucherId, newQuantity);
+      await loadCartItems();
+    } catch (error) {
+      console.error("Erro ao atualizar voucher:", error);
+      Toast.show({
+        type: "error",
+        text1: "Erro",
+        text2: "Não foi possível atualizar o voucher",
+        visibilityTime: 3000,
+      });
+    }
+  };
+
+  const handleRemoveVoucher = async (voucherId) => {
+    try {
+      await CartService.removeVoucherFromCart(voucherId);
+      await loadCartItems();
+      Toast.show({
+        type: "success",
+        text1: "Voucher removido",
+        visibilityTime: 2000,
+      });
+    } catch (error) {
+      console.error("Erro ao remover voucher:", error);
+      Toast.show({
+        type: "error",
+        text1: "Erro",
+        text2: "Não foi possível remover o voucher",
         visibilityTime: 3000,
       });
     }
@@ -150,6 +189,80 @@ export default function CarrinhoComponent({ visible, onClose, onGoToCart }) {
     );
   };
 
+  const VoucherItem = ({ item }) => {
+    const mainImage = getVoucherMainImage(item);
+
+    return (
+      <View style={styles.cartItem}>
+        <View style={styles.itemImageContainer}>
+          {mainImage ? (
+            <Image source={{ uri: mainImage }} style={styles.itemImage} />
+          ) : (
+            <View style={styles.noImageContainer}>
+              <MaterialIcons name="card-giftcard" size={24} color="#ccc" />
+            </View>
+          )}
+        </View>
+
+        <View style={styles.itemContent}>
+          <View style={styles.itemHeader}>
+            <View style={styles.itemInfo}>
+              <Text style={styles.itemName} numberOfLines={2}>
+                {item.voucher_name}
+              </Text>
+              <View style={styles.partnerInfo}>
+                <MaterialIcons name="store" size={14} color="#666" />
+                <Text style={styles.partnerName}>
+                  {item.partner?.partner_name || "Parceiro"}
+                </Text>
+              </View>
+              <Text style={styles.itemPrice}>
+                {formatVoucherPrice(item.voucher_price)} cada
+              </Text>
+            </View>
+            <TouchableOpacity
+              style={styles.removeButton}
+              onPress={() => handleRemoveVoucher(item.voucher_id)}
+            >
+              <MaterialIcons name="close" size={20} color="#f44336" />
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.quantityControls}>
+            <TouchableOpacity
+              style={styles.quantityButton}
+              onPress={() =>
+                handleUpdateVoucherQuantity(item.voucher_id, item.quantity - 1)
+              }
+              disabled={item.quantity <= 1}
+            >
+              <MaterialIcons
+                name="remove"
+                size={18}
+                color={item.quantity <= 1 ? "#ccc" : "#000"}
+              />
+            </TouchableOpacity>
+
+            <Text style={styles.quantityText}>{item.quantity}</Text>
+
+            <TouchableOpacity
+              style={styles.quantityButton}
+              onPress={() =>
+                handleUpdateVoucherQuantity(item.voucher_id, item.quantity + 1)
+              }
+            >
+              <MaterialIcons name="add" size={18} color="#000" />
+            </TouchableOpacity>
+
+            <Text style={styles.subtotalText}>
+              {formatVoucherPrice(item.total_price)}
+            </Text>
+          </View>
+        </View>
+      </View>
+    );
+  };
+
   return (
     <Modal
       visible={visible}
@@ -172,20 +285,36 @@ export default function CarrinhoComponent({ visible, onClose, onGoToCart }) {
             <ActivityIndicator size="large" color={theme.colors.primary} />
             <Text style={styles.loadingText}>Carregando carrinho...</Text>
           </View>
-        ) : cartItems.length === 0 ? (
+        ) : cartItems.length === 0 && voucherCartItems.length === 0 ? (
           <View style={styles.emptyContainer}>
             <MaterialIcons name="shopping-cart" size={64} color="#ccc" />
             <Text style={styles.emptyText}>Seu carrinho está vazio</Text>
             <Text style={styles.emptySubtext}>
-              Adicione produtos para ver aqui
+              Adicione produtos ou vouchers para ver aqui
             </Text>
           </View>
         ) : (
           <>
             <ScrollView style={styles.scrollContainer}>
-              {cartItems.map((item) => (
-                <CartItem key={item.product_id} item={item} />
-              ))}
+              {/* Produtos */}
+              {cartItems.length > 0 && (
+                <>
+                  <Text style={styles.sectionHeader}>Produtos</Text>
+                  {cartItems.map((item) => (
+                    <CartItem key={item.product_id} item={item} />
+                  ))}
+                </>
+              )}
+
+              {/* Vouchers */}
+              {voucherCartItems.length > 0 && (
+                <>
+                  <Text style={styles.sectionHeader}>Vouchers</Text>
+                  {voucherCartItems.map((item) => (
+                    <VoucherItem key={item.voucher_id} item={item} />
+                  ))}
+                </>
+              )}
             </ScrollView>
 
             {/* Footer com total e botão */}
@@ -404,5 +533,13 @@ const styles = StyleSheet.create({
     color: "white",
     fontSize: 16,
     fontWeight: "600",
+  },
+  sectionHeader: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: theme.colors.foreground,
+    marginHorizontal: 16,
+    marginVertical: 12,
+    marginTop: 20,
   },
 });

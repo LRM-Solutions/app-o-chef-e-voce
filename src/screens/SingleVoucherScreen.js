@@ -19,6 +19,7 @@ import {
   isVoucherAvailable,
   getVoucherMainImage,
 } from "../api/vouchers";
+import { CartService } from "../services/cartService";
 import Toast from "react-native-toast-message";
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
@@ -27,6 +28,7 @@ export default function SingleVoucherScreen({ route, navigation }) {
   const { voucherId } = route.params;
   const [voucher, setVoucher] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [quantity, setQuantity] = useState(1);
 
   useEffect(() => {
     loadVoucher();
@@ -53,14 +55,36 @@ export default function SingleVoucherScreen({ route, navigation }) {
     }
   };
 
-  const handlePurchaseVoucher = async () => {
-    // TODO: Implementar compra do voucher
-    Toast.show({
-      type: "info",
-      text1: "Compra de Voucher",
-      text2: "Funcionalidade em desenvolvimento",
-      visibilityTime: 3000,
-    });
+  const handleQuantityChange = (increment) => {
+    if (increment && quantity < voucher.voucher_quantity) {
+      setQuantity(quantity + 1);
+    } else if (!increment && quantity > 1) {
+      setQuantity(quantity - 1);
+    }
+  };
+
+  const handleAddVoucherToCart = async () => {
+    try {
+      await CartService.addVoucherToCart(voucher, quantity);
+
+      Toast.show({
+        type: "success",
+        text1: "Voucher adicionado!",
+        text2: `${quantity}x ${voucher.voucher_name} adicionado ao carrinho`,
+        visibilityTime: 3000,
+      });
+
+      // Reset da quantidade para 1 após adicionar
+      setQuantity(1);
+    } catch (error) {
+      console.error("Erro ao adicionar voucher ao carrinho:", error);
+      Toast.show({
+        type: "error",
+        text1: "Erro",
+        text2: "Não foi possível adicionar o voucher ao carrinho",
+        visibilityTime: 3000,
+      });
+    }
   };
 
   const handleVisitPartnerSite = async () => {
@@ -194,6 +218,39 @@ export default function SingleVoucherScreen({ route, navigation }) {
             </Text>
           </View>
 
+          {/* Seletor de quantidade */}
+          {available && (
+            <View style={styles.quantitySection}>
+              <Text style={styles.quantityLabel}>Quantidade:</Text>
+              <View style={styles.quantityContainer}>
+                <TouchableOpacity
+                  style={[
+                    styles.quantityButton,
+                    quantity === 1 && styles.quantityButtonDisabled,
+                  ]}
+                  onPress={() => handleQuantityChange(false)}
+                  disabled={quantity === 1}
+                >
+                  <MaterialIcons name="remove" size={20} color="#000" />
+                </TouchableOpacity>
+
+                <Text style={styles.quantityText}>{quantity}</Text>
+
+                <TouchableOpacity
+                  style={[
+                    styles.quantityButton,
+                    quantity === voucher.voucher_quantity &&
+                      styles.quantityButtonDisabled,
+                  ]}
+                  onPress={() => handleQuantityChange(true)}
+                  disabled={quantity === voucher.voucher_quantity}
+                >
+                  <MaterialIcons name="add" size={20} color="#000" />
+                </TouchableOpacity>
+              </View>
+            </View>
+          )}
+
           {/* Informações do parceiro */}
           {voucher.partner && (
             <View style={styles.partnerInfoSection}>
@@ -258,23 +315,23 @@ export default function SingleVoucherScreen({ route, navigation }) {
             </View>
           )}
 
-          {/* Botão de comprar voucher */}
+          {/* Botão de adicionar voucher ao carrinho */}
           <TouchableOpacity
             style={[
-              styles.purchaseButton,
-              !available && styles.purchaseButtonDisabled,
+              styles.addToCartButton,
+              !available && styles.addToCartButtonDisabled,
             ]}
-            onPress={handlePurchaseVoucher}
+            onPress={handleAddVoucherToCart}
             disabled={!available}
           >
             <MaterialIcons
-              name="card-giftcard"
+              name="shopping-cart"
               size={20}
               color="white"
-              style={styles.purchaseIcon}
+              style={styles.cartIcon}
             />
-            <Text style={styles.purchaseText}>
-              {available ? "Comprar Voucher" : "Voucher Esgotado"}
+            <Text style={styles.addToCartText}>
+              {available ? "Adicionar ao Carrinho" : "Voucher Esgotado"}
             </Text>
           </TouchableOpacity>
         </View>
@@ -436,7 +493,42 @@ const styles = StyleSheet.create({
     marginLeft: 8,
     flex: 1,
   },
-  purchaseButton: {
+  quantitySection: {
+    marginBottom: 24,
+  },
+  quantityLabel: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: theme.colors.foreground,
+    marginBottom: 12,
+  },
+  quantityContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#f0f0f0",
+    borderRadius: 8,
+    padding: 4,
+    alignSelf: "flex-start",
+  },
+  quantityButton: {
+    width: 40,
+    height: 40,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "white",
+    borderRadius: 6,
+  },
+  quantityButtonDisabled: {
+    backgroundColor: "#e0e0e0",
+  },
+  quantityText: {
+    fontSize: 18,
+    fontWeight: "600",
+    marginHorizontal: 20,
+    minWidth: 30,
+    textAlign: "center",
+  },
+  addToCartButton: {
     backgroundColor: theme.colors.primary,
     flexDirection: "row",
     justifyContent: "center",
@@ -445,13 +537,13 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     marginTop: 16,
   },
-  purchaseButtonDisabled: {
+  addToCartButtonDisabled: {
     backgroundColor: "#ccc",
   },
-  purchaseIcon: {
+  cartIcon: {
     marginRight: 8,
   },
-  purchaseText: {
+  addToCartText: {
     color: "white",
     fontSize: 18,
     fontWeight: "600",
