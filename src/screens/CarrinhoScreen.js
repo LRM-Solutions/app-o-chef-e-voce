@@ -230,19 +230,19 @@ export default function CarrinhoScreen({ navigation }) {
 
       // Navegar para Meus Pedidos após um breve delay
       setTimeout(() => {
-        navigation.navigate("MeusPedidosScreen");
+        navigation.navigate("MeusPedidos");
       }, 1000);
     }
   };
 
   const handlePagarDepois = () => {
     setShowFinalizarModal(false);
-    navigation.navigate("MeusPedidosScreen");
+    navigation.navigate("MeusPedidos");
   };
 
   const handleCloseModal = () => {
     setShowFinalizarModal(false);
-    navigation.navigate("MeusPedidosScreen");
+    navigation.navigate("MeusPedidos");
   };
 
   const openPaymentUrl = async (paymentData) => {
