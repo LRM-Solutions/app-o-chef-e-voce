@@ -175,12 +175,6 @@ export default function FinalizarCompraModal({
             onPress={onFinalizarPagamento}
             disabled={loading}
           >
-            <MaterialIcons
-              name="payment"
-              size={20}
-              color="white"
-              style={styles.buttonIcon}
-            />
             <Text style={styles.primaryButtonText}>
               {loading ? "Processando..." : "Finalizar Pagamento"}
             </Text>

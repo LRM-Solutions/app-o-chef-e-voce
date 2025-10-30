@@ -21,7 +21,14 @@ const MeusPedidosScreen = ({ navigation }) => {
 
   useEffect(() => {
     carregarPedidos();
-  }, []);
+
+    // Listener para quando a tela ganha foco
+    const unsubscribe = navigation.addListener("focus", () => {
+      carregarPedidos();
+    });
+
+    return unsubscribe;
+  }, [navigation]);
 
   const carregarPedidos = async () => {
     try {
