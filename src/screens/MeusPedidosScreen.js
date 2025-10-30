@@ -64,10 +64,12 @@ const MeusPedidosScreen = ({ navigation }) => {
     }, 0);
 
     const totalVouchers = pedidoVouchers.reduce((total, voucher) => {
-      return total + voucher.voucher.voucher_price;
+      return (
+        total + voucher.voucher.voucher_price * voucher.pedido_voucher_quantity
+      );
     }, 0);
 
-    return totalProducts - totalVouchers;
+    return totalProducts + totalVouchers;
   };
 
   const getStatusColor = (status) => {
@@ -179,19 +181,23 @@ const MeusPedidosScreen = ({ navigation }) => {
 
         {/* Vouchers (se houver) */}
         {item.pedido_voucher && item.pedido_voucher.length > 0 && (
-          <View style={styles.vouchersSection}>
-            <Text style={styles.sectionTitle}>Descontos:</Text>
+          <>
             {item.pedido_voucher.map((voucherItem, index) => (
-              <View key={index} style={styles.voucherItem}>
-                <Text style={styles.voucherNome}>
+              <View key={index} style={styles.produtoItem}>
+                <Text style={styles.produtoNome}>
+                  {voucherItem.pedido_voucher_quantity}x{" "}
                   {voucherItem.voucher.voucher_name}
                 </Text>
-                <Text style={styles.voucherDesconto}>
-                  -R$ {voucherItem.voucher.voucher_price.toFixed(2)}
+                <Text style={styles.produtoPreco}>
+                  R${" "}
+                  {(
+                    voucherItem.voucher.voucher_price *
+                    voucherItem.pedido_voucher_quantity
+                  ).toFixed(2)}
                 </Text>
               </View>
             ))}
-          </View>
+          </>
         )}
 
         {/* Observações (se houver) */}
@@ -382,23 +388,6 @@ const styles = StyleSheet.create({
     ...createTextStyle("caption", "foreground"),
     fontWeight: "600",
   },
-  vouchersSection: {
-    marginBottom: theme.spacing.md,
-  },
-  voucherItem: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingVertical: theme.spacing.xs,
-  },
-  voucherNome: {
-    ...createTextStyle("caption", "success"),
-    flex: 1,
-  },
-  voucherDesconto: {
-    ...createTextStyle("caption", "success"),
-    fontWeight: "600",
-  },
   observacoesSection: {
     marginBottom: theme.spacing.md,
   },
@@ -426,11 +415,13 @@ const styles = StyleSheet.create({
     fontSize: theme.fontSizes.lg,
   },
   detalhesButton: {
-    ...createButtonStyle("outline", "sm"),
+    paddingVertical: theme.spacing.sm,
+    paddingHorizontal: theme.spacing.md,
   },
   detalhesButtonText: {
     ...createTextStyle("caption", "primary"),
     fontWeight: "600",
+    textDecorationLine: "underline",
   },
   loadingContainer: {
     flex: 1,

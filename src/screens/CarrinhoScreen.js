@@ -369,6 +369,7 @@ export default function CarrinhoScreen({ navigation }) {
       const voucherCartItems = await CartService.getVoucherCartItems();
       const vouchers = voucherCartItems.map((item) => ({
         voucher_id: item.voucher_id,
+        quantidade: item.quantity,
       }));
 
       const pedidoPayload = {
@@ -377,6 +378,7 @@ export default function CarrinhoScreen({ navigation }) {
         statusEntrega: "PENDENTE",
         statusPagamento: "PENDING",
         observacoes: "", // Pode ser expandido futuramente
+        taxa_entrega: 0.0, // Por enquanto frete grátis, pode ser expandido futuramente
         produtos: produtos,
         vouchers: vouchers,
       };
