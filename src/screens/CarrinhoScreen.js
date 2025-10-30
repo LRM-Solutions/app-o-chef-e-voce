@@ -18,6 +18,7 @@ import { formatVoucherPrice, getVoucherMainImage } from "../api/vouchers";
 import Toast from "react-native-toast-message";
 import EnderecoSelector from "../components/EnderecoSelector";
 import PaymentDataSelector from "../components/PaymentDataSelector";
+import FinalizarCompraModal from "../components/FinalizarCompraModal";
 import { createPedido } from "../api/pedidosApi";
 import { createPayment, getNotificationUrl } from "../api/paymentsApi";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -30,6 +31,8 @@ export default function CarrinhoScreen({ navigation }) {
   const [selectedEndereco, setSelectedEndereco] = useState(null);
   const [paymentData, setPaymentData] = useState({});
   const [processing, setProcessing] = useState(false);
+  const [showFinalizarModal, setShowFinalizarModal] = useState(false);
+  const [pedidoConfirmado, setPedidoConfirmado] = useState(null);
 
   useEffect(() => {
     loadCartItems();
@@ -218,6 +221,28 @@ export default function CarrinhoScreen({ navigation }) {
 
   const handlePaymentDataChange = (data) => {
     setPaymentData(data);
+  };
+
+  const handleFinalizarPagamento = async () => {
+    if (pedidoConfirmado?.paymentResponseData) {
+      setShowFinalizarModal(false);
+      await openPaymentUrl(pedidoConfirmado.paymentResponseData);
+
+      // Navegar para Meus Pedidos após um breve delay
+      setTimeout(() => {
+        navigation.navigate("MeusPedidosScreen");
+      }, 1000);
+    }
+  };
+
+  const handlePagarDepois = () => {
+    setShowFinalizarModal(false);
+    navigation.navigate("MeusPedidosScreen");
+  };
+
+  const handleCloseModal = () => {
+    setShowFinalizarModal(false);
+    navigation.navigate("MeusPedidosScreen");
   };
 
   const openPaymentUrl = async (paymentData) => {
@@ -432,49 +457,23 @@ export default function CarrinhoScreen({ navigation }) {
       Toast.show({
         type: "success",
         text1: "Pedido Criado!",
-        text2: "Redirecionando para pagamento...",
+        text2: "Configurando pagamento...",
         visibilityTime: 2000,
       });
 
-      // 5. Preparar informações do pedido
-      let message = `Pedido #${pedidoResponse.pedido_id} criado com sucesso!\n\n`;
-      message += `📍 Endereço: ${selectedEndereco.rua}, ${selectedEndereco.numero}\n`;
-      message += `${selectedEndereco.bairro}, ${selectedEndereco.cidade}/${selectedEndereco.estado}\n\n`;
+      // 5. Preparar dados para o modal
+      const dadosPedido = {
+        pedidoId: pedidoResponse.pedido_id,
+        endereco: selectedEndereco,
+        total: total,
+        frete: null, // Pode ser expandido futuramente
+        installments: paymentData.installments || 1,
+        paymentResponseData: paymentResponseData,
+      };
 
-      // Adicionar informações específicas do método de pagamento
-      if (paymentData.installments > 1) {
-        message += `📊 Parcelas: ${paymentData.installments}x de ${formatPrice(
-          total / paymentData.installments
-        )}\n`;
-      }
-
-      message += `💰 Total: ${formatPrice(total)}\n\n`;
-      message += `� Você escolherá o método de pagamento no gateway do Mercado Pago.\n`;
-      message += `🔐 Ambiente seguro do Mercado Pago.`;
-
-      // 6. Mostrar confirmação e redirecionar
-      Alert.alert("Pedido Confirmado!", message, [
-        {
-          text: "Finalizar Pagamento",
-          onPress: async () => {
-            // Redirecionar para gateway de pagamento
-            await openPaymentUrl(paymentResponseData);
-
-            // Aguardar um pouco antes de navegar de volta
-            setTimeout(() => {
-              navigation.navigate("produtos");
-            }, 1000);
-          },
-        },
-        {
-          text: "Pagar Depois",
-          style: "cancel",
-          onPress: () => {
-            // Apenas voltar sem abrir o gateway
-            navigation.navigate("produtos");
-          },
-        },
-      ]);
+      // 6. Mostrar modal de confirmação
+      setPedidoConfirmado(dadosPedido);
+      setShowFinalizarModal(true);
     } catch (error) {
       console.error("Erro no processo de pagamento:", error);
 
@@ -755,6 +754,16 @@ export default function CarrinhoScreen({ navigation }) {
           </Text>
         </TouchableOpacity>
       </View>
+
+      {/* Modal de Confirmação */}
+      <FinalizarCompraModal
+        visible={showFinalizarModal}
+        onClose={handleCloseModal}
+        onFinalizarPagamento={handleFinalizarPagamento}
+        onPagarDepois={handlePagarDepois}
+        pedidoData={pedidoConfirmado}
+        loading={processing}
+      />
     </View>
   );
 }
