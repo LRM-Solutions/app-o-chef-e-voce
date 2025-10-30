@@ -204,43 +204,29 @@ export default function CarrinhoComponent({ visible, onClose, onGoToCart }) {
           )}
         </View>
 
-        <View style={styles.itemContent}>
-          <View style={styles.itemHeader}>
-            <View style={styles.itemInfo}>
-              <Text style={styles.itemName} numberOfLines={2}>
-                {item.voucher_name}
-              </Text>
-              <View style={styles.partnerInfo}>
-                <MaterialIcons name="store" size={14} color="#666" />
-                <Text style={styles.partnerName}>
-                  {item.partner?.partner_name || "Parceiro"}
-                </Text>
-              </View>
-              <Text style={styles.itemPrice}>
-                {formatVoucherPrice(item.voucher_price)} cada
-              </Text>
-            </View>
-            <TouchableOpacity
-              style={styles.removeButton}
-              onPress={() => handleRemoveVoucher(item.voucher_id)}
-            >
-              <MaterialIcons name="close" size={20} color="#f44336" />
-            </TouchableOpacity>
-          </View>
+        <View style={styles.itemInfo}>
+          <Text style={styles.itemName} numberOfLines={2}>
+            {item.voucher_name}
+          </Text>
+          <Text style={styles.partnerName}>
+            {item.partner?.partner_name || "Parceiro"}
+          </Text>
+          <Text style={styles.itemPrice}>
+            {formatVoucherPrice(item.voucher_price)}
+          </Text>
 
-          <View style={styles.quantityControls}>
+          <View style={styles.quantityContainer}>
             <TouchableOpacity
-              style={styles.quantityButton}
+              style={[
+                styles.quantityButton,
+                item.quantity === 1 && styles.quantityButtonDisabled,
+              ]}
               onPress={() =>
                 handleUpdateVoucherQuantity(item.voucher_id, item.quantity - 1)
               }
-              disabled={item.quantity <= 1}
+              disabled={item.quantity === 1}
             >
-              <MaterialIcons
-                name="remove"
-                size={18}
-                color={item.quantity <= 1 ? "#ccc" : "#000"}
-              />
+              <MaterialIcons name="remove" size={16} color="#000" />
             </TouchableOpacity>
 
             <Text style={styles.quantityText}>{item.quantity}</Text>
@@ -251,13 +237,21 @@ export default function CarrinhoComponent({ visible, onClose, onGoToCart }) {
                 handleUpdateVoucherQuantity(item.voucher_id, item.quantity + 1)
               }
             >
-              <MaterialIcons name="add" size={18} color="#000" />
+              <MaterialIcons name="add" size={16} color="#000" />
             </TouchableOpacity>
-
-            <Text style={styles.subtotalText}>
-              {formatVoucherPrice(item.total_price)}
-            </Text>
           </View>
+        </View>
+
+        <View style={styles.itemActions}>
+          <Text style={styles.itemTotal}>
+            {formatVoucherPrice(item.total_price)}
+          </Text>
+          <TouchableOpacity
+            style={styles.removeButton}
+            onPress={() => handleRemoveVoucher(item.voucher_id)}
+          >
+            <MaterialIcons name="delete" size={18} color="#f44336" />
+          </TouchableOpacity>
         </View>
       </View>
     );
@@ -449,6 +443,12 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: theme.colors.foreground,
     marginBottom: 4,
+  },
+  partnerName: {
+    fontSize: 12,
+    color: theme.colors.muted,
+    marginBottom: 4,
+    fontStyle: "italic",
   },
   itemPrice: {
     fontSize: 12,
