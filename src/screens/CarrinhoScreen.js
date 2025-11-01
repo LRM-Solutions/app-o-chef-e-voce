@@ -17,6 +17,7 @@ import { formatPrice, getProductMainImage } from "../api/products";
 import { formatVoucherPrice, getVoucherMainImage } from "../api/vouchers";
 import Toast from "react-native-toast-message";
 import EnderecoSelector from "../components/EnderecoSelector";
+import FreteSelector from "../components/FreteSelector";
 import PaymentDataSelector from "../components/PaymentDataSelector";
 import FinalizarCompraModal from "../components/FinalizarCompraModal";
 import { createPedido } from "../api/pedidosApi";
@@ -29,6 +30,7 @@ export default function CarrinhoScreen({ navigation }) {
   const [loading, setLoading] = useState(false);
   const [total, setTotal] = useState(0);
   const [selectedEndereco, setSelectedEndereco] = useState(null);
+  const [selectedFrete, setSelectedFrete] = useState(null);
   const [paymentData, setPaymentData] = useState({});
   const [processing, setProcessing] = useState(false);
   const [showFinalizarModal, setShowFinalizarModal] = useState(false);
@@ -65,6 +67,12 @@ export default function CarrinhoScreen({ navigation }) {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Calcula o total incluindo frete
+  const getTotalComFrete = () => {
+    const freteValue = selectedFrete?.preco || 0;
+    return total + freteValue;
   };
 
   const handleUpdateQuantity = async (productId, newQuantity) => {
@@ -217,6 +225,8 @@ export default function CarrinhoScreen({ navigation }) {
 
   const handleEnderecoSelect = (endereco) => {
     setSelectedEndereco(endereco);
+    // Reset frete quando endereco mudar
+    setSelectedFrete(null);
   };
 
   const handlePaymentDataChange = (data) => {
@@ -346,6 +356,15 @@ export default function CarrinhoScreen({ navigation }) {
       return;
     }
 
+    if (!selectedFrete) {
+      Alert.alert(
+        "Frete Obrigatório",
+        "Selecione uma opção de frete para continuar.",
+        [{ text: "OK" }]
+      );
+      return;
+    }
+
     if (
       !paymentData ||
       !paymentData.payer_email ||
@@ -403,7 +422,7 @@ export default function CarrinhoScreen({ navigation }) {
         statusEntrega: "PENDENTE",
         statusPagamento: "PENDING",
         observacoes: "", // Pode ser expandido futuramente
-        taxa_entrega: 0.0, // Por enquanto frete grátis, pode ser expandido futuramente
+        taxa_entrega: selectedFrete?.preco || 0.0,
         produtos: produtos,
         vouchers: vouchers,
       };
@@ -465,8 +484,8 @@ export default function CarrinhoScreen({ navigation }) {
       const dadosPedido = {
         pedidoId: pedidoResponse.pedido_id,
         endereco: selectedEndereco,
-        total: total,
-        frete: null, // Pode ser expandido futuramente
+        total: getTotalComFrete(),
+        frete: selectedFrete,
         installments: paymentData.installments || 1,
         paymentResponseData: paymentResponseData,
       };
@@ -710,6 +729,17 @@ export default function CarrinhoScreen({ navigation }) {
           selectedEnderecoId={selectedEndereco?.endereco_id}
         />
 
+        {/* Seleção de Frete */}
+        {selectedEndereco && (
+          <FreteSelector
+            endereco={selectedEndereco}
+            cartItems={cartItems}
+            voucherCartItems={voucherCartItems}
+            onFreteSelect={setSelectedFrete}
+            selectedFrete={selectedFrete}
+          />
+        )}
+
         {/* Dados para Pagamento */}
         <PaymentDataSelector onPaymentDataChange={handlePaymentDataChange} />
       </ScrollView>
@@ -723,11 +753,17 @@ export default function CarrinhoScreen({ navigation }) {
           </View>
           <View style={styles.summaryRow}>
             <Text style={styles.summaryLabel}>Entrega:</Text>
-            <Text style={styles.summaryValue}>Grátis</Text>
+            <Text style={styles.summaryValue}>
+              {selectedFrete
+                ? formatPrice(selectedFrete.preco)
+                : "Selecione o endereço"}
+            </Text>
           </View>
           <View style={styles.totalRow}>
             <Text style={styles.totalLabel}>Total:</Text>
-            <Text style={styles.totalValue}>{formatPrice(total)}</Text>
+            <Text style={styles.totalValue}>
+              {formatPrice(getTotalComFrete())}
+            </Text>
           </View>
         </View>
 
