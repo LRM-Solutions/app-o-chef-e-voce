@@ -89,7 +89,7 @@ export default function FreteSelector({
               serviceCode: maisBarato.ServiceCode,
               serviceDescription: maisBarato.ServiceDescription,
               carrier: maisBarato.Carrier,
-              price: maisBarato.ShippingPrice,
+              preco: parseFloat(maisBarato.ShippingPrice),
               deliveryTime: maisBarato.DeliveryTime,
             });
           }
@@ -134,7 +134,7 @@ export default function FreteSelector({
       serviceCode: servico.ServiceCode,
       serviceDescription: servico.ServiceDescription,
       carrier: servico.Carrier,
-      price: servico.ShippingPrice,
+      preco: parseFloat(servico.ShippingPrice),
       deliveryTime: servico.DeliveryTime,
     };
 
@@ -194,7 +194,7 @@ export default function FreteSelector({
                 Frete: {selectedFrete.serviceDescription}
               </Text>
               <Text style={styles.freteInfo}>
-                {formatFretePrice(selectedFrete.price)} -{" "}
+                {formatFretePrice(selectedFrete.preco)} -{" "}
                 {formatDeliveryTime(selectedFrete.deliveryTime)}
               </Text>
             </>

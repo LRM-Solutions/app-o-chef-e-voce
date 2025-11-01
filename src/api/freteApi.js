@@ -45,17 +45,18 @@ export const calcularFrete = async (
 
 /**
  * Formata o preço do frete para exibição
- * @param {number} price - Preço do frete
+ * @param {number|string} price - Preço do frete
  * @returns {string} Preço formatado
  */
 export const formatFretePrice = (price) => {
-  if (price === 0 || price === null) {
+  const numericPrice = parseFloat(price);
+  if (numericPrice === 0 || isNaN(numericPrice) || price === null) {
     return "Grátis";
   }
   return new Intl.NumberFormat("pt-BR", {
     style: "currency",
     currency: "BRL",
-  }).format(price);
+  }).format(numericPrice);
 };
 
 /**
