@@ -5,7 +5,7 @@ import PerfilScreen from "./PerfilScreen";
 import EpisodiosScreen from "./EpisodiosScreen";
 import ProductsStack from "./ProductsStack";
 import CarrinhoScreen from "./CarrinhoScreen";
-import MeusPedidosScreen from "./MeusPedidosScreen";
+import MeusPedidosStack from "./MeusPedidosStack";
 import VouchersStack from "./VouchersStack";
 import { View, StyleSheet, Platform } from "react-native";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
@@ -108,11 +108,11 @@ const Navigator = () => {
           {/* Tela de Meus Pedidos - oculta da tab bar mas acessível via navegação */}
           <Tab.Screen
             name="MeusPedidos"
-            component={MeusPedidosScreen}
+            component={MeusPedidosStack}
             options={{
               tabBarButton: () => null, // Remove da tab bar
               tabBarItemStyle: { display: "none" },
-              headerShown: false, // MeusPedidosScreen tem seu próprio header
+              headerShown: false, // MeusPedidosStack gerencia seus próprios headers
             }}
           />
         </Tab.Navigator>

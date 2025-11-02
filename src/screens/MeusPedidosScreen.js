@@ -48,6 +48,10 @@ const MeusPedidosScreen = ({ navigation }) => {
     }
   };
 
+  const navegarParaDetalhes = (pedidoId) => {
+    navigation.navigate("PedidoDetalhes", { pedidoId });
+  };
+
   const onRefresh = async () => {
     setRefreshing(true);
     await carregarPedidos();
@@ -138,7 +142,11 @@ const MeusPedidosScreen = ({ navigation }) => {
     const statusIcon = getStatusIcon(item.status);
 
     return (
-      <View style={styles.pedidoCard}>
+      <TouchableOpacity
+        style={styles.pedidoCard}
+        onPress={() => navegarParaDetalhes(item.pedido_id)}
+        activeOpacity={0.7}
+      >
         {/* Header do Card */}
         <View style={styles.cardHeader}>
           <View style={styles.pedidoInfo}>
@@ -223,19 +231,12 @@ const MeusPedidosScreen = ({ navigation }) => {
           </View>
           <TouchableOpacity
             style={styles.detalhesButton}
-            onPress={() => {
-              Alert.alert(
-                "Detalhes do Pedido",
-                `Pedido #${item.pedido_id}\nStatus: ${formatarStatus(
-                  item.status
-                )}`
-              );
-            }}
+            onPress={() => navegarParaDetalhes(item.pedido_id)}
           >
             <Text style={styles.detalhesButtonText}>Ver Detalhes</Text>
           </TouchableOpacity>
         </View>
-      </View>
+      </TouchableOpacity>
     );
   };
 

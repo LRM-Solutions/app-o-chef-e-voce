@@ -481,6 +481,11 @@ export default function CarrinhoScreen({ navigation }) {
       });
 
       // 5. Preparar dados para o modal
+      console.log(
+        "🛒 [DEBUG] CarrinhoScreen - selectedFrete antes do modal:",
+        selectedFrete
+      );
+
       const dadosPedido = {
         pedidoId: pedidoResponse.pedido_id,
         endereco: selectedEndereco,
@@ -489,6 +494,11 @@ export default function CarrinhoScreen({ navigation }) {
         installments: paymentData.installments || 1,
         paymentResponseData: paymentResponseData,
       };
+
+      console.log(
+        "🛒 [DEBUG] CarrinhoScreen - dadosPedido criado:",
+        dadosPedido
+      );
 
       // 6. Mostrar modal de confirmação
       setPedidoConfirmado(dadosPedido);

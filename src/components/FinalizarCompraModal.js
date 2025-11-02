@@ -24,6 +24,14 @@ export default function FinalizarCompraModal({
 
   const { pedidoId, endereco, total, frete, installments } = pedidoData;
 
+  // Debug para verificar os dados do frete
+  console.log("🚚 [DEBUG] FinalizarCompraModal - Dados do frete:", frete);
+  console.log("🚚 [DEBUG] FinalizarCompraModal - Tipo do frete:", typeof frete);
+  console.log(
+    "🚚 [DEBUG] FinalizarCompraModal - PedidoData completo:",
+    pedidoData
+  );
+
   return (
     <Modal
       visible={visible}
@@ -55,7 +63,6 @@ export default function FinalizarCompraModal({
               </View>
             </View>
           </View>
-
           {/* Endereço */}
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
@@ -78,40 +85,45 @@ export default function FinalizarCompraModal({
               )}
             </View>
           </View>
-
-          {/* Frete (se houver) */}
-          {frete && (
-            <View style={styles.section}>
-              <View style={styles.sectionHeader}>
-                <MaterialIcons
-                  name="local-shipping"
-                  size={20}
-                  color={theme.colors.primary}
-                />
-                <Text style={styles.sectionTitle}>Entrega</Text>
+          {/* Frete - sempre mostrar se há endereço */}
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <MaterialIcons
+                name="local-shipping"
+                size={20}
+                color={theme.colors.primary}
+              />
+              <Text style={styles.sectionTitle}>Entrega</Text>
+            </View>
+            <View style={styles.freteCard}>
+              <View style={styles.freteRow}>
+                <Text style={styles.freteLabel}>Modalidade:</Text>
+                <Text style={styles.freteValue}>
+                  {frete?.serviceDescription ||
+                    frete?.nome ||
+                    "Não selecionado"}
+                </Text>
               </View>
-              <View style={styles.freteCard}>
-                <View style={styles.freteRow}>
-                  <Text style={styles.freteLabel}>Modalidade:</Text>
-                  <Text style={styles.freteValue}>{frete.nome}</Text>
-                </View>
-                <View style={styles.freteRow}>
-                  <Text style={styles.freteLabel}>Valor:</Text>
-                  <Text style={styles.freteValue}>
-                    {formatPrice(frete.valor)}
-                  </Text>
-                </View>
-                <View style={styles.freteRow}>
-                  <Text style={styles.freteLabel}>Prazo:</Text>
-                  <Text style={styles.freteValue}>
-                    {frete.prazo_entrega}{" "}
-                    {frete.prazo_entrega === 1 ? "dia útil" : "dias úteis"}
-                  </Text>
-                </View>
+              <View style={styles.freteRow}>
+                <Text style={styles.freteLabel}>Valor:</Text>
+                <Text style={styles.freteValue}>
+                  {frete
+                    ? formatPrice(frete.preco || frete.valor || 0)
+                    : "R$ 0,00"}
+                </Text>
+              </View>
+              <View style={styles.freteRow}>
+                <Text style={styles.freteLabel}>Prazo:</Text>
+                <Text style={styles.freteValue}>
+                  {frete?.deliveryTime || frete?.prazo_entrega || 0}{" "}
+                  {(frete?.deliveryTime || frete?.prazo_entrega) === 1 ||
+                  (frete?.deliveryTime || frete?.prazo_entrega) === "1"
+                    ? "dia útil"
+                    : "dias úteis"}
+                </Text>
               </View>
             </View>
-          )}
-
+          </View>
           {/* Pagamento */}
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
@@ -137,7 +149,6 @@ export default function FinalizarCompraModal({
               </View>
             </View>
           </View>
-
           {/* Informações Adicionais */}
           <View style={styles.infoSection}>
             <View style={styles.infoItem}>
