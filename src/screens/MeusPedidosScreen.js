@@ -89,7 +89,7 @@ const MeusPedidosScreen = ({ navigation }) => {
       item.pedido_product,
       item.pedido_voucher || []
     );
-    
+
     // Usar o status de pagamento com as cores padrão do sistema
     const statusPagamento = formatarStatusPagamento(item.statusPagamento);
 
@@ -107,11 +107,18 @@ const MeusPedidosScreen = ({ navigation }) => {
               {formatarData(item.created_at)}
             </Text>
           </View>
-          <View style={[styles.statusBadge, { backgroundColor: statusPagamento.color }]}>
-            <MaterialIcons name={statusPagamento.icon} size={16} color="white" />
-            <Text style={styles.statusText}>
-              {statusPagamento.text}
-            </Text>
+          <View
+            style={[
+              styles.statusBadge,
+              { backgroundColor: statusPagamento.color },
+            ]}
+          >
+            <MaterialIcons
+              name={statusPagamento.icon}
+              size={16}
+              color="white"
+            />
+            <Text style={styles.statusText}>{statusPagamento.text}</Text>
           </View>
         </View>
 

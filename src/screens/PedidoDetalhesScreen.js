@@ -21,7 +21,7 @@ import {
   formatarStatusPagamento,
   calcularTotalPedido,
 } from "../api/pedidoDetalhesApi";
-import { createPayment, getNotificationUrl } from "../api/paymentsApi";
+import { createPayment } from "../api/paymentsApi";
 import Toast from "react-native-toast-message";
 
 export default function PedidoDetalhesScreen({ route, navigation }) {
@@ -59,52 +59,51 @@ export default function PedidoDetalhesScreen({ route, navigation }) {
     try {
       setPagamentoLoading(true);
 
-      // Preparar dados do pagamento similar ao CarrinhoScreen
-      const total = calcularTotalPedido(pedido);
-
-      // Dados básicos para o pagamento (pode precisar ser ajustado conforme necessário)
-      const paymentData = {
-        payer_email: pedido.user.user_email,
-        payer_identification_number: "00000000000", // Pode precisar ser obtido de outra forma
-        installments: 1,
-      };
-
+      // Payload correto conforme a API
       const paymentPayload = {
-        transaction_amount: total,
-        description: `Pedido #${pedido.pedido_id}`,
-        installments: paymentData.installments,
-        payer: {
-          email: paymentData.payer_email,
+        pedidoId: pedido.pedido_id,
+        installments: 1,
+        payerData: {
+          email: pedido.user.user_email,
           identification: {
             type: "CPF",
-            number: paymentData.payer_identification_number,
+            number: "00000000000", // Pode precisar ser obtido de outra forma
           },
         },
-        notification_url: getNotificationUrl(),
-        external_reference: `pedido_${pedido.pedido_id}`,
-        pedido_id: pedido.pedido_id,
       };
 
       console.log("💳 Processando pagamento do pedido...");
+      console.log("📝 Payload:", JSON.stringify(paymentPayload, null, 2));
+
       const paymentResponse = await createPayment(paymentPayload);
+      console.log(
+        "📦 Resposta completa da API:",
+        JSON.stringify(paymentResponse, null, 2)
+      );
 
-      if (paymentResponse && paymentResponse.init_point) {
-        // Abrir o link de pagamento
-        const supported = await Linking.canOpenURL(paymentResponse.init_point);
-        if (supported) {
-          await Linking.openURL(paymentResponse.init_point);
+      // A resposta da API tem os dados dentro de 'data'
+      const paymentData = paymentResponse.data || paymentResponse;
+      console.log(
+        "🔍 Dados extraídos para pagamento:",
+        JSON.stringify(paymentData, null, 2)
+      );
 
-          Toast.show({
-            type: "success",
-            text1: "Redirecionamento",
-            text2: "Você foi redirecionado para o pagamento",
-            visibilityTime: 3000,
-          });
-        } else {
-          throw new Error("Não foi possível abrir o link de pagamento");
-        }
+      if (
+        paymentData &&
+        (paymentData.init_point || paymentData.sandbox_init_point)
+      ) {
+        console.log("✅ URLs encontradas, prosseguindo com pagamento...");
+        // Usar a mesma lógica do CarrinhoScreen para abrir o pagamento
+        await openPaymentUrl(paymentData);
+
+        // Após o redirecionamento, navegar para "Meus Pedidos"
+        setTimeout(() => {
+          navigation.navigate("MeusPedidos");
+        }, 1000);
       } else {
-        throw new Error("Erro ao processar pagamento");
+        console.error("❌ Estrutura da resposta:", paymentResponse);
+        console.error("❌ PaymentData extraído:", paymentData);
+        throw new Error("Erro ao processar pagamento - URLs não encontradas");
       }
     } catch (error) {
       console.error("Erro no pagamento:", error);
@@ -116,6 +115,96 @@ export default function PedidoDetalhesScreen({ route, navigation }) {
       });
     } finally {
       setPagamentoLoading(false);
+    }
+  };
+
+  const openPaymentUrl = async (paymentData) => {
+    try {
+      // Log completo dos dados de pagamento recebidos
+      console.log(
+        "💳 Dados completos do pagamento recebidos:",
+        JSON.stringify(paymentData, null, 2)
+      );
+
+      // Usar init_point para produção ou sandbox_init_point para desenvolvimento
+      // Priorizar produção
+      const paymentUrl =
+        paymentData.init_point || paymentData.sandbox_init_point;
+
+      if (!paymentUrl) {
+        console.error("❌ URLs de pagamento não encontradas:", {
+          init_point: paymentData.init_point,
+          sandbox_init_point: paymentData.sandbox_init_point,
+        });
+        throw new Error("URL de pagamento não encontrada na resposta");
+      }
+
+      console.log("🌐 Tentando abrir URL de pagamento:", paymentUrl);
+      console.log("🔍 Informações do pagamento:", {
+        payment_id: paymentData.payment_id,
+        preference_id: paymentData.preference_id,
+        transaction_amount: paymentData.transaction_amount,
+        status: paymentData.payment?.status,
+      });
+
+      // Verificar se a URL pode ser aberta
+      const supported = await Linking.canOpenURL(paymentUrl);
+
+      if (supported) {
+        console.log("✅ URL suportada, abrindo no navegador...");
+
+        // Mostrar feedback antes de redirecionar
+        Toast.show({
+          type: "info",
+          text1: "Redirecionando",
+          text2: "Abrindo gateway do Mercado Pago...",
+          visibilityTime: 2000,
+        });
+
+        // Aguardar um pouco antes de abrir para o usuário ver o toast
+        setTimeout(async () => {
+          await Linking.openURL(paymentUrl);
+          console.log("🚀 URL aberta com sucesso!");
+        }, 500);
+      } else {
+        console.error("❌ URL não suportada pelo dispositivo");
+        throw new Error("URL de pagamento não suportada pelo dispositivo");
+      }
+    } catch (error) {
+      console.error("❌ Erro ao abrir URL de pagamento:", error);
+      console.error("❌ Stack trace:", error.stack);
+
+      Toast.show({
+        type: "error",
+        text1: "Erro no Redirecionamento",
+        text2: "Não foi possível abrir o gateway de pagamento",
+        visibilityTime: 4000,
+      });
+
+      // Mostrar alert com informações do pagamento e opção de tentar novamente
+      const paymentUrl =
+        paymentData.init_point || paymentData.sandbox_init_point;
+      Alert.alert(
+        "Erro ao Abrir Pagamento",
+        `Não foi possível redirecionar automaticamente.\n\nPedido: ${
+          paymentData.payment?.pedido_id || "N/A"
+        }\nValor: R$ ${
+          paymentData.transaction_amount || "N/A"
+        }\n\nVocê pode acessar o link manualmente ou tentar novamente.`,
+        [
+          { text: "Cancelar", style: "cancel" },
+          {
+            text: "Tentar Novamente",
+            onPress: () => openPaymentUrl(paymentData),
+          },
+          {
+            text: "Ver Link",
+            onPress: () => {
+              Alert.alert("Link do Pagamento", paymentUrl, [{ text: "OK" }]);
+            },
+          },
+        ]
+      );
     }
   };
 
