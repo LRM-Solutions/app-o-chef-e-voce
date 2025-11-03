@@ -263,10 +263,10 @@ export default function CarrinhoScreen({ navigation }) {
         JSON.stringify(paymentData, null, 2)
       );
 
-      // Usar sandbox_init_point para desenvolvimento ou init_point para produção
-      // Priorizar sandbox para desenvolvimento
+      // Usar init_point para produção ou sandbox_init_point para desenvolvimento
+      // Priorizar produção
       const paymentUrl =
-        paymentData.sandbox_init_point || paymentData.init_point;
+        paymentData.init_point || paymentData.sandbox_init_point;
 
       if (!paymentUrl) {
         console.error("❌ URLs de pagamento não encontradas:", {
@@ -320,7 +320,7 @@ export default function CarrinhoScreen({ navigation }) {
 
       // Mostrar alert com informações do pagamento e opção de tentar novamente
       const paymentUrl =
-        paymentData.sandbox_init_point || paymentData.init_point;
+        paymentData.init_point || paymentData.sandbox_init_point;
       Alert.alert(
         "Erro ao Abrir Pagamento",
         `Não foi possível redirecionar automaticamente.\n\nPedido: ${
