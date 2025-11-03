@@ -7,6 +7,7 @@ import ProductsStack from "./ProductsStack";
 import CarrinhoScreen from "./CarrinhoScreen";
 import MeusPedidosStack from "./MeusPedidosStack";
 import VouchersStack from "./VouchersStack";
+import AlterarSenhaScreen from "./AlterarSenhaScreen";
 import { View, StyleSheet, Platform } from "react-native";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import Ionicons from "react-native-vector-icons/Ionicons";
@@ -113,6 +114,16 @@ const Navigator = () => {
               tabBarButton: () => null, // Remove da tab bar
               tabBarItemStyle: { display: "none" },
               headerShown: false, // MeusPedidosStack gerencia seus próprios headers
+            }}
+          />
+          {/* Tela de Alterar Senha - oculta da tab bar mas acessível via navegação */}
+          <Tab.Screen
+            name="AlterarSenha"
+            component={AlterarSenhaScreen}
+            options={{
+              tabBarButton: () => null, // Remove da tab bar
+              tabBarItemStyle: { display: "none" },
+              headerShown: false, // AlterarSenhaScreen tem seu próprio header
             }}
           />
         </Tab.Navigator>

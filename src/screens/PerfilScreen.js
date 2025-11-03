@@ -14,11 +14,7 @@ const PerfilScreen = ({ navigation }) => {
   };
 
   const handleAlterarSenha = () => {
-    // TODO: Navegar para tela de alterar senha
-    Alert.alert(
-      "Em breve",
-      "Tela de alteração de senha será implementada em breve!"
-    );
+    navigation.navigate("AlterarSenha");
   };
 
   const handleLogout = async () => {
