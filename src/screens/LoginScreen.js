@@ -82,6 +82,10 @@ export default function LoginScreen({ navigation }) {
     navigation.navigate("SignUp");
   };
 
+  const handleNavigateToRecuperarSenha = () => {
+    navigation.navigate("RecuperarSenha");
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <KeyboardAvoidingView
@@ -165,7 +169,12 @@ export default function LoginScreen({ navigation }) {
           <View style={styles.footer}>
             <Text style={styles.footerText}>
               Esqueceu sua senha?{" "}
-              <Text style={styles.linkText}>Recuperar senha</Text>
+              <Text
+                style={styles.linkText}
+                onPress={handleNavigateToRecuperarSenha}
+              >
+                Recuperar senha
+              </Text>
             </Text>
             <Text style={[styles.footerText, { marginTop: theme.spacing.md }]}>
               Não tem uma conta?{" "}

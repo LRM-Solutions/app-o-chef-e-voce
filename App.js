@@ -8,6 +8,7 @@ import ErrorBoundary from "./src/components/ErrorBoundary";
 import LoginScreen from "./src/screens/LoginScreen";
 import SignUpScreen from "./src/screens/SignUpScreen";
 import NewUserEmailCodeScreen from "./src/screens/NewUserEmailCodeScreen";
+import RecuperarSenhaScreen from "./src/screens/RecuperarSenhaScreen";
 import LoadingScreen from "./src/components/LoadingScreen";
 import Navigator from "./src/screens/Navigator";
 
@@ -37,6 +38,10 @@ function AppContent() {
           <Stack.Screen
             name="NewUserEmailCode"
             component={NewUserEmailCodeScreen}
+          />
+          <Stack.Screen
+            name="RecuperarSenha"
+            component={RecuperarSenhaScreen}
           />
         </Stack.Navigator>
       </NavigationContainer>
