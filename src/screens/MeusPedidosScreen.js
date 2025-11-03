@@ -12,6 +12,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import { getUserPedidos } from "../api/pedidosApi";
+import { formatarStatusPagamento } from "../api/pedidoDetalhesApi";
 import { theme, createTextStyle, createButtonStyle } from "../utils/theme";
 
 const MeusPedidosScreen = ({ navigation }) => {
@@ -83,63 +84,14 @@ const MeusPedidosScreen = ({ navigation }) => {
     return totalProducts + totalVouchers;
   };
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case "PENDENTE":
-        return theme.colors.muted;
-      case "CONFIRMADO":
-        return theme.colors.primary;
-      case "PREPARANDO":
-        return "#f59e0b";
-      case "SAIU_PARA_ENTREGA":
-        return "#3b82f6";
-      case "ENTREGUE":
-        return theme.colors.success;
-      case "CANCELADO":
-        return theme.colors.destructive;
-      default:
-        return theme.colors.muted;
-    }
-  };
-
-  const getStatusIcon = (status) => {
-    switch (status) {
-      case "PENDENTE":
-        return "schedule";
-      case "CONFIRMADO":
-        return "check-circle";
-      case "PREPARANDO":
-        return "restaurant";
-      case "SAIU_PARA_ENTREGA":
-        return "local-shipping";
-      case "ENTREGUE":
-        return "done-all";
-      case "CANCELADO":
-        return "cancel";
-      default:
-        return "help";
-    }
-  };
-
-  const formatarStatus = (status) => {
-    const statusMap = {
-      PENDENTE: "Pendente",
-      CONFIRMADO: "Confirmado",
-      PREPARANDO: "Preparando",
-      SAIU_PARA_ENTREGA: "Saiu para Entrega",
-      ENTREGUE: "Entregue",
-      CANCELADO: "Cancelado",
-    };
-    return statusMap[status] || status;
-  };
-
   const renderPedidoCard = ({ item }) => {
     const total = calcularTotalPedido(
       item.pedido_product,
       item.pedido_voucher || []
     );
-    const statusColor = getStatusColor(item.status);
-    const statusIcon = getStatusIcon(item.status);
+    
+    // Usar o status de pagamento com as cores padrão do sistema
+    const statusPagamento = formatarStatusPagamento(item.statusPagamento);
 
     return (
       <TouchableOpacity
@@ -155,9 +107,11 @@ const MeusPedidosScreen = ({ navigation }) => {
               {formatarData(item.created_at)}
             </Text>
           </View>
-          <View style={[styles.statusBadge, { backgroundColor: statusColor }]}>
-            <MaterialIcons name={statusIcon} size={16} color="white" />
-            <Text style={styles.statusText}>{formatarStatus(item.status)}</Text>
+          <View style={[styles.statusBadge, { backgroundColor: statusPagamento.color }]}>
+            <MaterialIcons name={statusPagamento.icon} size={16} color="white" />
+            <Text style={styles.statusText}>
+              {statusPagamento.text}
+            </Text>
           </View>
         </View>
 
