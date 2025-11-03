@@ -107,11 +107,14 @@ export default function FinalizarCompraModal({
               <View style={styles.freteRow}>
                 <Text style={styles.freteLabel}>Prazo:</Text>
                 <Text style={styles.freteValue}>
-                  {frete?.deliveryTime || frete?.prazo_entrega || 0}{" "}
-                  {(frete?.deliveryTime || frete?.prazo_entrega) === 1 ||
-                  (frete?.deliveryTime || frete?.prazo_entrega) === "1"
-                    ? "dia útil"
-                    : "dias úteis"}
+                  {frete?.deliveryTime === "Imediata"
+                    ? "Imediata (por email)"
+                    : `${frete?.deliveryTime || frete?.prazo_entrega || 0} ${
+                        (frete?.deliveryTime || frete?.prazo_entrega) === 1 ||
+                        (frete?.deliveryTime || frete?.prazo_entrega) === "1"
+                          ? "dia útil"
+                          : "dias úteis"
+                      }`}
                 </Text>
               </View>
             </View>

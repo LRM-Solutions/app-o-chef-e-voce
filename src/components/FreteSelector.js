@@ -28,7 +28,10 @@ export default function FreteSelector({
   const [expandido, setExpandido] = useState(false);
 
   useEffect(() => {
-    if (endereco && endereco.cep && cartItems.length > 0) {
+    // Se só há vouchers no carrinho (sem produtos físicos), frete é grátis
+    if (cartItems.length === 0 && voucherCartItems.length > 0) {
+      setFreteGratuito();
+    } else if (endereco && endereco.cep && cartItems.length > 0) {
       calcularOpcoesFrete();
     } else {
       resetarFrete();
@@ -36,7 +39,13 @@ export default function FreteSelector({
   }, [endereco, cartItems, voucherCartItems]);
 
   const calcularOpcoesFrete = async () => {
-    if (!endereco || !endereco.cep || cartItems.length === 0) return;
+    if (!endereco || !endereco.cep) return;
+
+    // Se não há produtos físicos, apenas vouchers
+    if (cartItems.length === 0) {
+      setFreteGratuito();
+      return;
+    }
 
     try {
       setLoading(true);
@@ -151,14 +160,38 @@ export default function FreteSelector({
     }
   };
 
+  const setFreteGratuito = () => {
+    // Para vouchers, o frete é sempre gratuito (entrega por email)
+    const freteGratis = {
+      serviceCode: "VOUCHER_DIGITAL",
+      serviceDescription: "Entrega Digital",
+      carrier: "Email",
+      preco: 0,
+      deliveryTime: "Imediata",
+    };
+
+    setOpcoesFrete([freteGratis]);
+
+    if (onFreteSelect) {
+      onFreteSelect(freteGratis);
+    }
+
+    Toast.show({
+      type: "success",
+      text1: "Frete Grátis",
+      text2: "Vouchers são entregues por email",
+      visibilityTime: 2000,
+    });
+  };
+
   const toggleExpandir = () => {
     if (opcoesFrete.length > 0) {
       setExpandido(!expandido);
     }
   };
 
-  // Se não há endereço ou produtos
-  if (!endereco || cartItems.length === 0) {
+  // Se não há endereço ou não há itens no carrinho
+  if (!endereco || (cartItems.length === 0 && voucherCartItems.length === 0)) {
     return (
       <View style={styles.container}>
         <View style={styles.header}>
@@ -168,6 +201,24 @@ export default function FreteSelector({
               ? "Selecione um endereço para calcular o frete"
               : "Adicione produtos para calcular o frete"}
           </Text>
+        </View>
+      </View>
+    );
+  }
+
+  // Se há apenas vouchers no carrinho (sem produtos físicos)
+  if (cartItems.length === 0 && voucherCartItems.length > 0) {
+    return (
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <MaterialIcons name="email" size={20} color={theme.colors.primary} />
+          <View style={styles.headerContent}>
+            <Text style={styles.headerText}>Entrega Digital - Grátis</Text>
+            <Text style={styles.freteInfo}>
+              Vouchers são enviados por email após a confirmação do pagamento
+            </Text>
+          </View>
+          <MaterialIcons name="check-circle" size={20} color="#4CAF50" />
         </View>
       </View>
     );

@@ -356,7 +356,11 @@ export default function CarrinhoScreen({ navigation }) {
       return;
     }
 
-    if (!selectedFrete) {
+    // Verificar se há apenas vouchers no carrinho (não precisa de frete físico)
+    const apenasVouchers =
+      cartItems.length === 0 && voucherCartItems.length > 0;
+
+    if (!apenasVouchers && !selectedFrete) {
       Alert.alert(
         "Frete Obrigatório",
         "Selecione uma opção de frete para continuar.",
@@ -416,13 +420,17 @@ export default function CarrinhoScreen({ navigation }) {
         quantidade: item.quantity,
       }));
 
+      // Verificar se há apenas vouchers (frete grátis)
+      const apenasVouchers = produtos.length === 0 && vouchers.length > 0;
+      const taxaEntrega = apenasVouchers ? 0 : selectedFrete?.preco || 0.0;
+
       const pedidoPayload = {
         endereco_id: selectedEndereco.endereco_id,
         status: "PENDENTE",
         statusEntrega: "PENDENTE",
         statusPagamento: "PENDING",
         observacoes: "", // Pode ser expandido futuramente
-        taxa_entrega: selectedFrete?.preco || 0.0,
+        taxa_entrega: taxaEntrega,
         produtos: produtos,
         vouchers: vouchers,
       };
@@ -486,11 +494,23 @@ export default function CarrinhoScreen({ navigation }) {
         selectedFrete
       );
 
+      // Para vouchers, criar um objeto de frete simulado se não houver
+      const freteParaModal =
+        apenasVouchers && !selectedFrete
+          ? {
+              serviceCode: "VOUCHER_DIGITAL",
+              serviceDescription: "Entrega Digital",
+              carrier: "Email",
+              preco: 0,
+              deliveryTime: "Imediata",
+            }
+          : selectedFrete;
+
       const dadosPedido = {
         pedidoId: pedidoResponse.pedido_id,
         endereco: selectedEndereco,
         total: getTotalComFrete(),
-        frete: selectedFrete,
+        frete: freteParaModal,
         installments: paymentData.installments || 1,
         paymentResponseData: paymentResponseData,
       };
