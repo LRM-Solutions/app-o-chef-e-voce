@@ -9,6 +9,7 @@ import {
   Alert,
   Linking,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import { theme } from "../utils/theme";
 import { formatPrice } from "../api/products";
@@ -22,7 +23,6 @@ import {
 } from "../api/pedidoDetalhesApi";
 import { createPayment, getNotificationUrl } from "../api/paymentsApi";
 import Toast from "react-native-toast-message";
-import CustomHeader from "../components/CustomHeader";
 
 export default function PedidoDetalhesScreen({ route, navigation }) {
   const { pedidoId } = route.params;
@@ -132,25 +132,53 @@ export default function PedidoDetalhesScreen({ route, navigation }) {
 
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
-        <CustomHeader title="Detalhes do Pedido" />
+      <SafeAreaView style={styles.loadingContainer} edges={["top"]}>
+        {/* Header customizado com botão de voltar */}
+        <View style={styles.header}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => navigation.goBack()}
+          >
+            <MaterialIcons
+              name="arrow-back"
+              size={24}
+              color={theme.colors.foreground}
+            />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Detalhes do Pedido</Text>
+          <View style={styles.headerRight} />
+        </View>
         <View style={styles.loadingContent}>
           <ActivityIndicator size="large" color={theme.colors.primary} />
           <Text style={styles.loadingText}>Carregando detalhes...</Text>
         </View>
-      </View>
+      </SafeAreaView>
     );
   }
 
   if (!pedido) {
     return (
-      <View style={styles.container}>
-        <CustomHeader title="Detalhes do Pedido" />
+      <SafeAreaView style={styles.container} edges={["top"]}>
+        {/* Header customizado com botão de voltar */}
+        <View style={styles.header}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => navigation.goBack()}
+          >
+            <MaterialIcons
+              name="arrow-back"
+              size={24}
+              color={theme.colors.foreground}
+            />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Detalhes do Pedido</Text>
+          <View style={styles.headerRight} />
+        </View>
         <View style={styles.errorContainer}>
           <MaterialIcons name="error" size={48} color={theme.colors.muted} />
           <Text style={styles.errorText}>Pedido não encontrado</Text>
         </View>
-      </View>
+      </SafeAreaView>
     );
   }
 
@@ -160,8 +188,22 @@ export default function PedidoDetalhesScreen({ route, navigation }) {
   const total = calcularTotalPedido(pedido);
 
   return (
-    <View style={styles.container}>
-      <CustomHeader title={`Pedido #${pedido.pedido_id}`} />
+    <SafeAreaView style={styles.container} edges={["top"]}>
+      {/* Header customizado com botão de voltar */}
+      <View style={styles.header}>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => navigation.goBack()}
+        >
+          <MaterialIcons
+            name="arrow-back"
+            size={24}
+            color={theme.colors.foreground}
+          />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>{`Pedido #${pedido.pedido_id}`}</Text>
+        <View style={styles.headerRight} />
+      </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         {/* Header do Pedido */}
@@ -458,7 +500,7 @@ export default function PedidoDetalhesScreen({ route, navigation }) {
           </TouchableOpacity>
         </View>
       )}
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -466,6 +508,31 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.colors.background,
+  },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    backgroundColor: "white",
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.border,
+  },
+  backButton: {
+    padding: 8,
+    borderRadius: 8,
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: theme.colors.foreground,
+    flex: 1,
+    textAlign: "center",
+    marginHorizontal: 16,
+  },
+  headerRight: {
+    width: 40, // Para balancear o botão de voltar
   },
   loadingContainer: {
     flex: 1,

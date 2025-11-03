@@ -24,14 +24,6 @@ export default function FinalizarCompraModal({
 
   const { pedidoId, endereco, total, frete, installments } = pedidoData;
 
-  // Debug para verificar os dados do frete
-  console.log("🚚 [DEBUG] FinalizarCompraModal - Dados do frete:", frete);
-  console.log("🚚 [DEBUG] FinalizarCompraModal - Tipo do frete:", typeof frete);
-  console.log(
-    "🚚 [DEBUG] FinalizarCompraModal - PedidoData completo:",
-    pedidoData
-  );
-
   return (
     <Modal
       visible={visible}
