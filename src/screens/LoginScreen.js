@@ -113,6 +113,7 @@ export default function LoginScreen({ navigation }) {
               <TextInput
                 style={[styles.input, emailError ? styles.inputError : null]}
                 placeholder="Digite seu email"
+                placeholderTextColor="#999"
                 value={email}
                 onChangeText={(text) => {
                   setEmail(text);
@@ -135,6 +136,7 @@ export default function LoginScreen({ navigation }) {
               <TextInput
                 style={[styles.input, passwordError ? styles.inputError : null]}
                 placeholder="Digite sua senha"
+                placeholderTextColor="#999"
                 value={password}
                 onChangeText={(text) => {
                   setPassword(text);

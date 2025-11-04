@@ -166,6 +166,7 @@ export default function PaymentMethodSelector({
             <TextInput
               style={styles.input}
               placeholder="seu.email@exemplo.com"
+              placeholderTextColor="#999"
               value={payerEmail}
               onChangeText={handleEmailChange}
               keyboardType="email-address"
@@ -180,6 +181,7 @@ export default function PaymentMethodSelector({
             <TextInput
               style={styles.input}
               placeholder="000.000.000-00"
+              placeholderTextColor="#999"
               value={formatCPF(payerCPF)}
               onChangeText={handleCPFChange}
               keyboardType="numeric"

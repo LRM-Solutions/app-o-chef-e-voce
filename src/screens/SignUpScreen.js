@@ -132,6 +132,7 @@ export default function SignUpScreen({ navigation }) {
                 <TextInput
                   style={[styles.input, nameError ? styles.inputError : null]}
                   placeholder="Digite seu nome completo"
+                  placeholderTextColor="#999"
                   value={name}
                   onChangeText={(text) => {
                     setName(text);
@@ -153,6 +154,7 @@ export default function SignUpScreen({ navigation }) {
                 <TextInput
                   style={[styles.input, emailError ? styles.inputError : null]}
                   placeholder="Digite seu email"
+                  placeholderTextColor="#999"
                   value={email}
                   onChangeText={(text) => {
                     setEmail(text);
@@ -178,6 +180,7 @@ export default function SignUpScreen({ navigation }) {
                     passwordError ? styles.inputError : null,
                   ]}
                   placeholder="Digite sua senha"
+                  placeholderTextColor="#999"
                   value={password}
                   onChangeText={(text) => {
                     setPassword(text);
@@ -203,6 +206,7 @@ export default function SignUpScreen({ navigation }) {
                     confirmPasswordError ? styles.inputError : null,
                   ]}
                   placeholder="Confirme sua senha"
+                  placeholderTextColor="#999"
                   value={confirmPassword}
                   onChangeText={(text) => {
                     setConfirmPassword(text);

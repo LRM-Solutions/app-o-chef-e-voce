@@ -12,13 +12,15 @@
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.lrmsolutions.fortelyne"
+      "bundleIdentifier": "com.lrmsolutions.o-chef-e-voce"
     },
     "android": {
-      "package": "com.lrmsolutions.fortelyne",
+      "package": "com.lrmsolutions.ochefevoce",
       "versionCode": 1,
       "adaptiveIcon": {
         "foregroundImage": "./assets/Icon_app.png",

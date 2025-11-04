@@ -313,6 +313,7 @@ export default function EnderecoSelector({
             <TextInput
               style={[styles.input, styles.cepInput]}
               placeholder="CEP *"
+              placeholderTextColor="#999"
               value={formData.cep}
               onChangeText={handleCepChange}
               keyboardType="numeric"
@@ -333,6 +334,7 @@ export default function EnderecoSelector({
                 loadingCep && styles.inputDisabled,
               ]}
               placeholder="Rua *"
+              placeholderTextColor="#999"
               value={formData.rua}
               onChangeText={(text) => setFormData({ ...formData, rua: text })}
               editable={!loadingCep}
@@ -344,6 +346,7 @@ export default function EnderecoSelector({
                 loadingCep && styles.inputDisabled,
               ]}
               placeholder="Nº *"
+              placeholderTextColor="#999"
               value={formData.numero}
               onChangeText={(text) =>
                 setFormData({
@@ -359,6 +362,7 @@ export default function EnderecoSelector({
           <TextInput
             style={[styles.input, loadingCep && styles.inputDisabled]}
             placeholder="Complemento (opcional)"
+            placeholderTextColor="#999"
             value={formData.complemento}
             onChangeText={(text) =>
               setFormData({ ...formData, complemento: text })
@@ -369,6 +373,7 @@ export default function EnderecoSelector({
           <TextInput
             style={[styles.input, loadingCep && styles.inputDisabled]}
             placeholder="Bairro *"
+            placeholderTextColor="#999"
             value={formData.bairro}
             onChangeText={(text) => setFormData({ ...formData, bairro: text })}
             editable={!loadingCep}
@@ -382,6 +387,7 @@ export default function EnderecoSelector({
                 loadingCep && styles.inputDisabled,
               ]}
               placeholder="Cidade *"
+              placeholderTextColor="#999"
               value={formData.cidade}
               onChangeText={(text) =>
                 setFormData({ ...formData, cidade: text })
@@ -395,6 +401,7 @@ export default function EnderecoSelector({
                 loadingCep && styles.inputDisabled,
               ]}
               placeholder="UF *"
+              placeholderTextColor="#999"
               value={formData.estado}
               onChangeText={(text) =>
                 setFormData({
