@@ -333,6 +333,10 @@ export default function CarrinhoComponent({ visible, onClose, onGoToCart }) {
                 />
                 <Text style={styles.checkoutText}>Finalizar Compra</Text>
               </TouchableOpacity>
+              {/* Aviso discreto sobre redirecionamento ao Mercado Pago */}
+              <Text style={styles.captionText}>
+                Ao finalizar, você será redirecionado ao Mercado Pago para concluir o pagamento.
+              </Text>
             </View>
           </>
         )}
@@ -533,6 +537,13 @@ const styles = StyleSheet.create({
     color: "white",
     fontSize: 16,
     fontWeight: "600",
+  },
+  captionText: {
+    fontSize: 12,
+    color: theme.colors.muted,
+    textAlign: "center",
+    marginTop: 8,
+    lineHeight: 16,
   },
   sectionHeader: {
     fontSize: 16,

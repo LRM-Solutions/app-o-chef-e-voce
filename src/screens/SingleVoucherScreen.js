@@ -334,6 +334,12 @@ export default function SingleVoucherScreen({ route, navigation }) {
               {available ? "Adicionar ao Carrinho" : "Voucher Esgotado"}
             </Text>
           </TouchableOpacity>
+          {available && (
+            <Text style={styles.voucherNotice}>
+              Após o pagamento, o voucher ficará disponível por email e também
+              no app, em "Meus Pedidos".
+            </Text>
+          )}
         </View>
       </ScrollView>
     </View>
@@ -547,5 +553,13 @@ const styles = StyleSheet.create({
     color: "white",
     fontSize: 18,
     fontWeight: "600",
+  },
+  voucherNotice: {
+    fontSize: 12,
+    color: theme.colors.muted,
+    textAlign: "center",
+    marginTop: 10,
+    lineHeight: 18,
+    paddingHorizontal: 8,
   },
 });

@@ -9,12 +9,14 @@ import {
   Platform,
   StyleSheet,
   Image,
+  Linking,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { login } from "../api/authApi";
 import { useAuth } from "../components/AuthProvider";
 import { validateEmail } from "../utils/helpers";
 import { theme, createButtonStyle, createTextStyle } from "../utils/theme";
+import { config } from "../utils/config";
 
 export default function LoginScreen({ navigation }) {
   const [email, setEmail] = useState("");
@@ -165,6 +167,20 @@ export default function LoginScreen({ navigation }) {
                 <Text style={styles.buttonText}>Entrar</Text>
               )}
             </TouchableOpacity>
+
+            {/* Privacy notice (discreet & sophisticated) */}
+            {config.PRIVACY_POLICY_URL ? (
+              <Text style={styles.privacyText}>
+                Ao continuar, você concorda com nossa{' '}
+                <Text
+                  style={styles.privacyLink}
+                  onPress={() => Linking.openURL(config.PRIVACY_POLICY_URL)}
+                >
+                  Política de Privacidade
+                </Text>
+                .
+              </Text>
+            ) : null}
           </View>
 
           {/* Footer */}
@@ -271,6 +287,19 @@ const styles = StyleSheet.create({
   },
   linkText: {
     color: theme.colors.primary,
+    fontWeight: "500",
+  },
+  privacyText: {
+    fontSize: 12,
+    color: theme.colors.muted,
+    textAlign: "center",
+    marginTop: theme.spacing.md,
+    lineHeight: 18,
+    opacity: 0.95,
+  },
+  privacyLink: {
+    color: theme.colors.primary,
+    textDecorationLine: "underline",
     fontWeight: "500",
   },
 });

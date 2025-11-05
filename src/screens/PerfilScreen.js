@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, StyleSheet, TouchableOpacity, Alert } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, Alert, Linking } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import { logout } from "../api/authApi";
@@ -15,6 +15,19 @@ const PerfilScreen = ({ navigation }) => {
 
   const handleAlterarSenha = () => {
     navigation.navigate("AlterarSenha");
+  };
+
+  const openExternalLink = async (url) => {
+    try {
+      const supported = await Linking.canOpenURL(url);
+      if (supported) {
+        await Linking.openURL(url);
+      } else {
+        Alert.alert("Erro", "Não foi possível abrir o link.");
+      }
+    } catch (error) {
+      Alert.alert("Erro", "Erro ao tentar abrir o link.");
+    }
   };
 
   const handleLogout = async () => {
@@ -63,6 +76,49 @@ const PerfilScreen = ({ navigation }) => {
             <View style={styles.menuItemContent}>
               <MaterialIcons name="lock" size={24} color="#666" />
               <Text style={styles.menuItemText}>Alterar Senha</Text>
+            </View>
+            <MaterialIcons name="chevron-right" size={24} color="#ccc" />
+          </TouchableOpacity>
+
+          {/* Linha separadora */}
+          <View style={styles.separator} />
+
+          {/* Política de Privacidade */}
+          <TouchableOpacity
+            style={styles.menuItem}
+            onPress={() => openExternalLink('https://o-chef-e-voce.base44.app/privacidade')}
+          >
+            <View style={styles.menuItemContent}>
+              <MaterialIcons name="policy" size={24} color="#666" />
+              <Text style={styles.menuItemText}>Política de Privacidade</Text>
+            </View>
+            <MaterialIcons name="chevron-right" size={24} color="#ccc" />
+          </TouchableOpacity>
+
+          <View style={styles.separator} />
+
+          {/* Termos de Uso */}
+          <TouchableOpacity
+            style={styles.menuItem}
+            onPress={() => openExternalLink('https://o-chef-e-voce.base44.app/termos')}
+          >
+            <View style={styles.menuItemContent}>
+              <MaterialIcons name="gavel" size={24} color="#666" />
+              <Text style={styles.menuItemText}>Termos de Uso</Text>
+            </View>
+            <MaterialIcons name="chevron-right" size={24} color="#ccc" />
+          </TouchableOpacity>
+
+          <View style={styles.separator} />
+
+          {/* Suporte */}
+          <TouchableOpacity
+            style={styles.menuItem}
+            onPress={() => openExternalLink('https://o-chef-e-voce.base44.app/suporte')}
+          >
+            <View style={styles.menuItemContent}>
+              <MaterialIcons name="support-agent" size={24} color="#666" />
+              <Text style={styles.menuItemText}>Suporte</Text>
             </View>
             <MaterialIcons name="chevron-right" size={24} color="#ccc" />
           </TouchableOpacity>

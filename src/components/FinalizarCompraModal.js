@@ -186,6 +186,12 @@ export default function FinalizarCompraModal({
             </Text>
           </TouchableOpacity>
         </View>
+        {/* Aviso discreto sobre redirecionamento ao Mercado Pago */}
+        <View style={styles.captionContainer}>
+          <Text style={styles.captionText}>
+            Ao finalizar, você será redirecionado ao Mercado Pago para concluir o pagamento.
+          </Text>
+        </View>
       </SafeAreaView>
     </Modal>
   );
@@ -384,5 +390,18 @@ const styles = StyleSheet.create({
   },
   buttonIcon: {
     marginRight: 4,
+  },
+  captionContainer: {
+    backgroundColor: "white",
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderTopWidth: 1,
+    borderTopColor: theme.colors.border,
+  },
+  captionText: {
+    fontSize: 12,
+    color: theme.colors.muted,
+    textAlign: "center",
+    lineHeight: 16,
   },
 });

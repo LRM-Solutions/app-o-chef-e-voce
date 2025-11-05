@@ -437,12 +437,7 @@ export default function PedidoDetalhesScreen({ route, navigation }) {
                   <Text style={styles.itemDescription} numberOfLines={2}>
                     {item.voucher.voucher_description}
                   </Text>
-                  <Text style={styles.itemValidate}>
-                    Válido até:{" "}
-                    {new Date(item.voucher.data_validade).toLocaleDateString(
-                      "pt-BR"
-                    )}
-                  </Text>
+                  {/* Removido: exibição da data de validade do voucher (evita 'Invalid Date') */}
                 </View>
                 <View style={styles.itemPricing}>
                   <Text style={styles.itemPrice}>
@@ -587,6 +582,9 @@ export default function PedidoDetalhesScreen({ route, navigation }) {
               </>
             )}
           </TouchableOpacity>
+          <Text style={styles.captionText}>
+            Ao finalizar, você será redirecionado ao Mercado Pago para concluir o pagamento.
+          </Text>
         </View>
       )}
     </SafeAreaView>
@@ -909,5 +907,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
     marginLeft: 8,
+  },
+  captionText: {
+    fontSize: 12,
+    color: theme.colors.muted,
+    textAlign: "center",
+    marginTop: 8,
+    lineHeight: 16,
   },
 });
