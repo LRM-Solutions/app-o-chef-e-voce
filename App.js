@@ -9,6 +9,7 @@ import LoginScreen from "./src/screens/LoginScreen";
 import SignUpScreen from "./src/screens/SignUpScreen";
 import NewUserEmailCodeScreen from "./src/screens/NewUserEmailCodeScreen";
 import RecuperarSenhaScreen from "./src/screens/RecuperarSenhaScreen";
+import ConfirmarExclusaoCodeScreen from "./src/screens/ConfirmarExclusaoCodeScreen";
 import Navigator from "./src/screens/Navigator";
 
 import Toast from "react-native-toast-message";
@@ -37,6 +38,10 @@ export default function App() {
               <Stack.Screen
                 name="RecuperarSenha"
                 component={RecuperarSenhaScreen}
+              />
+              <Stack.Screen
+                name="ConfirmarExclusaoCode"
+                component={ConfirmarExclusaoCodeScreen}
               />
             </Stack.Navigator>
           </NavigationContainer>

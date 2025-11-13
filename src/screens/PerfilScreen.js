@@ -9,8 +9,9 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
-import { logout } from "../api/authApi";
+import { logout, requestDeleteAccount, getUserEmail } from "../api/authApi";
 import { useAuth } from "../components/AuthProvider";
+import { CartService } from "../services/cartService";
 import { theme, createTextStyle, createButtonStyle } from "../utils/theme";
 
 const PerfilScreen = ({ navigation }) => {
@@ -26,6 +27,36 @@ const PerfilScreen = ({ navigation }) => {
 
   const handleLogin = () => {
     navigation.navigate("login");
+  };
+
+  const handleDeleteAccount = async () => {
+    Alert.alert(
+      "Excluir Conta",
+      "Tem certeza que deseja excluir sua conta? Esta ação não pode ser desfeita e todos os seus dados serão permanentemente removidos.",
+      [
+        {
+          text: "Cancelar",
+          style: "cancel",
+        },
+        {
+          text: "Continuar",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              const userEmail = await getUserEmail();
+              const response = await requestDeleteAccount();
+              if (response && userEmail) {
+                navigation.navigate("ConfirmarExclusaoCode", {
+                  userEmail: userEmail,
+                });
+              }
+            } catch (error) {
+              Alert.alert("Erro", "Erro ao solicitar exclusão da conta");
+            }
+          },
+        },
+      ]
+    );
   };
 
   const openExternalLink = async (url) => {
@@ -53,6 +84,8 @@ const PerfilScreen = ({ navigation }) => {
         onPress: async () => {
           try {
             await logout();
+            // Limpar o carrinho do AsyncStorage
+            await CartService.clearAllCart();
             authLogout();
           } catch (error) {
             Alert.alert("Erro", "Erro ao fazer logout");
@@ -144,6 +177,27 @@ const PerfilScreen = ({ navigation }) => {
                 <View style={styles.menuItemContent}>
                   <MaterialIcons name="lock" size={24} color="#666" />
                   <Text style={styles.menuItemText}>Alterar Senha</Text>
+                </View>
+                <MaterialIcons name="chevron-right" size={24} color="#ccc" />
+              </TouchableOpacity>
+
+              {/* Linha separadora */}
+              <View style={styles.separator} />
+
+              {/* Deletar Conta */}
+              <TouchableOpacity
+                style={styles.menuItem}
+                onPress={handleDeleteAccount}
+              >
+                <View style={styles.menuItemContent}>
+                  <MaterialIcons
+                    name="delete-forever"
+                    size={24}
+                    color="#dc2626"
+                  />
+                  <Text style={[styles.menuItemText, styles.deleteAccountText]}>
+                    Deletar Conta
+                  </Text>
                 </View>
                 <MaterialIcons name="chevron-right" size={24} color="#ccc" />
               </TouchableOpacity>
@@ -302,6 +356,9 @@ const styles = StyleSheet.create({
     ...createTextStyle("body", "white"),
     fontWeight: "600",
     marginLeft: theme.spacing.sm,
+  },
+  deleteAccountText: {
+    color: "#dc2626", // Vermelho para indicar ação perigosa
   },
 });
 

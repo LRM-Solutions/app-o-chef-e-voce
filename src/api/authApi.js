@@ -322,3 +322,103 @@ export const getUserEmail = async () => {
     return null;
   }
 };
+
+// Função para solicitar exclusão de conta
+export const requestDeleteAccount = async () => {
+  try {
+    console.log(
+      "🗑️ [DEBUG] POST /excluir-conta - Solicitando exclusão de conta"
+    );
+
+    const response = await api.post("/excluir-conta", {});
+
+    console.log("✅ [DEBUG] POST /excluir-conta - Response:", {
+      status: response.status,
+      data: response.data,
+    });
+
+    Toast.show({
+      type: "success",
+      text1: "Código enviado!",
+      text2: "Verifique seu email para confirmar a exclusão da conta",
+      visibilityTime: 4000,
+    });
+
+    return response.data;
+  } catch (error) {
+    console.error("❌ [DEBUG] POST /excluir-conta - Erro:", {
+      message: error.message,
+      status: error.response?.status,
+      data: error.response?.data,
+      url: error.config?.url,
+    });
+
+    let errorMessage = "Erro interno do servidor";
+    if (error.response && error.response.data && error.response.data.error) {
+      errorMessage = error.response.data.error;
+    }
+
+    Toast.show({
+      type: "error",
+      text1: "Erro ao solicitar exclusão",
+      text2: errorMessage,
+      visibilityTime: 4000,
+    });
+
+    throw error;
+  }
+};
+
+// Função para confirmar exclusão de conta
+export const confirmDeleteAccount = async (code) => {
+  try {
+    const payload = {
+      code: code.toString(),
+    };
+
+    console.log(
+      "🗑️ [DEBUG] POST /confirmar-exclusao-conta - Confirmando exclusão"
+    );
+    console.log(
+      "📤 [DEBUG] POST /confirmar-exclusao-conta - Payload:",
+      payload
+    );
+
+    const response = await api.post("/confirmar-exclusao-conta", payload);
+
+    console.log("✅ [DEBUG] POST /confirmar-exclusao-conta - Response:", {
+      status: response.status,
+      data: response.data,
+    });
+
+    Toast.show({
+      type: "success",
+      text1: "Conta excluída!",
+      text2: "Sua conta foi excluída com sucesso",
+      visibilityTime: 4000,
+    });
+
+    return response.data;
+  } catch (error) {
+    console.error("❌ [DEBUG] POST /confirmar-exclusao-conta - Erro:", {
+      message: error.message,
+      status: error.response?.status,
+      data: error.response?.data,
+      url: error.config?.url,
+    });
+
+    let errorMessage = "Erro interno do servidor";
+    if (error.response && error.response.data && error.response.data.error) {
+      errorMessage = error.response.data.error;
+    }
+
+    Toast.show({
+      type: "error",
+      text1: "Erro na exclusão",
+      text2: errorMessage,
+      visibilityTime: 4000,
+    });
+
+    throw error;
+  }
+};
