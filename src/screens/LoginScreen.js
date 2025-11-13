@@ -74,6 +74,8 @@ export default function LoginScreen({ navigation }) {
       } else {
         // Login bem-sucedido
         authLogin(); // Atualizar estado de autenticação
+        // Navegar de volta para o Navigator principal
+        navigation.navigate("Navigator");
       }
     }
 
@@ -171,7 +173,7 @@ export default function LoginScreen({ navigation }) {
             {/* Privacy notice (discreet & sophisticated) */}
             {config.PRIVACY_POLICY_URL ? (
               <Text style={styles.privacyText}>
-                Ao continuar, você concorda com nossa{' '}
+                Ao continuar, você concorda com nossa{" "}
                 <Text
                   style={styles.privacyLink}
                   onPress={() => Linking.openURL(config.PRIVACY_POLICY_URL)}

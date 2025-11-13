@@ -20,6 +20,7 @@ import {
   getProductImages,
 } from "../api/products";
 import { CartService } from "../services/cartService";
+import { useAuth } from "../components/AuthProvider";
 import Toast from "react-native-toast-message";
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
@@ -30,6 +31,7 @@ export default function SingleProductScreen({ route, navigation }) {
   const [loading, setLoading] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [quantity, setQuantity] = useState(1);
+  const { isAuthenticated } = useAuth();
 
   useEffect(() => {
     loadProduct();
@@ -62,6 +64,10 @@ export default function SingleProductScreen({ route, navigation }) {
     } else if (!increment && quantity > 1) {
       setQuantity(quantity - 1);
     }
+  };
+
+  const handleLoginPress = () => {
+    navigation.navigate("Login");
   };
 
   const handleAddToCart = async () => {
@@ -237,7 +243,7 @@ export default function SingleProductScreen({ route, navigation }) {
           </View>
 
           {/* Seletor de quantidade */}
-          {inStock && (
+          {inStock && isAuthenticated && (
             <View style={styles.quantitySection}>
               <Text style={styles.quantityLabel}>Quantidade:</Text>
               <View style={styles.quantityContainer}>
@@ -269,25 +275,42 @@ export default function SingleProductScreen({ route, navigation }) {
             </View>
           )}
 
-          {/* Botão de adicionar ao carrinho */}
-          <TouchableOpacity
-            style={[
-              styles.addToCartButton,
-              !inStock && styles.addToCartButtonDisabled,
-            ]}
-            onPress={handleAddToCart}
-            disabled={!inStock}
-          >
-            <MaterialIcons
-              name="shopping-cart"
-              size={20}
-              color="white"
-              style={styles.cartIcon}
-            />
-            <Text style={styles.addToCartText}>
-              {inStock ? "Adicionar ao Carrinho" : "Produto Esgotado"}
-            </Text>
-          </TouchableOpacity>
+          {/* Botão de adicionar ao carrinho ou fazer login */}
+          {!isAuthenticated ? (
+            <TouchableOpacity
+              style={styles.loginPromptButton}
+              onPress={handleLoginPress}
+            >
+              <MaterialIcons
+                name="login"
+                size={20}
+                color="white"
+                style={styles.cartIcon}
+              />
+              <Text style={styles.loginPromptText}>
+                Faça seu login para comprar
+              </Text>
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity
+              style={[
+                styles.addToCartButton,
+                !inStock && styles.addToCartButtonDisabled,
+              ]}
+              onPress={handleAddToCart}
+              disabled={!inStock}
+            >
+              <MaterialIcons
+                name="shopping-cart"
+                size={20}
+                color="white"
+                style={styles.cartIcon}
+              />
+              <Text style={styles.addToCartText}>
+                {inStock ? "Adicionar ao Carrinho" : "Produto Esgotado"}
+              </Text>
+            </TouchableOpacity>
+          )}
         </View>
       </ScrollView>
     </View>
@@ -491,6 +514,20 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   addToCartText: {
+    color: "white",
+    fontSize: 18,
+    fontWeight: "600",
+  },
+  loginPromptButton: {
+    backgroundColor: "#4CAF50",
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    paddingVertical: 16,
+    borderRadius: 12,
+    marginTop: 16,
+  },
+  loginPromptText: {
     color: "white",
     fontSize: 18,
     fontWeight: "600",

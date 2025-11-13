@@ -6,30 +6,39 @@ import Logo from "../assets/images/logo.png";
 import { CartService } from "../services/cartService";
 import CarrinhoComponent from "./CarrinhoComponent";
 import { useNavigation } from "@react-navigation/native";
+import { useAuth } from "./AuthProvider";
 
 const CustomHeader = () => {
   const [cartItemCount, setCartItemCount] = useState(0);
   const [showCartModal, setShowCartModal] = useState(false);
   const navigation = useNavigation();
+  const { isAuthenticated } = useAuth();
 
   useEffect(() => {
-    loadCartCount();
-
-    // Listener para quando a tela ganha foco (carrinho foi atualizado)
-    const unsubscribe = navigation.addListener("focus", () => {
+    if (isAuthenticated) {
       loadCartCount();
-    });
 
-    return unsubscribe;
-  }, [navigation]);
+      // Listener para quando a tela ganha foco (carrinho foi atualizado)
+      const unsubscribe = navigation.addListener("focus", () => {
+        loadCartCount();
+      });
+
+      return unsubscribe;
+    }
+  }, [navigation, isAuthenticated]);
 
   const loadCartCount = async () => {
     try {
-      const count = await CartService.getCartItemCount();
-      setCartItemCount(count);
+      const items = await CartService.getCartItems();
+      const totalCount = items.reduce((sum, item) => sum + item.quantity, 0);
+      setCartItemCount(totalCount);
     } catch (error) {
-      console.error("Erro ao carregar contagem do carrinho:", error);
+      console.error("Error loading cart count:", error);
     }
+  };
+
+  const handleLoginPress = () => {
+    navigation.navigate("Login");
   };
 
   const handleGoToCart = () => {
@@ -43,26 +52,37 @@ const CustomHeader = () => {
           <Image source={Logo} style={styles.logo} resizeMode="contain" />
         </View>
 
-        <TouchableOpacity
-          style={styles.cartButton}
-          onPress={() => setShowCartModal(true)}
-        >
-          <MaterialIcons name="shopping-cart" size={24} color="#000" />
-          {cartItemCount > 0 && (
-            <View style={styles.cartBadge}>
-              <Text style={styles.cartBadgeText}>
-                {cartItemCount > 99 ? "99+" : cartItemCount}
-              </Text>
-            </View>
-          )}
-        </TouchableOpacity>
+        {isAuthenticated ? (
+          <TouchableOpacity
+            style={styles.cartButton}
+            onPress={() => setShowCartModal(true)}
+          >
+            <MaterialIcons name="shopping-cart" size={24} color="#000" />
+            {cartItemCount > 0 && (
+              <View style={styles.cartBadge}>
+                <Text style={styles.cartBadgeText}>
+                  {cartItemCount > 99 ? "99+" : cartItemCount}
+                </Text>
+              </View>
+            )}
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity
+            style={styles.loginButton}
+            onPress={handleLoginPress}
+          >
+            <Text style={styles.loginButtonText}>Login</Text>
+          </TouchableOpacity>
+        )}
       </View>
 
-      <CarrinhoComponent
-        visible={showCartModal}
-        onClose={() => setShowCartModal(false)}
-        onGoToCart={handleGoToCart}
-      />
+      {isAuthenticated && (
+        <CarrinhoComponent
+          visible={showCartModal}
+          onClose={() => setShowCartModal(false)}
+          onGoToCart={handleGoToCart}
+        />
+      )}
     </>
   );
 };
@@ -105,6 +125,17 @@ const styles = StyleSheet.create({
     color: "white",
     fontSize: 12,
     fontWeight: "bold",
+  },
+  loginButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    backgroundColor: theme.colors.primary,
+    borderRadius: 20,
+  },
+  loginButtonText: {
+    color: "white",
+    fontSize: 14,
+    fontWeight: "600",
   },
 });
 

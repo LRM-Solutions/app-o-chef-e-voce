@@ -8,6 +8,7 @@ import CarrinhoScreen from "./CarrinhoScreen";
 import MeusPedidosStack from "./MeusPedidosStack";
 import VouchersStack from "./VouchersStack";
 import AlterarSenhaScreen from "./AlterarSenhaScreen";
+import LoginScreen from "./LoginScreen";
 import { View, StyleSheet, Platform } from "react-native";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import Ionicons from "react-native-vector-icons/Ionicons";
@@ -18,11 +19,12 @@ import {
   SafeAreaView,
 } from "react-native-safe-area-context";
 import CustomHeader from "../components/CustomHeader";
+import { useAuth } from "../components/AuthProvider";
 
 const Tab = createBottomTabNavigator();
 
 // Ícones usando @expo/vector-icons
-const TabIcon = ({ name, focused }) => {
+const TabIcon = ({ name, focused, isAuthenticated }) => {
   const getIcon = () => {
     const color = focused ? theme.colors.primary : "#666";
     const size = 24;
@@ -36,6 +38,8 @@ const TabIcon = ({ name, focused }) => {
         return <AntDesign name="youtube" size={size} color={color} />;
       case "config":
         return <Ionicons name="person" size={size} color={color} />;
+      case "login":
+        return <MaterialIcons name="login" size={size} color={color} />;
       default:
         return <MaterialIcons name="help" size={size} color={color} />;
     }
@@ -46,6 +50,7 @@ const TabIcon = ({ name, focused }) => {
 
 const Navigator = () => {
   const insets = useSafeAreaInsets();
+  const { isAuthenticated } = useAuth();
 
   return (
     <View style={styles.wrapper}>
@@ -53,7 +58,11 @@ const Navigator = () => {
         <Tab.Navigator
           screenOptions={({ route }) => ({
             tabBarIcon: ({ focused }) => (
-              <TabIcon name={route.name} focused={focused} />
+              <TabIcon
+                name={route.name}
+                focused={focused}
+                isAuthenticated={isAuthenticated}
+              />
             ),
             tabBarActiveTintColor: theme.colors.primary,
             tabBarInactiveTintColor: "#666",
@@ -89,8 +98,9 @@ const Navigator = () => {
               tabBarLabel: "Episódios",
             }}
           />
+          {/* Aba condicional: Conta para logados, Login para não logados */}
           <Tab.Screen
-            name="config"
+            name={"config"}
             component={PerfilScreen}
             options={{
               tabBarLabel: "Conta",

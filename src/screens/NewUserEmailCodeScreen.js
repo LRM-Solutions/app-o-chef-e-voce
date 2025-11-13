@@ -15,11 +15,13 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import { verifyEmail, resendVerificationCode } from "../api/authApi";
+import { useAuth } from "../components/AuthProvider";
 import { theme, createButtonStyle, createTextStyle } from "../utils/theme";
 
 export default function NewUserEmailCodeScreen({ navigation, route }) {
   // Email vem como parâmetro da tela anterior
   const { userEmail, fromLogin = false } = route.params;
+  const { login: authLogin } = useAuth();
 
   const [code, setCode] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -61,16 +63,32 @@ export default function NewUserEmailCodeScreen({ navigation, route }) {
     try {
       const response = await verifyEmail(userEmail, codeToVerify.trim());
       if (response) {
-        Alert.alert(
-          "Email verificado!",
-          "Sua conta foi criada com sucesso. Você já pode fazer login.",
-          [
-            {
-              text: "Fazer Login",
-              onPress: () => navigation.navigate("Login"),
-            },
-          ]
-        );
+        if (fromLogin) {
+          // Se veio do login, fazer o login automaticamente e redirecionar
+          authLogin();
+          Alert.alert(
+            "Email verificado!",
+            "Sua conta foi verificada com sucesso. Bem-vindo!",
+            [
+              {
+                text: "OK",
+                onPress: () => navigation.navigate("Navigator"),
+              },
+            ]
+          );
+        } else {
+          // Se veio do cadastro, apenas mostrar sucesso e ir para login
+          Alert.alert(
+            "Email verificado!",
+            "Sua conta foi criada com sucesso. Você já pode fazer login.",
+            [
+              {
+                text: "Fazer Login",
+                onPress: () => navigation.navigate("Login"),
+              },
+            ]
+          );
+        }
       }
     } catch (error) {
       console.log("Erro ao verificar código:", error);
