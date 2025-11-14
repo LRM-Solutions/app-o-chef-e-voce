@@ -1,12 +1,8 @@
 {
-  {
   "expo": {
     "name": "O Chef é Você",
     "slug": "o-chef-e-voce",
     "version": "1.0.1",
-    "android": {
-      "versionCode": 3
-    },
     "orientation": "portrait",
     "icon": "./assets/Icon_app.png",
     "userInterfaceStyle": "light",
@@ -27,7 +23,7 @@
     },
     "android": {
       "package": "com.lrmsolutions.ochefevoce",
-      "versionCode": 1,
+      "versionCode": 3,
       "adaptiveIcon": {
         "foregroundImage": "./assets/Icon_app.png",
         "backgroundColor": "#8BC34A"
