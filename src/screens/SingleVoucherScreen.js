@@ -20,6 +20,7 @@ import {
   getVoucherMainImage,
 } from "../api/vouchers";
 import { CartService } from "../services/cartService";
+import { useAuth } from "../components/AuthProvider";
 import Toast from "react-native-toast-message";
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
@@ -29,6 +30,7 @@ export default function SingleVoucherScreen({ route, navigation }) {
   const [voucher, setVoucher] = useState(null);
   const [loading, setLoading] = useState(false);
   const [quantity, setQuantity] = useState(1);
+  const { isAuthenticated } = useAuth();
 
   useEffect(() => {
     loadVoucher();
@@ -85,6 +87,10 @@ export default function SingleVoucherScreen({ route, navigation }) {
         visibilityTime: 3000,
       });
     }
+  };
+
+  const handleLoginPress = () => {
+    navigation.navigate("Login");
   };
 
   const handleVisitPartnerSite = async () => {
@@ -315,25 +321,40 @@ export default function SingleVoucherScreen({ route, navigation }) {
             </View>
           )}
 
-          {/* Botão de adicionar voucher ao carrinho */}
-          <TouchableOpacity
-            style={[
-              styles.addToCartButton,
-              !available && styles.addToCartButtonDisabled,
-            ]}
-            onPress={handleAddVoucherToCart}
-            disabled={!available}
-          >
-            <MaterialIcons
-              name="shopping-cart"
-              size={20}
-              color="white"
-              style={styles.cartIcon}
-            />
-            <Text style={styles.addToCartText}>
-              {available ? "Adicionar ao Carrinho" : "Voucher Esgotado"}
-            </Text>
-          </TouchableOpacity>
+          {/* Botão de adicionar voucher ao carrinho ou prompt para login */}
+          {!isAuthenticated ? (
+            <TouchableOpacity
+              style={styles.loginPromptButton}
+              onPress={handleLoginPress}
+            >
+              <MaterialIcons
+                name="login"
+                size={20}
+                color="white"
+                style={styles.cartIcon}
+              />
+              <Text style={styles.loginPromptText}>Faça seu login para comprar</Text>
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity
+              style={[
+                styles.addToCartButton,
+                !available && styles.addToCartButtonDisabled,
+              ]}
+              onPress={handleAddVoucherToCart}
+              disabled={!available}
+            >
+              <MaterialIcons
+                name="shopping-cart"
+                size={20}
+                color="white"
+                style={styles.cartIcon}
+              />
+              <Text style={styles.addToCartText}>
+                {available ? "Adicionar ao Carrinho" : "Voucher Esgotado"}
+              </Text>
+            </TouchableOpacity>
+          )}
           {available && (
             <Text style={styles.voucherNotice}>
               Após o pagamento, o voucher ficará disponível por email e também
@@ -550,6 +571,20 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   addToCartText: {
+    color: "white",
+    fontSize: 18,
+    fontWeight: "600",
+  },
+  loginPromptButton: {
+    backgroundColor: "#4CAF50",
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    paddingVertical: 16,
+    borderRadius: 12,
+    marginTop: 16,
+  },
+  loginPromptText: {
     color: "white",
     fontSize: 18,
     fontWeight: "600",

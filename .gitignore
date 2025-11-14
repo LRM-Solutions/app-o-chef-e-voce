@@ -5,9 +5,11 @@ node_modules/
 
 # Expo
 .expo/
+.expo/
+.expo-shared/
+expo-env.d.ts
 dist/
 web-build/
-expo-env.d.ts
 
 # Native
 .kotlin/
@@ -17,6 +19,13 @@ expo-env.d.ts
 *.p12
 *.key
 *.mobileprovision
+
+# Xcode
+ios/Pods/
+ios/build/
+*.xcworkspace
+*.xcuserstate
+*.xcuserdatad
 
 # Metro
 .metro-health-check*
@@ -35,3 +44,32 @@ yarn-error.*
 
 # typescript
 *.tsbuildinfo
+
+# Android
+android/.gradle/
+android/app/build/
+android/build/
+android/local.properties
+
+# Fastlane
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots
+
+# IDEs
+.vscode/
+.idea/
+
+# Logs
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+
+# Coverage and build output
+coverage/
+build/
+
+# Keystore files
+*.keystore
+android/*.keystore
+
