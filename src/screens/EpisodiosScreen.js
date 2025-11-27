@@ -11,6 +11,7 @@ import {
   Alert,
   RefreshControl,
   Linking,
+  Platform,
 } from "react-native";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import { theme } from "../utils/theme";
@@ -114,13 +115,6 @@ export default function EpisodiosScreen() {
 
   const openVideo = async (videoId, videoTitle) => {
     try {
-      // URLs do YouTube
-      const youtubeAppUrl = `vnd.youtube://www.youtube.com/watch?v=${videoId}`;
-      const youtubeBrowserUrl = `https://www.youtube.com/watch?v=${videoId}`;
-
-      // Tenta abrir no app do YouTube primeiro
-      const canOpenYouTubeApp = await Linking.canOpenURL(youtubeAppUrl);
-
       // Toast de feedback
       Toast.show({
         type: "info",
@@ -132,19 +126,90 @@ export default function EpisodiosScreen() {
         visibilityTime: 2000,
       });
 
-      if (canOpenYouTubeApp) {
-        // Abre no app do YouTube
-        await Linking.openURL(youtubeAppUrl);
-      } else {
-        // Abre no navegador se não tiver o app
-        await Linking.openURL(youtubeBrowserUrl);
+      // URLs do YouTube em ordem de preferência
+      const youtubeUrls = [
+        // iOS: Tenta app YouTube primeiro
+        Platform.OS === "ios"
+          ? `vnd.youtube://www.youtube.com/watch?v=${videoId}`
+          : null,
+        // iOS: Esquema alternativo do YouTube
+        Platform.OS === "ios"
+          ? `youtube://www.youtube.com/watch?v=${videoId}`
+          : null,
+        // Todas as plataformas: Safari/navegador padrão
+        `https://www.youtube.com/watch?v=${videoId}`,
+      ].filter(Boolean); // Remove valores null
+
+      console.log("📹 [YouTube] Tentando abrir vídeo:", {
+        videoId,
+        plataforma: Platform.OS,
+        urls: youtubeUrls,
+      });
+
+      let opened = false;
+
+      // Tenta cada URL sequencialmente
+      for (let i = 0; i < youtubeUrls.length; i++) {
+        const url = youtubeUrls[i];
+        console.log(
+          `📹 [YouTube] Tentativa ${i + 1}/${youtubeUrls.length}:`,
+          url
+        );
+
+        try {
+          const canOpen = await Linking.canOpenURL(url);
+          console.log(`📹 [YouTube] canOpenURL(${url}):`, canOpen);
+
+          if (canOpen) {
+            await Linking.openURL(url);
+            opened = true;
+            console.log(`📹 [YouTube] ✅ Vídeo aberto com sucesso via: ${url}`);
+            break;
+          }
+        } catch (urlError) {
+          console.log(
+            `📹 [YouTube] ⚠️ Falha na tentativa ${i + 1}:`,
+            urlError.message
+          );
+          // Continua para a próxima URL
+        }
+      }
+
+      // Se nenhuma URL funcionou, mostra erro detalhado
+      if (!opened) {
+        console.error("📹 [YouTube] ❌ Nenhuma URL de YouTube funcionou");
+
+        let errorMessage = "Não foi possível abrir o vídeo no YouTube.";
+        let errorDetails =
+          "Verifique se o app do YouTube está instalado ou tente novamente.";
+
+        if (Platform.OS === "ios") {
+          errorMessage = "Erro ao Abrir YouTube";
+          errorDetails =
+            "Não conseguimos abrir o vídeo. Tente novamente ou abra o YouTube manualmente.";
+        }
+
+        Alert.alert(errorMessage, errorDetails, [
+          {
+            text: "Cancelar",
+            style: "cancel",
+          },
+          {
+            text: "Tentar Novamente",
+            onPress: () => openVideo(videoId, videoTitle),
+          },
+        ]);
       }
     } catch (error) {
-      console.error("Erro ao abrir vídeo:", error);
+      console.error("📹 [YouTube] Erro geral ao abrir vídeo:", {
+        code: error.code,
+        message: error.message,
+        videoId,
+      });
 
       Alert.alert(
-        "Erro",
-        "Não foi possível abrir o vídeo. Verifique sua conexão com a internet.",
+        "Erro ao Abrir Vídeo",
+        "Ocorreu um erro inesperado. Verifique sua conexão com a internet e tente novamente.",
         [{ text: "OK" }]
       );
     }
