@@ -11,6 +11,7 @@ import {
   Image,
   Linking,
 } from "react-native";
+import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { login } from "../api/authApi";
 import { useAuth } from "../components/AuthProvider";
@@ -100,6 +101,13 @@ export default function LoginScreen({ navigation }) {
         <View style={styles.content}>
           {/* Header */}
           <View style={styles.header}>
+            <TouchableOpacity
+              style={styles.backButton}
+              onPress={() => navigation.goBack()}
+            >
+              <MaterialIcons name="arrow-back" size={24} color="#000" />
+            </TouchableOpacity>
+
             <Image
               source={require("../assets/images/logo.png")}
               style={styles.logo}
@@ -248,6 +256,12 @@ const styles = StyleSheet.create({
   },
   label: {
     ...createTextStyle("body", "foreground"),
+  backButton: {
+    position: "absolute",
+    left: theme.spacing.xl,
+    top: 0,
+    padding: 8,
+  },
     marginBottom: theme.spacing.sm,
     fontWeight: "500",
   },

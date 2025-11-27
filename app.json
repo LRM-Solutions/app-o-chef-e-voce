@@ -1,9 +1,8 @@
 {
   "expo": {
-    "name": "O Chef é Você ",
+    "name": "O Chef é Você",
     "slug": "o-chef-e-voce",
-    "jsEngine": "hermes",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "orientation": "portrait",
     "icon": "./assets/Icon_app.png",
     "userInterfaceStyle": "light",
@@ -17,11 +16,14 @@
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.lrmsolutions.o-chef-e-voce"
+      "bundleIdentifier": "com.lrmsolutions.o-chef-e-voce",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "package": "com.lrmsolutions.ochefevoce",
-      "versionCode": 1,
+      "versionCode": 3,
       "adaptiveIcon": {
         "foregroundImage": "./assets/Icon_app.png",
         "backgroundColor": "#8BC34A"
