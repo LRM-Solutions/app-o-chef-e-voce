@@ -351,7 +351,7 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 12,
     fontSize: 16,
-    color: theme.colors.muted,
+    color: theme.colors.textMuted,
   },
   errorContainer: {
     flex: 1,
@@ -361,7 +361,7 @@ const styles = StyleSheet.create({
   },
   errorText: {
     fontSize: 16,
-    color: theme.colors.muted,
+    color: theme.colors.textMuted,
     marginTop: 16,
     marginBottom: 24,
   },

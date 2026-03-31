@@ -869,7 +869,7 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 12,
     fontSize: 16,
-    color: theme.colors.muted,
+    color: theme.colors.textMuted,
   },
   emptyContainer: {
     flex: 1,
@@ -886,7 +886,7 @@ const styles = StyleSheet.create({
   },
   emptySubtext: {
     fontSize: 14,
-    color: theme.colors.muted,
+    color: theme.colors.textMuted,
     textAlign: "center",
     marginBottom: 24,
   },
@@ -954,7 +954,7 @@ const styles = StyleSheet.create({
   },
   itemCategory: {
     fontSize: 12,
-    color: theme.colors.muted,
+    color: theme.colors.textMuted,
     marginBottom: 8,
   },
   itemPrice: {
@@ -1021,7 +1021,7 @@ const styles = StyleSheet.create({
   },
   summaryLabel: {
     fontSize: 14,
-    color: theme.colors.muted,
+    color: theme.colors.textMuted,
   },
   summaryValue: {
     fontSize: 14,

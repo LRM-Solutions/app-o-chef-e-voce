@@ -156,7 +156,7 @@ export default function NewUserEmailCodeScreen({ navigation, route }) {
             {/* Header */}
             <View style={styles.header}>
               <Image
-                source={require("../assets/images/logo.png")}
+                source={require("../../assets/icon.png")}
                 style={styles.logo}
                 resizeMode="contain"
               />
@@ -336,7 +336,7 @@ const styles = StyleSheet.create({
     marginBottom: theme.spacing.sm,
   },
   subtitle: {
-    ...createTextStyle("body", "muted"),
+    ...createTextStyle("body", "textMuted"),
     textAlign: "center",
     marginBottom: theme.spacing.xs,
   },
@@ -408,7 +408,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   codeHint: {
-    ...createTextStyle("caption", "muted"),
+    ...createTextStyle("caption", "textMuted"),
     marginTop: theme.spacing.md,
     textAlign: "center",
     paddingHorizontal: theme.spacing.md,
@@ -431,7 +431,7 @@ const styles = StyleSheet.create({
     marginBottom: theme.spacing.xl,
   },
   resendText: {
-    ...createTextStyle("body", "muted"),
+    ...createTextStyle("body", "textMuted"),
     marginBottom: theme.spacing.sm,
   },
   resendButton: {
@@ -443,7 +443,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   resendingText: {
-    ...createTextStyle("body", "muted"),
+    ...createTextStyle("body", "textMuted"),
     marginLeft: theme.spacing.sm,
   },
   resendButtonText: {
@@ -455,7 +455,7 @@ const styles = StyleSheet.create({
     marginTop: theme.spacing.xl,
   },
   footerText: {
-    ...createTextStyle("caption", "muted"),
+    ...createTextStyle("caption", "textMuted"),
     textAlign: "center",
   },
   linkText: {

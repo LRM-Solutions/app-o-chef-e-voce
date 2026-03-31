@@ -132,11 +132,11 @@ export default function AlterarSenhaScreen({ navigation }) {
           <View style={styles.form}>
             {/* Nova Senha */}
             <View style={styles.inputContainer}>
-              <MaterialIcons name="lock" size={20} color={theme.colors.muted} />
+              <MaterialIcons name="lock" size={20} color={theme.colors.textMuted} />
               <TextInput
                 style={styles.input}
                 placeholder="Nova senha"
-                placeholderTextColor={theme.colors.muted}
+                placeholderTextColor={theme.colors.textMuted}
                 value={newPassword}
                 onChangeText={setNewPassword}
                 secureTextEntry={!showPassword}
@@ -151,7 +151,7 @@ export default function AlterarSenhaScreen({ navigation }) {
                 <MaterialIcons
                   name={showPassword ? "visibility" : "visibility-off"}
                   size={20}
-                  color={theme.colors.muted}
+                  color={theme.colors.textMuted}
                 />
               </TouchableOpacity>
             </View>
@@ -161,12 +161,12 @@ export default function AlterarSenhaScreen({ navigation }) {
               <MaterialIcons
                 name="lock-outline"
                 size={20}
-                color={theme.colors.muted}
+                color={theme.colors.textMuted}
               />
               <TextInput
                 style={styles.input}
                 placeholder="Confirmar nova senha"
-                placeholderTextColor={theme.colors.muted}
+                placeholderTextColor={theme.colors.textMuted}
                 value={confirmPassword}
                 onChangeText={setConfirmPassword}
                 secureTextEntry={!showConfirmPassword}
@@ -181,7 +181,7 @@ export default function AlterarSenhaScreen({ navigation }) {
                 <MaterialIcons
                   name={showConfirmPassword ? "visibility" : "visibility-off"}
                   size={20}
-                  color={theme.colors.muted}
+                  color={theme.colors.textMuted}
                 />
               </TouchableOpacity>
             </View>
@@ -287,7 +287,7 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: 16,
-    color: theme.colors.muted,
+    color: theme.colors.textMuted,
     textAlign: "center",
     lineHeight: 24,
   },
@@ -332,7 +332,7 @@ const styles = StyleSheet.create({
   },
   securityTip: {
     fontSize: 12,
-    color: theme.colors.muted,
+    color: theme.colors.textMuted,
     marginBottom: 4,
   },
   changeButton: {

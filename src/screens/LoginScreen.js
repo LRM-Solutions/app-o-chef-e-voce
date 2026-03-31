@@ -75,8 +75,7 @@ export default function LoginScreen({ navigation }) {
       } else {
         // Login bem-sucedido
         authLogin(); // Atualizar estado de autenticação
-        // Navegar de volta para o Navigator principal
-        navigation.navigate("Navigator");
+        // A navegação para o fluxo principal é controlada pelo AuthProvider
       }
     }
 
@@ -109,7 +108,7 @@ export default function LoginScreen({ navigation }) {
             </TouchableOpacity>
 
             <Image
-              source={require("../assets/images/logo.png")}
+              source={require("../../assets/icon.png")}
               style={styles.logo}
               resizeMode="contain"
             />
@@ -125,7 +124,7 @@ export default function LoginScreen({ navigation }) {
               <TextInput
                 style={[styles.input, emailError ? styles.inputError : null]}
                 placeholder="Digite seu email"
-                placeholderTextColor="#999"
+                placeholderTextColor={theme.colors.textMuted}
                 value={email}
                 onChangeText={(text) => {
                   setEmail(text);
@@ -148,7 +147,7 @@ export default function LoginScreen({ navigation }) {
               <TextInput
                 style={[styles.input, passwordError ? styles.inputError : null]}
                 placeholder="Digite sua senha"
-                placeholderTextColor="#999"
+                placeholderTextColor={theme.colors.textMuted}
                 value={password}
                 onChangeText={(text) => {
                   setPassword(text);
@@ -245,7 +244,7 @@ const styles = StyleSheet.create({
     marginBottom: theme.spacing.sm,
   },
   subtitle: {
-    ...createTextStyle("body", "muted"),
+    ...createTextStyle("body", "textMuted"),
     textAlign: "center",
   },
   form: {
@@ -298,7 +297,7 @@ const styles = StyleSheet.create({
     marginTop: theme.spacing.xl,
   },
   footerText: {
-    ...createTextStyle("body", "muted"),
+    ...createTextStyle("body", "textMuted"),
     textAlign: "center",
   },
   linkText: {
@@ -307,7 +306,7 @@ const styles = StyleSheet.create({
   },
   privacyText: {
     fontSize: 12,
-    color: theme.colors.muted,
+    color: theme.colors.textMuted,
     textAlign: "center",
     marginTop: theme.spacing.md,
     lineHeight: 18,

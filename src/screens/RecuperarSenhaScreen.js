@@ -121,12 +121,12 @@ export default function RecuperarSenhaScreen({ navigation }) {
                   <MaterialIcons
                     name="email"
                     size={20}
-                    color={theme.colors.muted}
+                    color={theme.colors.textMuted}
                   />
                   <TextInput
                     style={styles.input}
                     placeholder="Digite seu email"
-                    placeholderTextColor={theme.colors.muted}
+                    placeholderTextColor={theme.colors.textMuted}
                     value={email}
                     onChangeText={setEmail}
                     keyboardType="email-address"
@@ -269,7 +269,7 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: 16,
-    color: theme.colors.muted,
+    color: theme.colors.textMuted,
     textAlign: "center",
     lineHeight: 24,
   },
@@ -344,7 +344,7 @@ const styles = StyleSheet.create({
   },
   successSubMessage: {
     fontSize: 16,
-    color: theme.colors.muted,
+    color: theme.colors.textMuted,
     textAlign: "center",
     lineHeight: 24,
     marginBottom: 32,

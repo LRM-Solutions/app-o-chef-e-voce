@@ -264,7 +264,7 @@ export default function PedidoDetalhesScreen({ route, navigation }) {
           <View style={styles.headerRight} />
         </View>
         <View style={styles.errorContainer}>
-          <MaterialIcons name="error" size={48} color={theme.colors.muted} />
+          <MaterialIcons name="error" size={48} color={theme.colors.textMuted} />
           <Text style={styles.errorText}>Pedido não encontrado</Text>
         </View>
       </SafeAreaView>
@@ -633,7 +633,7 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 16,
     fontSize: 16,
-    color: theme.colors.muted,
+    color: theme.colors.textMuted,
   },
   errorContainer: {
     flex: 1,
@@ -644,7 +644,7 @@ const styles = StyleSheet.create({
   errorText: {
     marginTop: 16,
     fontSize: 16,
-    color: theme.colors.muted,
+    color: theme.colors.textMuted,
     textAlign: "center",
   },
   content: {
@@ -681,7 +681,7 @@ const styles = StyleSheet.create({
   },
   pedidoData: {
     fontSize: 14,
-    color: theme.colors.muted,
+    color: theme.colors.textMuted,
     marginTop: 4,
   },
   statusBadge: {
@@ -712,7 +712,7 @@ const styles = StyleSheet.create({
   },
   statusCardTitle: {
     fontSize: 12,
-    color: theme.colors.muted,
+    color: theme.colors.textMuted,
     marginTop: 8,
   },
   statusCardValue: {
@@ -751,7 +751,7 @@ const styles = StyleSheet.create({
   },
   itemDescription: {
     fontSize: 14,
-    color: theme.colors.muted,
+    color: theme.colors.textMuted,
     marginTop: 4,
   },
   itemCategory: {
@@ -762,7 +762,7 @@ const styles = StyleSheet.create({
   },
   itemValidate: {
     fontSize: 12,
-    color: theme.colors.muted,
+    color: theme.colors.textMuted,
     marginTop: 4,
   },
   itemPricing: {
@@ -770,7 +770,7 @@ const styles = StyleSheet.create({
   },
   itemQuantity: {
     fontSize: 12,
-    color: theme.colors.muted,
+    color: theme.colors.textMuted,
   },
   itemPrice: {
     fontSize: 14,
@@ -817,7 +817,7 @@ const styles = StyleSheet.create({
   },
   codigoTexto: {
     fontSize: 14,
-    color: theme.colors.muted,
+    color: theme.colors.textMuted,
     marginRight: 8,
   },
   codigoNumero: {
@@ -832,7 +832,7 @@ const styles = StyleSheet.create({
   },
   codigoPartner: {
     fontSize: 12,
-    color: theme.colors.muted,
+    color: theme.colors.textMuted,
     marginTop: 4,
   },
   resumoCard: {
@@ -849,7 +849,7 @@ const styles = StyleSheet.create({
   },
   resumoLabel: {
     fontSize: 14,
-    color: theme.colors.muted,
+    color: theme.colors.textMuted,
   },
   resumoValue: {
     fontSize: 14,
@@ -910,7 +910,7 @@ const styles = StyleSheet.create({
   },
   captionText: {
     fontSize: 12,
-    color: theme.colors.muted,
+    color: theme.colors.textMuted,
     textAlign: "center",
     marginTop: 8,
     lineHeight: 16,

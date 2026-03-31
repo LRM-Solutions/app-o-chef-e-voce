@@ -219,7 +219,7 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 12,
     fontSize: 16,
-    color: theme.colors.muted,
+    color: theme.colors.textMuted,
   },
   listContainer: {
     paddingBottom: 20,
@@ -336,7 +336,7 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 16,
-    color: theme.colors.muted,
+    color: theme.colors.textMuted,
     marginTop: 16,
     marginBottom: 24,
   },

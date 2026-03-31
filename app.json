@@ -1,42 +1,36 @@
 {
   "expo": {
-    "name": "O Chef é Você",
-    "slug": "o-chef-e-voce",
-    "version": "1.0.1",
+    "name": "Sans Club",
+    "slug": "sans-club",
+    "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/Icon_app.png",
+    "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#6200EA"
     },
     "assetBundlePatterns": [
       "**/*"
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.lrmsolutions.o-chef-e-voce",
+      "bundleIdentifier": "com.sansclub.app",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
-      "package": "com.lrmsolutions.ochefevoce",
-      "versionCode": 3,
+      "package": "com.sansclub.app",
+      "versionCode": 1,
       "adaptiveIcon": {
-        "foregroundImage": "./assets/Icon_app.png",
-        "backgroundColor": "#8BC34A"
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#6200EA"
       }
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    },
-    "extra": {
-      "eas": {
-        "projectId": "12f4e480-dc18-4512-8d94-706769f5d0c1"
-      }
-    },
-    "owner": "lrmsolutions"
+    }
   }
 }

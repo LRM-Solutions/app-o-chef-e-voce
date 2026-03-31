@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -6,16 +6,94 @@ import {
   TouchableOpacity,
   Alert,
   Linking,
+  ScrollView,
+  Image,
+  ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useFocusEffect } from "@react-navigation/native";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
+import * as ImagePicker from "expo-image-picker";
 import { logout, requestDeleteAccount, getUserEmail } from "../api/authApi";
+import { getProfile, uploadAvatar, updateProfile } from "../api/barberApi";
 import { useAuth } from "../components/AuthProvider";
 import { CartService } from "../services/cartService";
 import { theme, createTextStyle, createButtonStyle } from "../utils/theme";
+import { config } from "../utils/config";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const PerfilScreen = ({ navigation }) => {
   const { logout: authLogout, isAuthenticated } = useAuth();
+  const [profile, setProfile] = useState(null);
+  const [loadingProfile, setLoadingProfile] = useState(false);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (isAuthenticated) {
+        loadProfile();
+      }
+    }, [isAuthenticated])
+  );
+
+  const loadProfile = async () => {
+    setLoadingProfile(true);
+    try {
+      const data = await getProfile();
+      setProfile(data);
+      // Atualizar AsyncStorage com dados mais recentes
+      if (data.user_name) {
+        await AsyncStorage.setItem("user_name", data.user_name);
+      }
+      if (data.user_email) {
+        await AsyncStorage.setItem("user_email", data.user_email);
+      }
+    } catch (error) {
+      console.debug("Erro ao carregar perfil:", error);
+      // Fallback para AsyncStorage
+      try {
+        const name = await AsyncStorage.getItem("user_name");
+        const email = await AsyncStorage.getItem("user_email");
+        setProfile({ user_name: name || "Usuário", user_email: email || "" });
+      } catch (e) {
+        setProfile({ user_name: "Usuário", user_email: "" });
+      }
+    } finally {
+      setLoadingProfile(false);
+    }
+  };
+
+  const handlePickAvatar = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== "granted") {
+      Alert.alert("Permissão necessária", "Precisamos de acesso à galeria para alterar sua foto.");
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.8,
+    });
+
+    if (!result.canceled && result.assets && result.assets.length > 0) {
+      setUploadingAvatar(true);
+      try {
+        const updatedUser = await uploadAvatar(result.assets[0].uri);
+        setProfile((prev) => ({ ...prev, ...updatedUser }));
+      } catch (error) {
+        Alert.alert("Erro", "Não foi possível atualizar a foto. Tente novamente.");
+        console.error("Erro no upload:", error);
+      } finally {
+        setUploadingAvatar(false);
+      }
+    }
+  };
+
+  const handleHistorico = () => {
+    navigation.navigate("HistoricoAgendamentos");
+  };
 
   const handleMeusPedidos = () => {
     navigation.navigate("MeusPedidos");
@@ -25,30 +103,23 @@ const PerfilScreen = ({ navigation }) => {
     navigation.navigate("AlterarSenha");
   };
 
-  const handleLogin = () => {
-    navigation.navigate("login");
-  };
-
-  const handleDeleteAccount = async () => {
+  const handleDeleteAccount = () => {
     Alert.alert(
-      "Excluir Conta",
-      "Tem certeza que deseja excluir sua conta? Esta ação não pode ser desfeita e todos os seus dados serão permanentemente removidos.",
+      "Confirmar exclusão",
+      "Deseja solicitar a exclusão da conta?",
       [
+        { text: "Cancelar", style: "cancel" },
         {
-          text: "Cancelar",
-          style: "cancel",
-        },
-        {
-          text: "Continuar",
+          text: "Confirmar",
           style: "destructive",
           onPress: async () => {
             try {
               const userEmail = await getUserEmail();
               const response = await requestDeleteAccount();
               if (response && userEmail) {
-                navigation.navigate("ConfirmarExclusaoCode", {
-                  userEmail: userEmail,
-                });
+                navigation.navigate("ConfirmarExclusaoCode", { userEmail });
+              } else {
+                Alert.alert("Erro", "Não foi possível solicitar exclusão.");
               }
             } catch (error) {
               Alert.alert("Erro", "Erro ao solicitar exclusão da conta");
@@ -74,17 +145,13 @@ const PerfilScreen = ({ navigation }) => {
 
   const handleLogout = async () => {
     Alert.alert("Confirmar Logout", "Tem certeza que deseja sair?", [
-      {
-        text: "Cancelar",
-        style: "cancel",
-      },
+      { text: "Cancelar", style: "cancel" },
       {
         text: "Sair",
         style: "destructive",
         onPress: async () => {
           try {
             await logout();
-            // Limpar o carrinho do AsyncStorage
             await CartService.clearAllCart();
             authLogout();
           } catch (error) {
@@ -95,180 +162,155 @@ const PerfilScreen = ({ navigation }) => {
     ]);
   };
 
+  const getInitials = (name) => {
+    if (!name) return "U";
+    return name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2);
+  };
+
+  const renderMenuItem = (icon, label, onPress, { color, destructive } = {}) => (
+    <TouchableOpacity style={styles.menuItem} onPress={onPress} activeOpacity={0.6}>
+      <View style={styles.menuItemContent}>
+        <View style={[styles.menuIconBox, destructive && styles.menuIconBoxDestructive]}>
+          <MaterialIcons name={icon} size={20} color={destructive ? theme.colors.error : theme.colors.primary} />
+        </View>
+        <Text style={[styles.menuItemText, destructive && styles.deleteAccountText]}>
+          {label}
+        </Text>
+      </View>
+      <MaterialIcons name="chevron-right" size={22} color={theme.colors.textLight} />
+    </TouchableOpacity>
+  );
+
+  const renderSeparator = () => <View style={styles.separator} />;
+
+  // ========================
+  // Tela para não logados
+  // ========================
+  if (!isAuthenticated) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={[styles.content, styles.contentNotLogged]}>
+          <View style={styles.menuList}>
+            {renderMenuItem("policy", "Política de Privacidade", () =>
+              openExternalLink(config.PRIVACY_POLICY_URL)
+            )}
+            {renderSeparator()}
+            {renderMenuItem("gavel", "Termos de Uso", () =>
+              openExternalLink(config.TERMS_OF_USE_URL)
+            )}
+            {renderSeparator()}
+            {renderMenuItem("support-agent", "Suporte", () =>
+              openExternalLink(config.SUPPORT_URL)
+            )}
+          </View>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  // ========================
+  // Tela para logados
+  // ========================
   return (
     <SafeAreaView style={styles.container}>
-      <View
-        style={[styles.content, !isAuthenticated && styles.contentNotLogged]}
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
       >
-        {!isAuthenticated ? (
-          /* Tela para usuários não logados - apenas links de políticas e suporte */
-          <View style={styles.menuList}>
-            {/* Política de Privacidade */}
-            <TouchableOpacity
-              style={styles.menuItem}
-              onPress={() =>
-                openExternalLink("https://o-chef-e-voce.base44.app/privacidade")
-              }
-            >
-              <View style={styles.menuItemContent}>
-                <MaterialIcons name="policy" size={24} color="#666" />
-                <Text style={styles.menuItemText}>Política de Privacidade</Text>
+        {/* Profile Header Card */}
+        <View style={styles.profileCard}>
+          <TouchableOpacity
+            style={styles.avatarContainer}
+            onPress={handlePickAvatar}
+            activeOpacity={0.7}
+          >
+            {profile?.avatar_url ? (
+              <Image source={{ uri: profile.avatar_url }} style={styles.avatarImage} />
+            ) : (
+              <View style={styles.avatarPlaceholder}>
+                <Text style={styles.avatarInitials}>
+                  {getInitials(profile?.user_name)}
+                </Text>
               </View>
-              <MaterialIcons name="chevron-right" size={24} color="#ccc" />
-            </TouchableOpacity>
+            )}
 
-            <View style={styles.separator} />
-
-            {/* Termos de Uso */}
-            <TouchableOpacity
-              style={styles.menuItem}
-              onPress={() =>
-                openExternalLink("https://o-chef-e-voce.base44.app/termos")
-              }
-            >
-              <View style={styles.menuItemContent}>
-                <MaterialIcons name="gavel" size={24} color="#666" />
-                <Text style={styles.menuItemText}>Termos de Uso</Text>
-              </View>
-              <MaterialIcons name="chevron-right" size={24} color="#ccc" />
-            </TouchableOpacity>
-
-            <View style={styles.separator} />
-
-            {/* Suporte */}
-            <TouchableOpacity
-              style={styles.menuItem}
-              onPress={() =>
-                openExternalLink("https://o-chef-e-voce.base44.app/suporte")
-              }
-            >
-              <View style={styles.menuItemContent}>
-                <MaterialIcons name="support-agent" size={24} color="#666" />
-                <Text style={styles.menuItemText}>Suporte</Text>
-              </View>
-              <MaterialIcons name="chevron-right" size={24} color="#ccc" />
-            </TouchableOpacity>
-          </View>
-        ) : (
-          /* Tela para usuários logados */
-          <>
-            {/* Lista de Opções */}
-            <View style={styles.menuList}>
-              {/* Meus Pedidos */}
-              <TouchableOpacity
-                style={styles.menuItem}
-                onPress={handleMeusPedidos}
-              >
-                <View style={styles.menuItemContent}>
-                  <MaterialIcons name="receipt-long" size={24} color="#666" />
-                  <Text style={styles.menuItemText}>Meus Pedidos</Text>
-                </View>
-                <MaterialIcons name="chevron-right" size={24} color="#ccc" />
-              </TouchableOpacity>
-
-              {/* Linha separadora */}
-              <View style={styles.separator} />
-
-              {/* Alterar Senha */}
-              <TouchableOpacity
-                style={styles.menuItem}
-                onPress={handleAlterarSenha}
-              >
-                <View style={styles.menuItemContent}>
-                  <MaterialIcons name="lock" size={24} color="#666" />
-                  <Text style={styles.menuItemText}>Alterar Senha</Text>
-                </View>
-                <MaterialIcons name="chevron-right" size={24} color="#ccc" />
-              </TouchableOpacity>
-
-              {/* Linha separadora */}
-              <View style={styles.separator} />
-
-              {/* Deletar Conta */}
-              <TouchableOpacity
-                style={styles.menuItem}
-                onPress={handleDeleteAccount}
-              >
-                <View style={styles.menuItemContent}>
-                  <MaterialIcons
-                    name="delete-forever"
-                    size={24}
-                    color="#dc2626"
-                  />
-                  <Text style={[styles.menuItemText, styles.deleteAccountText]}>
-                    Deletar Conta
-                  </Text>
-                </View>
-                <MaterialIcons name="chevron-right" size={24} color="#ccc" />
-              </TouchableOpacity>
-
-              {/* Linha separadora */}
-              <View style={styles.separator} />
-
-              {/* Política de Privacidade */}
-              <TouchableOpacity
-                style={styles.menuItem}
-                onPress={() =>
-                  openExternalLink(
-                    "https://o-chef-e-voce.base44.app/privacidade"
-                  )
-                }
-              >
-                <View style={styles.menuItemContent}>
-                  <MaterialIcons name="policy" size={24} color="#666" />
-                  <Text style={styles.menuItemText}>
-                    Política de Privacidade
-                  </Text>
-                </View>
-                <MaterialIcons name="chevron-right" size={24} color="#ccc" />
-              </TouchableOpacity>
-
-              <View style={styles.separator} />
-
-              {/* Termos de Uso */}
-              <TouchableOpacity
-                style={styles.menuItem}
-                onPress={() =>
-                  openExternalLink("https://o-chef-e-voce.base44.app/termos")
-                }
-              >
-                <View style={styles.menuItemContent}>
-                  <MaterialIcons name="gavel" size={24} color="#666" />
-                  <Text style={styles.menuItemText}>Termos de Uso</Text>
-                </View>
-                <MaterialIcons name="chevron-right" size={24} color="#ccc" />
-              </TouchableOpacity>
-
-              <View style={styles.separator} />
-
-              {/* Suporte */}
-              <TouchableOpacity
-                style={styles.menuItem}
-                onPress={() =>
-                  openExternalLink("https://o-chef-e-voce.base44.app/suporte")
-                }
-              >
-                <View style={styles.menuItemContent}>
-                  <MaterialIcons name="support-agent" size={24} color="#666" />
-                  <Text style={styles.menuItemText}>Suporte</Text>
-                </View>
-                <MaterialIcons name="chevron-right" size={24} color="#ccc" />
-              </TouchableOpacity>
+            {/* Camera overlay badge */}
+            <View style={styles.cameraBadge}>
+              {uploadingAvatar ? (
+                <ActivityIndicator size={14} color="#FFF" />
+              ) : (
+                <MaterialIcons name="camera-alt" size={14} color="#FFF" />
+              )}
             </View>
+          </TouchableOpacity>
 
-            {/* Botão de Sair */}
-            <View style={styles.logoutContainer}>
-              <TouchableOpacity
-                style={styles.logoutButton}
-                onPress={handleLogout}
-              >
-                <MaterialIcons name="logout" size={20} color="white" />
-                <Text style={styles.logoutButtonText}>Sair da Conta</Text>
-              </TouchableOpacity>
+          <Text style={styles.profileName}>
+            {loadingProfile ? "Carregando..." : profile?.user_name || "Usuário"}
+          </Text>
+          <Text style={styles.profileEmail}>
+            {profile?.user_email || ""}
+          </Text>
+
+          {profile?.user_coins_balance !== undefined && (
+            <View style={styles.coinsBadge}>
+              <Text style={{ fontSize: 14, marginRight: 4 }}>💎</Text>
+              <Text style={styles.coinsText}>
+                {profile.user_coins_balance} Sans Coins
+              </Text>
             </View>
-          </>
-        )}
-      </View>
+          )}
+        </View>
+
+        {/* Menu - Conta */}
+        <Text style={styles.sectionLabel}>Conta</Text>
+        <View style={styles.menuList}>
+          {renderMenuItem("history", "Histórico de Agendamentos", handleHistorico)}
+          {renderSeparator()}
+          {renderMenuItem("receipt-long", "Meus Pedidos", handleMeusPedidos)}
+          {renderSeparator()}
+          {renderMenuItem("lock", "Alterar Senha", handleAlterarSenha)}
+        </View>
+
+        {/* Menu - Informações */}
+        <Text style={styles.sectionLabel}>Informações</Text>
+        <View style={styles.menuList}>
+          {renderMenuItem("policy", "Política de Privacidade", () =>
+            openExternalLink(config.PRIVACY_POLICY_URL)
+          )}
+          {renderSeparator()}
+          {renderMenuItem("gavel", "Termos de Uso", () =>
+            openExternalLink(config.TERMS_OF_USE_URL)
+          )}
+          {renderSeparator()}
+          {renderMenuItem("support-agent", "Suporte", () =>
+            openExternalLink(config.SUPPORT_URL)
+          )}
+        </View>
+
+        {/* Menu - Zona de Perigo */}
+        <Text style={styles.sectionLabel}>Conta</Text>
+        <View style={styles.menuList}>
+          {renderMenuItem("delete-forever", "Deletar Conta", handleDeleteAccount, {
+            destructive: true,
+          })}
+        </View>
+
+        {/* Botão de Sair */}
+        <View style={styles.logoutContainer}>
+          <TouchableOpacity style={styles.logoutButton} onPress={handleLogout} activeOpacity={0.7}>
+            <MaterialIcons name="logout" size={20} color="white" />
+            <Text style={styles.logoutButtonText}>Sair da Conta</Text>
+          </TouchableOpacity>
+        </View>
+
+        <View style={{ height: 30 }} />
+      </ScrollView>
     </SafeAreaView>
   );
 };
@@ -276,43 +318,154 @@ const PerfilScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: theme.colors.background,
+    backgroundColor: theme.colors.backgroundSecondary,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingHorizontal: 20,
+    paddingTop: 10,
+    paddingBottom: 30,
   },
   content: {
     flex: 1,
-    paddingHorizontal: theme.spacing.lg,
+    paddingHorizontal: 20,
     paddingTop: theme.spacing.lg,
     justifyContent: "space-between",
   },
   contentNotLogged: {
     justifyContent: "flex-start",
   },
+  // Profile Header
+  profileCard: {
+    backgroundColor: theme.colors.card,
+    borderRadius: theme.borderRadius.xl,
+    alignItems: "center",
+    paddingVertical: 28,
+    paddingHorizontal: 20,
+    marginBottom: 24,
+    ...theme.shadows.md,
+  },
+  avatarContainer: {
+    position: "relative",
+    marginBottom: 16,
+  },
+  avatarImage: {
+    width: 96,
+    height: 96,
+    borderRadius: 48,
+    backgroundColor: theme.colors.secondary,
+  },
+  avatarPlaceholder: {
+    width: 96,
+    height: 96,
+    borderRadius: 48,
+    backgroundColor: theme.colors.primary,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  avatarInitials: {
+    fontSize: 36,
+    fontWeight: "700",
+    color: "#FFF",
+  },
+  cameraBadge: {
+    position: "absolute",
+    bottom: 2,
+    right: 2,
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: theme.colors.primary,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 2.5,
+    borderColor: theme.colors.card,
+    ...theme.shadows.sm,
+  },
+  profileName: {
+    fontSize: 22,
+    fontWeight: "700",
+    color: theme.colors.textPrimary,
+    marginBottom: 4,
+  },
+  profileEmail: {
+    fontSize: 14,
+    color: theme.colors.textMuted,
+    marginBottom: 14,
+  },
+  coinsBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: theme.colors.coinsBackground,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 20,
+    gap: 6,
+  },
+  coinsText: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: "#B8860B",
+  },
+  // Section Labels
+  sectionLabel: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: theme.colors.textMuted,
+    textTransform: "uppercase",
+    letterSpacing: 0.8,
+    marginBottom: 8,
+    marginLeft: 4,
+  },
+  // Menu
   menuList: {
     backgroundColor: theme.colors.card,
     borderRadius: theme.borderRadius.lg,
+    marginBottom: 20,
     ...theme.shadows.sm,
   },
   menuItem: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    padding: theme.spacing.lg,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
   },
   menuItemContent: {
     flexDirection: "row",
     alignItems: "center",
+    flex: 1,
+  },
+  menuIconBox: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: theme.colors.primaryLight + "15",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  menuIconBoxDestructive: {
+    backgroundColor: theme.colors.errorLight,
   },
   menuItemText: {
-    ...createTextStyle("body", "foreground"),
-    marginLeft: theme.spacing.md,
+    fontSize: 15,
+    fontWeight: "500",
+    color: theme.colors.textPrimary,
+    marginLeft: 14,
   },
   separator: {
     height: 1,
-    backgroundColor: theme.colors.border,
-    marginHorizontal: theme.spacing.lg,
+    backgroundColor: theme.colors.borderLight,
+    marginHorizontal: 16,
+  },
+  deleteAccountText: {
+    color: theme.colors.error,
   },
   logoutContainer: {
-    paddingBottom: theme.spacing.lg,
+    marginTop: 4,
+    marginBottom: 10,
   },
   logoutButton: {
     ...createButtonStyle("destructive", "md"),
@@ -322,43 +475,6 @@ const styles = StyleSheet.create({
     ...createTextStyle("body", "white"),
     fontWeight: "600",
     marginLeft: theme.spacing.sm,
-  },
-  // Estilos para usuários não logados
-  notLoggedContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    paddingHorizontal: theme.spacing.xl,
-  },
-  notLoggedTitle: {
-    ...createTextStyle("h2", "foreground"),
-    fontWeight: "700",
-    marginTop: theme.spacing.lg,
-    marginBottom: theme.spacing.md,
-  },
-  notLoggedSubtitle: {
-    ...createTextStyle("body", "muted"),
-    textAlign: "center",
-    lineHeight: 24,
-    marginBottom: theme.spacing.xl,
-  },
-  loginButton: {
-    backgroundColor: theme.colors.primary,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: theme.spacing.lg,
-    paddingHorizontal: theme.spacing.xl,
-    borderRadius: theme.borderRadius.lg,
-    ...theme.shadows.sm,
-  },
-  loginButtonText: {
-    ...createTextStyle("body", "white"),
-    fontWeight: "600",
-    marginLeft: theme.spacing.sm,
-  },
-  deleteAccountText: {
-    color: "#dc2626", // Vermelho para indicar ação perigosa
   },
 });
 

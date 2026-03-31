@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { View, Image, StyleSheet, TouchableOpacity, Text } from "react-native";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import { theme } from "../utils/theme";
-import Logo from "../assets/images/logo.png";
+import Logo from "../../assets/icon.png";
 import { CartService } from "../services/cartService";
 import CarrinhoComponent from "./CarrinhoComponent";
 import { useNavigation } from "@react-navigation/native";

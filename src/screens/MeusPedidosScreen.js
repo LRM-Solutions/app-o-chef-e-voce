@@ -127,7 +127,7 @@ const MeusPedidosScreen = ({ navigation }) => {
           <MaterialIcons
             name="location-on"
             size={16}
-            color={theme.colors.muted}
+            color={theme.colors.textMuted}
           />
           <Text style={styles.enderecoText}>
             {item.endereco.rua}, {item.endereco.numero} - {item.endereco.bairro}
@@ -203,7 +203,7 @@ const MeusPedidosScreen = ({ navigation }) => {
 
   const renderEmptyState = () => (
     <View style={styles.emptyState}>
-      <MaterialIcons name="receipt-long" size={64} color={theme.colors.muted} />
+      <MaterialIcons name="receipt-long" size={64} color={theme.colors.textMuted} />
       <Text style={styles.emptyTitle}>Nenhum pedido encontrado</Text>
       <Text style={styles.emptySubtitle}>
         Seus pedidos aparecerão aqui após realizar uma compra
@@ -309,7 +309,7 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   pedidoData: {
-    ...createTextStyle("caption", "muted"),
+    ...createTextStyle("caption", "textMuted"),
     marginTop: 2,
   },
   statusBadge: {
@@ -331,7 +331,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: theme.spacing.sm,
   },
   enderecoText: {
-    ...createTextStyle("caption", "muted"),
+    ...createTextStyle("caption", "textMuted"),
     marginLeft: theme.spacing.sm,
     flex: 1,
   },
@@ -361,7 +361,7 @@ const styles = StyleSheet.create({
     marginBottom: theme.spacing.md,
   },
   observacoesText: {
-    ...createTextStyle("caption", "muted"),
+    ...createTextStyle("caption", "textMuted"),
     fontStyle: "italic",
   },
   cardFooter: {
@@ -376,7 +376,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   totalLabel: {
-    ...createTextStyle("caption", "muted"),
+    ...createTextStyle("caption", "textMuted"),
   },
   totalValue: {
     ...createTextStyle("body", "foreground"),
@@ -398,7 +398,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   loadingText: {
-    ...createTextStyle("body", "muted"),
+    ...createTextStyle("body", "textMuted"),
     marginTop: theme.spacing.md,
   },
   emptyState: {
@@ -413,7 +413,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   emptySubtitle: {
-    ...createTextStyle("body", "muted"),
+    ...createTextStyle("body", "textMuted"),
     marginTop: theme.spacing.sm,
     textAlign: "center",
   },
