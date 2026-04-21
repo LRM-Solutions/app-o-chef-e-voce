@@ -1,4 +1,5 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
+import CoinIcon from "../components/ui/CoinIcon";
 import {
   View,
   Text,
@@ -9,24 +10,56 @@ import {
   ScrollView,
   Image,
   ActivityIndicator,
+  Animated,
+  Easing,
 } from "react-native";
+import { BlurView } from "expo-blur";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useFocusEffect } from "@react-navigation/native";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import * as ImagePicker from "expo-image-picker";
 import { logout, requestDeleteAccount, getUserEmail } from "../api/authApi";
-import { getProfile, uploadAvatar, updateProfile } from "../api/barberApi";
+import { getProfile, uploadAvatar, updateProfile, getMyRedemptions } from "../api/barberApi";
 import { useAuth } from "../components/AuthProvider";
 import { CartService } from "../services/cartService";
 import { theme, createTextStyle, createButtonStyle } from "../utils/theme";
 import { config } from "../utils/config";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
+const Watermark = () => {
+  return (
+    <View style={styles.watermarkWrapper}>
+      <Text style={styles.watermarkCopyright}>
+        © 2026 Sans Club Barbearia. Todos os direitos reservados.
+      </Text>
+
+      <Text style={styles.watermarkPreText}>App Desenvolvido com ❤️ por</Text>
+
+      <TouchableOpacity
+        activeOpacity={0.6}
+        onPress={() => Linking.openURL('https://lrmsolutions.com.br')}
+      >
+        <View style={styles.watermarkBrandContainer}>
+          <View style={styles.watermarkLogoWrapper}>
+            <Image
+              source={require("../../assets/lrm_logo.png")}
+              style={styles.watermarkLogo}
+              resizeMode="cover"
+            />
+          </View>
+          <Text style={styles.watermarkLinkText}>LRM Software Solutions</Text>
+        </View>
+      </TouchableOpacity>
+    </View>
+  );
+};
+
 const PerfilScreen = ({ navigation }) => {
   const { logout: authLogout, isAuthenticated } = useAuth();
   const [profile, setProfile] = useState(null);
   const [loadingProfile, setLoadingProfile] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [redemptions, setRedemptions] = useState([]);
 
   useFocusEffect(
     useCallback(() => {
@@ -56,12 +89,29 @@ const PerfilScreen = ({ navigation }) => {
         const email = await AsyncStorage.getItem("user_email");
         setProfile({ user_name: name || "Usuário", user_email: email || "" });
       } catch (e) {
-        setProfile({ user_name: "Usuário", user_email: "" });
+        setProfile({ user_name: "Usuário", user_email: "", clube_sans: false });
       }
     } finally {
       setLoadingProfile(false);
     }
   };
+
+  const loadRedemptions = async () => {
+    try {
+      const data = await getMyRedemptions();
+      setRedemptions(data || []);
+    } catch (e) {
+      console.log("Erro ao carregar recompensas", e);
+    }
+  };
+
+  useFocusEffect(
+    useCallback(() => {
+      if (isAuthenticated) {
+        loadRedemptions();
+      }
+    }, [isAuthenticated])
+  );
 
   const handlePickAvatar = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -105,12 +155,12 @@ const PerfilScreen = ({ navigation }) => {
 
   const handleDeleteAccount = () => {
     Alert.alert(
-      "Confirmar exclusão",
-      "Deseja solicitar a exclusão da conta?",
+      "Excluir Minha Conta",
+      "Esta ação é irreversível. Ao confirmar, todos os seus dados pessoais, histórico de agendamentos e saldo de Sans Coins serão apagados permanentemente de nossos servidores.\n\nDeseja prosseguir com a exclusão?",
       [
         { text: "Cancelar", style: "cancel" },
         {
-          text: "Confirmar",
+          text: "Excluir Definitivamente",
           style: "destructive",
           onPress: async () => {
             try {
@@ -119,10 +169,10 @@ const PerfilScreen = ({ navigation }) => {
               if (response && userEmail) {
                 navigation.navigate("ConfirmarExclusaoCode", { userEmail });
               } else {
-                Alert.alert("Erro", "Não foi possível solicitar exclusão.");
+                Alert.alert("Erro", "Não foi possível processar a solicitação.");
               }
             } catch (error) {
-              Alert.alert("Erro", "Erro ao solicitar exclusão da conta");
+              Alert.alert("Erro", "Erro ao processar a exclusão da conta.");
             }
           },
         },
@@ -194,8 +244,23 @@ const PerfilScreen = ({ navigation }) => {
   if (!isAuthenticated) {
     return (
       <SafeAreaView style={styles.container}>
-        <View style={[styles.content, styles.contentNotLogged]}>
-          <View style={styles.menuList}>
+        <View style={[styles.content, styles.contentNotLogged, { justifyContent: 'center', alignItems: 'center', padding: 24, flex: 1 }]}>
+          <Image
+            source={require("../../assets/sanslogo.png")}
+            style={{ width: 120, height: 120, marginBottom: 24 }}
+            resizeMode="contain"
+          />
+          <Text style={{ fontSize: 24, fontWeight: 'bold', marginBottom: 12, textAlign: 'center' }}>Bem-vindo ao Sans Club!</Text>
+          <Text style={{ fontSize: 16, color: theme.colors.textMuted, textAlign: 'center', marginBottom: 32 }}>Faça login ou crie uma conta para agendar serviços, ganhar moedas e resgatar prêmios.</Text>
+
+          <TouchableOpacity
+            style={[styles.logoutButton, { backgroundColor: theme.colors.primary, width: '100%', justifyContent: 'center', marginBottom: 16 }]}
+            onPress={() => navigation.navigate("Login")}
+          >
+            <Text style={[styles.logoutButtonText, { color: '#FFF' }]}>Fazer Login / Cadastrar</Text>
+          </TouchableOpacity>
+
+          <View style={[styles.menuList, { width: '100%', marginTop: 24 }]}>
             {renderMenuItem("policy", "Política de Privacidade", () =>
               openExternalLink(config.PRIVACY_POLICY_URL)
             )}
@@ -208,6 +273,8 @@ const PerfilScreen = ({ navigation }) => {
               openExternalLink(config.SUPPORT_URL)
             )}
           </View>
+
+          <Watermark />
         </View>
       </SafeAreaView>
     );
@@ -259,10 +326,77 @@ const PerfilScreen = ({ navigation }) => {
 
           {profile?.user_coins_balance !== undefined && (
             <View style={styles.coinsBadge}>
-              <Text style={{ fontSize: 14, marginRight: 4 }}>💎</Text>
+              <CoinIcon size={14} style={{ marginRight: 6 }} />
               <Text style={styles.coinsText}>
                 {profile.user_coins_balance} Sans Coins
               </Text>
+            </View>
+          )}
+        </View>
+
+        {/* Minha Jornada */}
+        <Text style={styles.sectionLabel}>Minha Jornada</Text>
+        <View style={styles.jornadaContainer}>
+          <View style={styles.jornadaCard}>
+            {(!profile?.clube_sans ? [
+              { redemption_id: 'f1', prize: { name: 'Cerveja Artesanal', icon_url: null, coins: 300 }, redeemed_at: new Date(Date.now() - 86400000 * 2) },
+              { redemption_id: 'f2', prize: { name: 'Pomada Modeladora', icon_url: null, coins: 500 }, redeemed_at: new Date(Date.now() - 86400000 * 5) }
+            ] : redemptions).length > 0 ? (
+              (!profile?.clube_sans ? [
+                { redemption_id: 'f1', prize: { name: 'Cerveja Artesanal', icon_url: null, coins: 300 }, redeemed_at: new Date(Date.now() - 86400000 * 2) },
+                { redemption_id: 'f2', prize: { name: 'Pomada Modeladora', icon_url: null, coins: 500 }, redeemed_at: new Date(Date.now() - 86400000 * 5) }
+              ] : redemptions).map((redemption, index, array) => (
+                <View key={redemption.redemption_id} style={styles.jornadaItem}>
+                  <View style={styles.jornadaTimeline}>
+                    <View style={styles.jornadaIconContainer}>
+                      {redemption.prize.icon_url ? (
+                        <Image source={{ uri: redemption.prize.icon_url }} style={styles.jornadaPrizeIcon} />
+                      ) : (
+                        <MaterialIcons name="redeem" size={16} color={theme.colors.primary} />
+                      )}
+                    </View>
+                    {index < array.length - 1 && <View style={styles.jornadaLine} />}
+                  </View>
+                  <View style={styles.jornadaContent}>
+                    <Text style={styles.jornadaTitle}>{redemption.prize.name}</Text>
+                    <Text style={styles.jornadaDate}>
+                      {new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' }).format(new Date(redemption.redeemed_at))}
+                    </Text>
+                  </View>
+                  <View style={styles.jornadaPoints}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center' }}><CoinIcon size={16} /><Text style={[styles.jornadaPointsText, { marginLeft: 4 }]}>{redemption.prize.coins_cost || redemption.prize.coins}</Text></View>
+                  </View>
+                </View>
+              ))
+            ) : (
+              <View style={styles.emptyJornada}>
+                <MaterialIcons name="timeline" size={40} color={theme.colors.textMuted} />
+                <Text style={styles.emptyJornadaText}>Sua jornada de prêmios começa aqui.</Text>
+              </View>
+            )}
+          </View>
+
+          {(!profile?.clube_sans) && (
+            <View style={styles.clubeOverlay}>
+              <BlurView intensity={10} tint="light" style={styles.blurContainer} />
+              <View style={styles.clubeOverlayContent}>
+                <View style={styles.clubeLockCircle}>
+                  <MaterialIcons name="lock" size={24} color={theme.colors.primary} />
+                </View>
+                <Text style={styles.clubeOverlayTitle}>Histórico Reservado</Text>
+                <Text style={styles.clubeOverlayText}>
+                  Apenas membros do Clube Sans acompanham sua evolução e resgates exclusivos.
+                </Text>
+                <TouchableOpacity
+                  style={styles.clubeCTAButton}
+                  onPress={() => {
+                    const message = encodeURIComponent("Olá! Gostaria de saber mais sobre como fazer parte do Clube Sans!");
+                    Linking.openURL(`whatsapp://send?phone=5541996280035&text=${message}`);
+                  }}
+                >
+                  <Text style={styles.clubeCTAButtonText}>QUERO SER CLUBE SANS</Text>
+                </TouchableOpacity>
+              </View>
             </View>
           )}
         </View>
@@ -308,6 +442,8 @@ const PerfilScreen = ({ navigation }) => {
             <Text style={styles.logoutButtonText}>Sair da Conta</Text>
           </TouchableOpacity>
         </View>
+
+        <Watermark />
 
         <View style={{ height: 30 }} />
       </ScrollView>
@@ -476,6 +612,198 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     marginLeft: theme.spacing.sm,
   },
+  // Clube Overlay (reused design from home)
+  jornadaContainer: {
+    position: 'relative',
+    borderRadius: 24,
+    overflow: 'hidden',
+    marginBottom: 24,
+  },
+  clubeOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 10,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+  },
+  blurContainer: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  clubeOverlayContent: {
+    padding: 20,
+    alignItems: 'center',
+    zIndex: 20,
+    width: '100%',
+  },
+  clubeLockCircle: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: 'rgba(255,255,255,0.95)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 10,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    elevation: 3,
+  },
+  clubeOverlayTitle: {
+    color: '#000',
+    fontSize: 18,
+    fontWeight: '900',
+    marginBottom: 4,
+    textAlign: 'center',
+  },
+  clubeOverlayText: {
+    color: 'rgba(0,0,0,0.6)',
+    fontSize: 12,
+    textAlign: 'center',
+    marginBottom: 16,
+    lineHeight: 16,
+    paddingHorizontal: 24,
+    fontWeight: '500',
+  },
+  clubeCTAButton: {
+    borderWidth: 1.5,
+    borderColor: theme.colors.primary,
+    paddingVertical: 8,
+    paddingHorizontal: 20,
+    borderRadius: 10,
+    backgroundColor: 'rgba(255,255,255,0.8)',
+  },
+  clubeCTAButtonText: {
+    color: theme.colors.primary,
+    fontSize: 12,
+    fontWeight: '800',
+    letterSpacing: 0.8,
+  },
+  // Minha Jornada
+  jornadaCard: {
+    backgroundColor: '#FFF',
+    borderRadius: 24,
+    padding: 24,
+    borderWidth: 1,
+    borderColor: theme.colors.borderLight,
+    ...theme.shadows.sm,
+  },
+  emptyJornada: {
+    alignItems: 'center',
+    paddingVertical: 30,
+  },
+  emptyJornadaText: {
+    color: theme.colors.textMuted,
+    marginTop: 16,
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  jornadaItem: {
+    flexDirection: 'row',
+    marginBottom: 20,
+  },
+  jornadaTimeline: {
+    width: 32,
+    alignItems: 'center',
+    marginRight: 16,
+  },
+  jornadaIconContainer: {
+    width: 32,
+    height: 32,
+    borderRadius: 10,
+    backgroundColor: theme.colors.primary + '10',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 2,
+    borderWidth: 1,
+    borderColor: theme.colors.primary + '20',
+  },
+  jornadaPrizeIcon: {
+    width: 20,
+    height: 20,
+    borderRadius: 4,
+  },
+  jornadaLine: {
+    width: 2,
+    flex: 1,
+    backgroundColor: theme.colors.borderLight,
+    marginTop: 4,
+    marginBottom: -20,
+  },
+  jornadaContent: {
+    flex: 1,
+    paddingBottom: 4,
+  },
+  jornadaTitle: {
+    fontSize: 15,
+    fontWeight: '800',
+    color: theme.colors.textPrimary,
+  },
+  jornadaDate: {
+    fontSize: 12,
+    color: theme.colors.textMuted,
+    marginTop: 2,
+    fontWeight: '500',
+  },
+  jornadaPoints: {
+    backgroundColor: theme.colors.primary + '10',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 12,
+    alignSelf: 'flex-start',
+    borderWidth: 1,
+    borderColor: theme.colors.primary + '20',
+  },
+  jornadaPointsText: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: theme.colors.primary,
+  },
+  watermarkWrapper: {
+    alignItems: 'center',
+    marginTop: 24,
+    marginBottom: 20,
+    opacity: 0.8,
+  },
+  watermarkCopyright: {
+    fontSize: 10,
+    color: theme.colors.textLight,
+    marginBottom: 24,
+    textAlign: 'center',
+  },
+  watermarkPreText: {
+    fontSize: 11,
+    color: theme.colors.textMuted,
+    fontWeight: '400',
+    marginBottom: 8,
+  },
+  watermarkBrandContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+  },
+  watermarkLogoWrapper: {
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    backgroundColor: '#E5E7EB',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 6,
+    overflow: 'hidden',
+  },
+  watermarkLogo: {
+    width: '100%',
+    height: '100%',
+  },
+  watermarkLinkText: {
+    fontSize: 12,
+    color: theme.colors.textMuted,
+    fontWeight: '500',
+    letterSpacing: 0.2,
+  }
 });
 
 export default PerfilScreen;
