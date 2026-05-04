@@ -93,6 +93,11 @@ const BarberScreen = ({ navigation }) => {
       setSelectedDate(null);
       setSelectedTime(null);
       setAvailableSlots([]);
+
+      // Resetar scroll
+      if (scrollViewRef.current) {
+        scrollViewRef.current.scrollTo({ y: 0, animated: false });
+      }
     }, [isAuthenticated]),
   );
 
@@ -1524,7 +1529,7 @@ const getStyles = (theme) => {
       width: theme.isTablet ? (width - 80) / 3 : Math.max(160, width * 0.42),
       ...theme.shadows.sm,
       borderWidth: 2,
-      borderColor: "transparent",
+      borderColor: theme.colors.borderLight || "#E5E7EB",
     },
     serviceRewardBadge: {
       position: "absolute",
@@ -1615,13 +1620,16 @@ const getStyles = (theme) => {
       alignItems: "center",
       paddingVertical: 12,
       paddingHorizontal: 16,
-      backgroundColor: theme.colors.secondary,
+      backgroundColor: theme.colors.card,
       borderRadius: theme.borderRadius.lg,
       marginRight: 10,
       minWidth: 60,
+      borderWidth: 1,
+      borderColor: theme.colors.borderLight || "#E5E7EB",
     },
     dateChipSelected: {
       backgroundColor: theme.colors.primary,
+      borderColor: theme.colors.primary,
     },
     dateWeekDay: {
       fontSize: 11,
@@ -1657,10 +1665,10 @@ const getStyles = (theme) => {
     timeSlot: {
       paddingVertical: 12,
       paddingHorizontal: 20,
-      backgroundColor: theme.colors.secondary,
+      backgroundColor: theme.colors.card,
       borderRadius: theme.borderRadius.md,
       borderWidth: 1,
-      borderColor: "transparent",
+      borderColor: theme.colors.borderLight || "#E5E7EB",
     },
     timeSlotSelected: {
       backgroundColor: theme.colors.primary,

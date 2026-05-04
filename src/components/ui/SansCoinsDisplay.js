@@ -1,6 +1,6 @@
 import React from "react";
-import { View, Text, StyleSheet, Image } from "react-native";
-import MaterialIcons from "react-native-vector-icons/MaterialIcons";
+import { View, Text, StyleSheet } from "react-native";
+import CoinIcon from "./CoinIcon";
 import { useTheme } from "../../utils/ThemeContext";
 
 const SansCoinsDisplay = ({
@@ -24,19 +24,16 @@ const SansCoinsDisplay = ({
   };
 
   const sizeConfig = getSizeStyles();
+  const displayAmount = amount !== undefined && amount !== null ? Number(amount).toLocaleString("pt-BR") : "0";
 
   return (
     <View style={[styles.container, style]}>
       {showIcon && (
-        <View style={[styles.imageIconContainer, { width: sizeConfig.iconSize, height: sizeConfig.iconSize }]}>
-          <Image 
-            source={require('../../../assets/sanscoins.png')}
-            style={{ width: sizeConfig.iconSize, height: sizeConfig.iconSize }}
-            resizeMode="contain"
-          />
-        </View>
+        <CoinIcon size={sizeConfig.iconSize} style={styles.imageIconContainer} />
       )}
-      <Text style={[styles.amount, { fontSize: sizeConfig.fontSize, color: theme.isDarkMode ? '#FFD700' : '#B8860B' }]}>{amount?.toLocaleString("pt-BR") || "0"}</Text>
+      <Text style={[styles.amount, { fontSize: sizeConfig.fontSize, color: theme.isDarkMode ? '#FFD700' : '#B8860B' }]}>
+        {displayAmount}
+      </Text>
       {size === "lg" && <Text style={styles.label}>Sans Coins</Text>}
     </View>
   );
