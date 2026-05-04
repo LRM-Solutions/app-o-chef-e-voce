@@ -9,7 +9,6 @@ export const buscarEnderecoPorCep = async (cep) => {
       throw new Error("CEP deve ter 8 dígitos");
     }
 
-    console.log(`🔍 [CEP API] Buscando endereço para CEP: ${cepLimpo}`);
 
     const response = await fetch(`https://viacep.com.br/ws/${cepLimpo}/json/`, {
       method: "GET",
@@ -29,7 +28,6 @@ export const buscarEnderecoPorCep = async (cep) => {
       throw new Error("CEP não encontrado");
     }
 
-    console.log("✅ [CEP API] Endereço encontrado:", data);
 
     // Retornar dados no formato esperado pelo componente
     return {

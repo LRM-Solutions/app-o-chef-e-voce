@@ -39,9 +39,7 @@ export default function SingleVoucherScreen({ route, navigation }) {
   const loadVoucher = async () => {
     try {
       setLoading(true);
-      console.log("Carregando voucher:", voucherId);
       const voucherData = await getVoucherById(voucherId);
-      console.log("Voucher carregado:", voucherData);
       setVoucher(voucherData);
     } catch (error) {
       console.error("Erro ao carregar voucher:", error);

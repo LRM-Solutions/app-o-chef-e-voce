@@ -1,6 +1,6 @@
 import React from "react";
 import { View, StyleSheet } from "react-native";
-import { theme } from "../../utils/theme";
+import { useTheme } from "../../utils/ThemeContext";
 
 const Card = ({
   children,
@@ -8,6 +8,9 @@ const Card = ({
   variant = "elevated", // elevated, outlined, flat
   padding = "md", // none, sm, md, lg
 }) => {
+  const { theme } = useTheme();
+  const styles = getStyles(theme);
+
   const getVariantStyle = () => {
     switch (variant) {
       case "outlined":
@@ -47,7 +50,7 @@ const Card = ({
   );
 };
 
-const styles = StyleSheet.create({
+const getStyles = (theme) => StyleSheet.create({
   base: {
     backgroundColor: theme.colors.card,
     borderRadius: theme.borderRadius.lg,

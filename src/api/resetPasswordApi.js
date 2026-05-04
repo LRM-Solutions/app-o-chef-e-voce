@@ -7,23 +7,20 @@ import api from "./apiConfig";
  */
 export const resetPassword = async (userEmail) => {
   try {
-    console.log(
-      "🔑 [DEBUG] POST /reset-password - Solicitando recuperação de senha:",
-      { userEmail }
-    );
+    console.log("🔑 [DEBUG] POST /reset-password - Solicitando recuperação de senha:", { userEmail });
 
     const response = await api.post("/reset-password", {
       user_email: userEmail,
     });
 
-    console.log("✅ [DEBUG] POST /reset-password - Response:", {
+    console.log("📥 [DEBUG] POST /reset-password - Resposta:", {
       status: response.status,
       data: response.data,
     });
 
     return response.data;
   } catch (error) {
-    console.error("❌ [DEBUG] POST /reset-password - Erro:", {
+    console.log("❌ [DEBUG] POST /reset-password - Erro:", {
       message: error.message,
       status: error.response?.status,
       data: error.response?.data,
@@ -38,11 +35,9 @@ export const resetPassword = async (userEmail) => {
     } else if (error.response?.status === 400) {
       errorMessage = "Email inválido. Por favor, insira um email válido.";
     } else if (error.response?.status >= 500) {
-      errorMessage =
-        "Erro interno do servidor. Tente novamente em alguns minutos.";
+      errorMessage = "Erro interno do servidor. Tente novamente em alguns minutos.";
     } else if (error.message === "Network Error") {
-      errorMessage =
-        "Erro de conexão. Verifique sua internet e tente novamente.";
+      errorMessage = "Erro de conexão. Verifique sua internet e tente novamente.";
     } else if (error.response?.data?.message) {
       errorMessage = error.response.data.message;
     }
@@ -58,13 +53,13 @@ export const resetPassword = async (userEmail) => {
  */
 export const changePassword = async (newPassword) => {
   try {
-    console.log("🔐 [DEBUG] PUT /reset-password - Alterando senha do usuário");
+    console.log("🔑 [DEBUG] PUT /reset-password - Alterando senha");
 
     const response = await api.put("/reset-password", {
       user_password: newPassword,
     });
 
-    console.log("✅ [DEBUG] PUT /reset-password - Response:", {
+    console.log("📥 [DEBUG] PUT /reset-password - Resposta:", {
       status: response.status,
       message: response.data?.message,
       user: response.data?.user?.user_name,
@@ -72,7 +67,7 @@ export const changePassword = async (newPassword) => {
 
     return response.data;
   } catch (error) {
-    console.error("❌ [DEBUG] PUT /reset-password - Erro:", {
+    console.log("❌ [DEBUG] PUT /reset-password - Erro:", {
       message: error.message,
       status: error.response?.status,
       data: error.response?.data,
@@ -85,14 +80,11 @@ export const changePassword = async (newPassword) => {
     if (error.response?.status === 401) {
       errorMessage = "Não autorizado. Faça login novamente.";
     } else if (error.response?.status === 400) {
-      errorMessage =
-        "Senha inválida. A senha deve ter pelo menos 6 caracteres.";
+      errorMessage = "Senha inválida. A senha deve ter pelo menos 6 caracteres.";
     } else if (error.response?.status >= 500) {
-      errorMessage =
-        "Erro interno do servidor. Tente novamente em alguns minutos.";
+      errorMessage = "Erro interno do servidor. Tente novamente em alguns minutos.";
     } else if (error.message === "Network Error") {
-      errorMessage =
-        "Erro de conexão. Verifique sua internet e tente novamente.";
+      errorMessage = "Erro de conexão. Verifique sua internet e tente novamente.";
     } else if (error.response?.data?.message) {
       errorMessage = error.response.data.message;
     }

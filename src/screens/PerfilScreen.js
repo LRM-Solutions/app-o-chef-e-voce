@@ -25,12 +25,13 @@ import { CartService } from "../services/cartService";
 import { theme, createTextStyle, createButtonStyle } from "../utils/theme";
 import { config } from "../utils/config";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useTheme } from "../utils/ThemeContext";
 
-const Watermark = () => {
+const Watermark = ({ styles }) => {
   return (
     <View style={styles.watermarkWrapper}>
       <Text style={styles.watermarkCopyright}>
-        © 2026 Sans Club Barbearia. Todos os direitos reservados.
+        © 2026 Sans Company Barbearia. Todos os direitos reservados.
       </Text>
 
       <Text style={styles.watermarkPreText}>App Desenvolvido com ❤️ por</Text>
@@ -56,6 +57,8 @@ const Watermark = () => {
 
 const PerfilScreen = ({ navigation }) => {
   const { logout: authLogout, isAuthenticated } = useAuth();
+  const { theme, themeMode, changeTheme } = useTheme();
+  const styles = getStyles(theme);
   const [profile, setProfile] = useState(null);
   const [loadingProfile, setLoadingProfile] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
@@ -82,14 +85,18 @@ const PerfilScreen = ({ navigation }) => {
         await AsyncStorage.setItem("user_email", data.user_email);
       }
     } catch (error) {
-      console.debug("Erro ao carregar perfil:", error);
+      Toast.show({
+        type: "error",
+        text1: "Erro de Conexão",
+        text2: error.message || "Falha na rede. Verifique sua conexão com a internet.",
+      });
       // Fallback para AsyncStorage
       try {
         const name = await AsyncStorage.getItem("user_name");
         const email = await AsyncStorage.getItem("user_email");
-        setProfile({ user_name: name || "Usuário", user_email: email || "" });
+        setProfile({ user_name: name || "", user_email: email || "", clube_sans: false });
       } catch (e) {
-        setProfile({ user_name: "Usuário", user_email: "", clube_sans: false });
+        setProfile(null);
       }
     } finally {
       setLoadingProfile(false);
@@ -101,7 +108,6 @@ const PerfilScreen = ({ navigation }) => {
       const data = await getMyRedemptions();
       setRedemptions(data || []);
     } catch (e) {
-      console.log("Erro ao carregar recompensas", e);
     }
   };
 
@@ -244,23 +250,27 @@ const PerfilScreen = ({ navigation }) => {
   if (!isAuthenticated) {
     return (
       <SafeAreaView style={styles.container}>
-        <View style={[styles.content, styles.contentNotLogged, { justifyContent: 'center', alignItems: 'center', padding: 24, flex: 1 }]}>
-          <Image
-            source={require("../../assets/sanslogo.png")}
-            style={{ width: 120, height: 120, marginBottom: 24 }}
-            resizeMode="contain"
-          />
-          <Text style={{ fontSize: 24, fontWeight: 'bold', marginBottom: 12, textAlign: 'center' }}>Bem-vindo ao Sans Club!</Text>
-          <Text style={{ fontSize: 16, color: theme.colors.textMuted, textAlign: 'center', marginBottom: 32 }}>Faça login ou crie uma conta para agendar serviços, ganhar moedas e resgatar prêmios.</Text>
+        <ScrollView style={styles.scrollView} contentContainerStyle={[styles.content, styles.contentNotLogged, { padding: 24, paddingBottom: 40 }]}>
+          <View style={{ alignItems: 'center', marginTop: 20 }}>
+            <Image
+              source={require("../../assets/sanslogo.png")}
+              style={{ width: 120, height: 120, marginBottom: 24 }}
+              resizeMode="contain"
+            />
+            <Text style={{ fontSize: 24, fontWeight: 'bold', marginBottom: 12, textAlign: 'center', color: theme.colors.textPrimary }}>Bem-vindo ao Sans Company!</Text>
+            <Text style={{ fontSize: 16, color: theme.colors.textMuted, textAlign: 'center', marginBottom: 32 }}>Faça login ou crie uma conta para agendar serviços, ganhar moedas e resgatar prêmios.</Text>
 
-          <TouchableOpacity
-            style={[styles.logoutButton, { backgroundColor: theme.colors.primary, width: '100%', justifyContent: 'center', marginBottom: 16 }]}
-            onPress={() => navigation.navigate("Login")}
-          >
-            <Text style={[styles.logoutButtonText, { color: '#FFF' }]}>Fazer Login / Cadastrar</Text>
-          </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.logoutButton, { backgroundColor: theme.colors.primary, width: '100%', justifyContent: 'center', marginBottom: 16 }]}
+              onPress={() => navigation.navigate("Login")}
+            >
+              <Text style={[styles.logoutButtonText, { color: '#FFFFFF' }]}>Fazer Login / Cadastrar</Text>
+            </TouchableOpacity>
+          </View>
 
-          <View style={[styles.menuList, { width: '100%', marginTop: 24 }]}>
+          {/* Menu - Informações */}
+          <Text style={[styles.sectionLabel, { marginTop: 24 }]}>Informações</Text>
+          <View style={[styles.menuList, { width: '100%' }]}>
             {renderMenuItem("policy", "Política de Privacidade", () =>
               openExternalLink(config.PRIVACY_POLICY_URL)
             )}
@@ -274,8 +284,38 @@ const PerfilScreen = ({ navigation }) => {
             )}
           </View>
 
-          <Watermark />
-        </View>
+          {/* Menu - Aparência */}
+          <Text style={[styles.sectionLabel, { marginTop: 16 }]}>Aparência</Text>
+          <View style={[styles.menuList, { width: '100%' }]}>
+            <View style={styles.themeToggleContainer}>
+              <TouchableOpacity 
+                style={[styles.themeOption, themeMode === 'light' && styles.themeOptionActive]} 
+                onPress={() => changeTheme('light')}
+              >
+                <MaterialIcons name="light-mode" size={24} color={themeMode === 'light' ? theme.colors.primary : theme.colors.textMuted} />
+                <Text style={[styles.themeOptionText, themeMode === 'light' && {color: theme.colors.primary, fontWeight: '700'}]}>Claro</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity 
+                style={[styles.themeOption, themeMode === 'dark' && styles.themeOptionActive]} 
+                onPress={() => changeTheme('dark')}
+              >
+                <MaterialIcons name="dark-mode" size={24} color={themeMode === 'dark' ? theme.colors.primary : theme.colors.textMuted} />
+                <Text style={[styles.themeOptionText, themeMode === 'dark' && {color: theme.colors.primary, fontWeight: '700'}]}>Escuro</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity 
+                style={[styles.themeOption, themeMode === 'system' && styles.themeOptionActive]} 
+                onPress={() => changeTheme('system')}
+              >
+                <MaterialIcons name="settings-suggest" size={24} color={themeMode === 'system' ? theme.colors.primary : theme.colors.textMuted} />
+                <Text style={[styles.themeOptionText, themeMode === 'system' && {color: theme.colors.primary, fontWeight: '700'}]}>Sistema</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          <Watermark styles={styles} />
+        </ScrollView>
       </SafeAreaView>
     );
   }
@@ -378,7 +418,7 @@ const PerfilScreen = ({ navigation }) => {
 
           {(!profile?.clube_sans) && (
             <View style={styles.clubeOverlay}>
-              <BlurView intensity={10} tint="light" style={styles.blurContainer} />
+              <BlurView intensity={themeMode === 'dark' ? 30 : 10} tint={themeMode === 'dark' ? 'dark' : 'light'} style={styles.blurContainer} />
               <View style={styles.clubeOverlayContent}>
                 <View style={styles.clubeLockCircle}>
                   <MaterialIcons name="lock" size={24} color={theme.colors.primary} />
@@ -391,7 +431,7 @@ const PerfilScreen = ({ navigation }) => {
                   style={styles.clubeCTAButton}
                   onPress={() => {
                     const message = encodeURIComponent("Olá! Gostaria de saber mais sobre como fazer parte do Clube Sans!");
-                    Linking.openURL(`whatsapp://send?phone=5541996280035&text=${message}`);
+                    Linking.openURL(`whatsapp://send?phone=5541997355454&text=${message}`);
                   }}
                 >
                   <Text style={styles.clubeCTAButtonText}>QUERO SER CLUBE SANS</Text>
@@ -427,8 +467,38 @@ const PerfilScreen = ({ navigation }) => {
           )}
         </View>
 
+        {/* Menu - Aparência */}
+        <Text style={styles.sectionLabel}>Aparência</Text>
+        <View style={styles.menuList}>
+          <View style={styles.themeToggleContainer}>
+            <TouchableOpacity 
+              style={[styles.themeOption, themeMode === 'light' && styles.themeOptionActive]} 
+              onPress={() => changeTheme('light')}
+            >
+              <MaterialIcons name="light-mode" size={24} color={themeMode === 'light' ? theme.colors.primary : theme.colors.textMuted} />
+              <Text style={[styles.themeOptionText, themeMode === 'light' && {color: theme.colors.primary, fontWeight: '700'}]}>Claro</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity 
+              style={[styles.themeOption, themeMode === 'dark' && styles.themeOptionActive]} 
+              onPress={() => changeTheme('dark')}
+            >
+              <MaterialIcons name="dark-mode" size={24} color={themeMode === 'dark' ? theme.colors.primary : theme.colors.textMuted} />
+              <Text style={[styles.themeOptionText, themeMode === 'dark' && {color: theme.colors.primary, fontWeight: '700'}]}>Escuro</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity 
+              style={[styles.themeOption, themeMode === 'system' && styles.themeOptionActive]} 
+              onPress={() => changeTheme('system')}
+            >
+              <MaterialIcons name="settings-suggest" size={24} color={themeMode === 'system' ? theme.colors.primary : theme.colors.textMuted} />
+              <Text style={[styles.themeOptionText, themeMode === 'system' && {color: theme.colors.primary, fontWeight: '700'}]}>Sistema</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
         {/* Menu - Zona de Perigo */}
-        <Text style={styles.sectionLabel}>Conta</Text>
+        <Text style={styles.sectionLabel}>Zona de Perigo</Text>
         <View style={styles.menuList}>
           {renderMenuItem("delete-forever", "Deletar Conta", handleDeleteAccount, {
             destructive: true,
@@ -443,7 +513,7 @@ const PerfilScreen = ({ navigation }) => {
           </TouchableOpacity>
         </View>
 
-        <Watermark />
+        <Watermark styles={styles} />
 
         <View style={{ height: 30 }} />
       </ScrollView>
@@ -451,13 +521,14 @@ const PerfilScreen = ({ navigation }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const getStyles = (theme) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.colors.backgroundSecondary,
   },
   scrollView: {
     flex: 1,
+    backgroundColor: theme.colors.backgroundSecondary,
   },
   scrollContent: {
     paddingHorizontal: 20,
@@ -543,7 +614,7 @@ const styles = StyleSheet.create({
   coinsText: {
     fontSize: 13,
     fontWeight: "700",
-    color: "#B8860B",
+    color: theme.isDarkMode ? '#FFD700' : '#B8860B',
   },
   // Section Labels
   sectionLabel: {
@@ -612,7 +683,32 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     marginLeft: theme.spacing.sm,
   },
-  // Clube Overlay (reused design from home)
+  // Theme Toggle
+  themeToggleContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    padding: 12,
+  },
+  themeOption: {
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: 12,
+    marginHorizontal: 4,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'transparent',
+  },
+  themeOptionActive: {
+    backgroundColor: theme.colors.primaryLight + "15",
+    borderColor: theme.colors.primaryLight + "30",
+  },
+  themeOptionText: {
+    marginTop: 6,
+    fontSize: 12,
+    color: theme.colors.textMuted,
+    fontWeight: '500',
+  },
+  // Clube Overlay
   jornadaContainer: {
     position: 'relative',
     borderRadius: 24,
@@ -624,7 +720,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     zIndex: 10,
-    backgroundColor: 'rgba(255,255,255,0.15)',
+    backgroundColor: theme.isDarkMode ? 'rgba(0,0,0,0.4)' : 'rgba(255,255,255,0.15)',
   },
   blurContainer: {
     ...StyleSheet.absoluteFillObject,
@@ -639,7 +735,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: 'rgba(255,255,255,0.95)',
+    backgroundColor: theme.isDarkMode ? 'rgba(30,30,30,0.95)' : 'rgba(255,255,255,0.95)',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 10,
@@ -650,14 +746,14 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   clubeOverlayTitle: {
-    color: '#000',
+    color: theme.colors.textPrimary,
     fontSize: 18,
     fontWeight: '900',
     marginBottom: 4,
     textAlign: 'center',
   },
   clubeOverlayText: {
-    color: 'rgba(0,0,0,0.6)',
+    color: theme.colors.textMuted,
     fontSize: 12,
     textAlign: 'center',
     marginBottom: 16,
@@ -671,7 +767,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 20,
     borderRadius: 10,
-    backgroundColor: 'rgba(255,255,255,0.8)',
+    backgroundColor: theme.isDarkMode ? 'rgba(124,77,255,0.15)' : 'rgba(255,255,255,0.8)',
   },
   clubeCTAButtonText: {
     color: theme.colors.primary,
@@ -681,7 +777,7 @@ const styles = StyleSheet.create({
   },
   // Minha Jornada
   jornadaCard: {
-    backgroundColor: '#FFF',
+    backgroundColor: theme.colors.card,
     borderRadius: 24,
     padding: 24,
     borderWidth: 1,
@@ -711,12 +807,12 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 10,
-    backgroundColor: theme.colors.primary + '10',
+    backgroundColor: theme.colors.primary + '20',
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 2,
     borderWidth: 1,
-    borderColor: theme.colors.primary + '20',
+    borderColor: theme.colors.primary + '30',
   },
   jornadaPrizeIcon: {
     width: 20,
@@ -746,13 +842,13 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   jornadaPoints: {
-    backgroundColor: theme.colors.primary + '10',
+    backgroundColor: theme.colors.primary + '20',
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 12,
     alignSelf: 'flex-start',
     borderWidth: 1,
-    borderColor: theme.colors.primary + '20',
+    borderColor: theme.colors.primary + '30',
   },
   jornadaPointsText: {
     fontSize: 12,
@@ -788,7 +884,7 @@ const styles = StyleSheet.create({
     width: 18,
     height: 18,
     borderRadius: 9,
-    backgroundColor: '#E5E7EB',
+    backgroundColor: theme.isDarkMode ? '#333' : '#E5E7EB',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 6,
@@ -807,3 +903,4 @@ const styles = StyleSheet.create({
 });
 
 export default PerfilScreen;
+

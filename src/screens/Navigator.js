@@ -9,20 +9,23 @@ import {
   useSafeAreaInsets,
   SafeAreaView,
 } from "react-native-safe-area-context";
+import { useTheme } from "../utils/ThemeContext";
 
-// Sans Club Screens
+// Sans Company Screens
 import BarberScreen from "./BarberScreen";
 import PerfilScreen from "./PerfilScreen";
 import AppointmentSuccessScreen from "./AppointmentSuccessScreen";
 import HistoricoAgendamentosScreen from "./HistoricoAgendamentosScreen";
 import AlterarSenhaScreen from "./AlterarSenhaScreen";
 import MeusPedidosStack from "./MeusPedidosStack";
+import PrizeScannerScreen from "./PrizeScannerScreen";
+import RedemptionSuccessScreen from "./RedemptionSuccessScreen";
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
 
 // Custom Tab Bar Icon
-const TabIcon = ({ name, focused }) => {
+const TabIcon = ({ name, focused, theme, styles }) => {
   const getIcon = () => {
     const color = focused ? "#FFFFFF" : theme.colors.textMuted;
     const size = focused ? 24 : 22;
@@ -47,12 +50,14 @@ const TabIcon = ({ name, focused }) => {
 // Bottom Tabs Navigator
 const MainTabs = () => {
   const insets = useSafeAreaInsets();
+  const { theme } = useTheme();
+  const styles = getStyles(theme);
 
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
         tabBarIcon: ({ focused }) => (
-          <TabIcon name={route.name} focused={focused} />
+          <TabIcon name={route.name} focused={focused} theme={theme} styles={styles} />
         ),
         tabBarActiveTintColor: theme.colors.primary,
         tabBarInactiveTintColor: theme.colors.textMuted,
@@ -84,6 +89,9 @@ const MainTabs = () => {
 
 // Main Navigator with Stack for modals/success screens
 const Navigator = () => {
+  const { theme } = useTheme();
+  const styles = getStyles(theme);
+
   return (
     <View style={styles.wrapper}>
       <SafeAreaView style={styles.container} edges={["left", "right"]}>
@@ -114,16 +122,26 @@ const Navigator = () => {
             name="MeusPedidos"
             component={MeusPedidosStack}
           />
+          <Stack.Screen
+            name="PrizeScanner"
+            component={PrizeScannerScreen}
+            options={{ presentation: "modal" }}
+          />
+          <Stack.Screen
+            name="RedemptionSuccess"
+            component={RedemptionSuccessScreen}
+            options={{ gestureEnabled: false }}
+          />
         </Stack.Navigator>
       </SafeAreaView>
     </View>
   );
 };
 
-const styles = StyleSheet.create({
+const getStyles = (theme) => StyleSheet.create({
   wrapper: {
     flex: 1,
-    backgroundColor: theme.colors.background,
+    backgroundColor: theme.colors.backgroundSecondary,
   },
   container: {
     flex: 1,

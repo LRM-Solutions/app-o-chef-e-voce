@@ -80,3 +80,28 @@ export const uploadAvatar = async (imageUri) => {
   });
   return data;
 };
+
+export const cancelMyAppointment = async (appointmentId) => {
+  const { data } = await api.patch(`/appointments/${appointmentId}/cancel`);
+  return data;
+};
+
+export const getPrizes = async () => {
+  const { data } = await api.get("/prizes");
+  return data;
+};
+
+export const redeemPrize = async (prizeId) => {
+  const { data } = await api.post(`/prizes/${prizeId}/redeem`);
+  return data;
+};
+
+export const getMyRedemptions = async () => {
+  const { data } = await api.get("/users/me/redemptions");
+  return data;
+};
+
+export const getBanners = async () => {
+  const { data } = await api.get("/banners");
+  return data;
+};

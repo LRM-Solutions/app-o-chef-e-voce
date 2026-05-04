@@ -13,11 +13,15 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
-import { theme } from "../utils/theme";
+import { useTheme } from "../utils/ThemeContext";
 import { resetPassword } from "../api/resetPasswordApi";
 import Toast from "react-native-toast-message";
 
 export default function RecuperarSenhaScreen({ navigation }) {
+  const { theme } = useTheme();
+  const { isDarkMode } = theme;
+  const styles = getStyles(theme, isDarkMode);
+
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
@@ -66,7 +70,11 @@ export default function RecuperarSenhaScreen({ navigation }) {
   };
 
   const handleBackToLogin = () => {
-    navigation.goBack();
+    if (navigation.canGoBack()) {
+      navigation.goBack();
+    } else {
+      navigation.navigate("Login");
+    }
   };
 
   return (
@@ -84,7 +92,7 @@ export default function RecuperarSenhaScreen({ navigation }) {
             <MaterialIcons
               name="arrow-back"
               size={24}
-              color={theme.colors.foreground}
+              color={theme.colors.textPrimary}
             />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Recuperar Senha</Text>
@@ -189,7 +197,7 @@ export default function RecuperarSenhaScreen({ navigation }) {
           {/* Link para voltar ao login */}
           {!emailSent && (
             <TouchableOpacity
-              style={styles.backToLoginContainer}
+               style={styles.backToLoginContainer}
               onPress={handleBackToLogin}
             >
               <MaterialIcons
@@ -206,7 +214,7 @@ export default function RecuperarSenhaScreen({ navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (theme, isDarkMode) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.colors.background,
@@ -218,7 +226,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    backgroundColor: "white",
+    backgroundColor: theme.colors.background,
     paddingHorizontal: 16,
     paddingVertical: 16,
     borderBottomWidth: 1,
@@ -231,7 +239,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 18,
     fontWeight: "600",
-    color: theme.colors.foreground,
+    color: theme.colors.textPrimary,
     flex: 1,
     textAlign: "center",
     marginHorizontal: 16,
@@ -255,7 +263,7 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: theme.colors.primary + "20",
+    backgroundColor: isDarkMode ? "rgba(225, 172, 70, 0.15)" : theme.colors.primary + "20",
     justifyContent: "center",
     alignItems: "center",
     marginBottom: 24,
@@ -263,7 +271,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: "700",
-    color: theme.colors.foreground,
+    color: theme.colors.textPrimary,
     textAlign: "center",
     marginBottom: 12,
   },
@@ -279,20 +287,20 @@ const styles = StyleSheet.create({
   inputContainer: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "white",
+    backgroundColor: theme.colors.backgroundSecondary,
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 16,
     marginBottom: 20,
     borderWidth: 1,
     borderColor: theme.colors.border,
-    ...theme.shadows.sm,
+    ...(isDarkMode ? {} : theme.shadows.sm),
   },
   input: {
     flex: 1,
     marginLeft: 12,
     fontSize: 16,
-    color: theme.colors.foreground,
+    color: theme.colors.textPrimary,
   },
   resetButton: {
     backgroundColor: theme.colors.primary,
@@ -301,13 +309,13 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingVertical: 16,
     borderRadius: 12,
-    ...theme.shadows.sm,
+    ...(isDarkMode ? {} : theme.shadows.sm),
   },
   resetButtonDisabled: {
     opacity: 0.7,
   },
   resetButtonText: {
-    color: "white",
+    color: "#FFFFFF",
     fontSize: 16,
     fontWeight: "600",
     marginLeft: 8,
@@ -331,7 +339,7 @@ const styles = StyleSheet.create({
   successTitle: {
     fontSize: 24,
     fontWeight: "700",
-    color: theme.colors.foreground,
+    color: theme.colors.textPrimary,
     textAlign: "center",
     marginBottom: 16,
   },
@@ -357,10 +365,10 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     paddingHorizontal: 32,
     borderRadius: 12,
-    ...theme.shadows.sm,
+    ...(isDarkMode ? {} : theme.shadows.sm),
   },
   loginButtonText: {
-    color: "white",
+    color: "#FFFFFF",
     fontSize: 16,
     fontWeight: "600",
     marginLeft: 8,

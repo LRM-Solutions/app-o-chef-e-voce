@@ -16,35 +16,19 @@ api.interceptors.request.use(
   async (config) => {
     try {
       // Log da requisição que está sendo feita
-      console.log(
-        `🚀 [DEBUG] ${config.method.toUpperCase()} ${config.baseURL}${
-          config.url
-        }`
-      );
-      console.log("📤 [DEBUG] Request Headers:", config.headers);
-
-      if (config.data) {
-        console.log("📤 [DEBUG] Request Body:", config.data);
-      }
-
-      if (config.params) {
-        console.log("📤 [DEBUG] Request Params:", config.params);
-      }
+      console.log(`🚀 [DEBUG] ${config.method.toUpperCase()} ${config.baseURL}${config.url}`);
 
       const token = await AsyncStorage.getItem("auth_token");
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
-        console.log("🔐 [DEBUG] Token adicionado ao header");
-      } else {
-        console.log("⚠️ [DEBUG] Nenhum token encontrado");
       }
     } catch (error) {
-      console.error("❌ [DEBUG] Erro ao recuperar token:", error);
+      console.log("❌ [DEBUG] Erro ao recuperar token:", error);
     }
     return config;
   },
   (error) => {
-    console.error("❌ [DEBUG] Erro no interceptor de request:", error);
+    console.log("❌ [DEBUG] Erro no interceptor de request:", error);
     return Promise.reject(error);
   }
 );
@@ -53,17 +37,13 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => {
     // Log da resposta bem-sucedida
-    console.log(
-      `✅ [DEBUG] ${response.config.method.toUpperCase()} ${
-        response.config.url
-      } - Status: ${response.status}`
-    );
-    console.log("📥 [DEBUG] Response Data:", response.data);
+    console.log(`✅ [DEBUG] ${response.config.method.toUpperCase()} ${response.config.url} - Status: ${response.status}`);
     return response;
   },
   async (error) => {
     // Log detalhado do erro
-    console.error(
+    const logMethod = console.log;
+    logMethod(
       `❌ [DEBUG] ${error.config?.method?.toUpperCase() || "REQUEST"} ${
         error.config?.url || "UNKNOWN"
       } - Erro:`,
@@ -77,10 +57,16 @@ api.interceptors.response.use(
 
     if (error.response?.status === 401) {
       // Token expirado ou inválido
-      console.log("🔓 [DEBUG] Token inválido/expirado - Removendo do storage");
       await AsyncStorage.removeItem("auth_token");
-      // Aqui você pode redirecionar para a tela de login
     }
+
+    // Replace technical messages with user-friendly generic messages
+    if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
+      error.message = "Tempo de conexão esgotado. Verifique sua internet e tente novamente.";
+    } else if (error.message === 'Network Error' || !error.response) {
+      error.message = "Falha na rede. Verifique sua conexão com a internet.";
+    }
+
     return Promise.reject(error);
   }
 );

@@ -1,36 +1,34 @@
-// Sans Club - Design System (Light Mode Premium)
+import { Dimensions, Platform } from "react-native";
+
+const { width, height } = Dimensions.get("window");
+const isTablet = width >= 768;
+
+// Escala mais agressiva para iPad para preencher a tela
+const scale = isTablet ? 1.8 : 1;
+
+// Sans Company - Design System (Light Mode Premium)
 export const theme = {
+  isTablet,
+  width,
+  height,
   colors: {
-    // Primary colors (Roxo Vibrante)
     primary: "#6200EA",
     primaryLight: "#7C4DFF",
     primaryDark: "#5000C9",
     primaryForeground: "#FFFFFF",
-
-    // Secondary colors
     secondary: "#F5F7FA",
     secondaryForeground: "#1A1A1A",
-
-    // Background colors
     background: "#FFFFFF",
     backgroundSecondary: "#F5F7FA",
     foreground: "#1A1A1A",
-
-    // Text colors
     textPrimary: "#1A1A1A",
     textSecondary: "#424242",
     textMuted: "#757575",
     textLight: "#9E9E9E",
-
-    // Card colors
     card: "#FFFFFF",
     cardForeground: "#1A1A1A",
-
-    // Muted colors
     muted: "#F5F7FA",
     mutedForeground: "#757575",
-
-    // Success/Warning/Error
     success: "#00C853",
     successLight: "#E8F5E9",
     successForeground: "#FFFFFF",
@@ -40,67 +38,49 @@ export const theme = {
     errorLight: "#FFEBEE",
     destructive: "#FF1744",
     destructiveForeground: "#FFFFFF",
-
-    // Sans Coins (Gold accent)
     coins: "#FFD700",
     coinsBackground: "#FFF8E1",
-
-    // Border colors
     border: "#E8E8E8",
     borderLight: "#F0F0F0",
     input: "#E8E8E8",
-
-    // Status colors
     online: "#00C853",
     offline: "#BDBDBD",
     busy: "#FF5722",
-
-    // Overlay
     overlay: "rgba(0, 0, 0, 0.5)",
     overlayLight: "rgba(0, 0, 0, 0.1)",
-
-    // White & Black
     white: "#FFFFFF",
     black: "#000000",
-
-    // Ring/Focus
     ring: "#6200EA",
-
-    // Accent
     accent: "#F5F7FA",
     accentForeground: "#1A1A1A",
   },
-
   spacing: {
-    xs: 4,
-    sm: 8,
-    md: 16,
-    lg: 24,
-    xl: 32,
-    "2xl": 48,
-    "3xl": 64,
+    xs: 4 * scale,
+    sm: 8 * scale,
+    md: 16 * scale,
+    lg: 24 * scale,
+    xl: 32 * scale,
+    "2xl": 48 * scale,
+    "3xl": 64 * scale,
   },
-
   borderRadius: {
-    sm: 8,
-    md: 12,
-    lg: 16,
-    xl: 20,
+    sm: 8 * scale,
+    md: 12 * scale,
+    lg: 16 * scale,
+    xl: 20 * scale,
     full: 9999,
   },
-
   fontSizes: {
-    xs: 11,
-    sm: 13,
-    base: 15,
-    md: 16,
-    lg: 18,
-    xl: 20,
-    "2xl": 24,
-    "3xl": 28,
-    "4xl": 32,
+    xs: 11 * scale,
+    sm: 13 * scale,
+    base: 15 * scale,
+    md: 16 * scale,
+    lg: 18 * scale,
+    xl: 20 * scale,
+    "2xl": 24 * scale,
+    "3xl": 28 * scale,
+    "4xl": 32 * scale,
   },
-
   fontWeights: {
     regular: "400",
     medium: "500",
@@ -108,7 +88,6 @@ export const theme = {
     bold: "700",
     extrabold: "800",
   },
-
   shadows: {
     sm: {
       shadowColor: "#000000",
@@ -146,7 +125,6 @@ export const theme = {
       elevation: 4,
     },
   },
-
   animations: {
     fast: 150,
     normal: 300,
@@ -154,7 +132,6 @@ export const theme = {
   },
 };
 
-// Gradient helpers
 export const gradients = {
   primary: ["#6200EA", "#7C4DFF"],
   primaryReverse: ["#7C4DFF", "#6200EA"],
@@ -163,84 +140,32 @@ export const gradients = {
   dark: ["#1A1A1A", "#424242"],
 };
 
-// Text style helper used across screens
-export const createTextStyle = (variant = "body", color = "foreground") => {
+export const createTextStyle = (variant = "body", color = "foreground", themeOverride = null) => {
+  const currentTheme = themeOverride || theme;
   const variants = {
-    h1: {
-      fontSize: theme.fontSizes["3xl"],
-      fontWeight: theme.fontWeights.bold,
-      lineHeight: theme.fontSizes["3xl"] * 1.2,
-    },
-    h2: {
-      fontSize: theme.fontSizes["2xl"],
-      fontWeight: theme.fontWeights.semibold,
-      lineHeight: theme.fontSizes["2xl"] * 1.2,
-    },
-    h3: {
-      fontSize: theme.fontSizes.xl,
-      fontWeight: theme.fontWeights.semibold,
-      lineHeight: theme.fontSizes.xl * 1.2,
-    },
-    body: {
-      fontSize: theme.fontSizes.base,
-      fontWeight: theme.fontWeights.medium,
-      lineHeight: theme.fontSizes.base * 1.4,
-    },
-    small: {
-      fontSize: theme.fontSizes.sm,
-      fontWeight: theme.fontWeights.regular,
-      lineHeight: theme.fontSizes.sm * 1.4,
-    },
-    caption: {
-      fontSize: theme.fontSizes.xs,
-      fontWeight: theme.fontWeights.medium,
-      lineHeight: theme.fontSizes.xs * 1.3,
-    },
+    h1: { fontSize: currentTheme.fontSizes["3xl"], fontWeight: currentTheme.fontWeights.bold, lineHeight: currentTheme.fontSizes["3xl"] * 1.2 },
+    h2: { fontSize: currentTheme.fontSizes["2xl"], fontWeight: currentTheme.fontWeights.semibold, lineHeight: currentTheme.fontSizes["2xl"] * 1.2 },
+    h3: { fontSize: currentTheme.fontSizes.xl, fontWeight: currentTheme.fontWeights.semibold, lineHeight: currentTheme.fontSizes.xl * 1.2 },
+    body: { fontSize: currentTheme.fontSizes.base, fontWeight: currentTheme.fontWeights.medium, lineHeight: currentTheme.fontSizes.base * 1.4 },
+    small: { fontSize: currentTheme.fontSizes.sm, fontWeight: currentTheme.fontWeights.regular, lineHeight: currentTheme.fontSizes.sm * 1.4 },
+    caption: { fontSize: currentTheme.fontSizes.xs, fontWeight: currentTheme.fontWeights.medium, lineHeight: currentTheme.fontSizes.xs * 1.3 },
   };
-
-  const palette = theme.colors[color] || color || theme.colors.textPrimary;
-
-  return {
-    ...(variants[variant] || variants.body),
-    color: palette,
-  };
+  const palette = currentTheme.colors[color] || color || currentTheme.colors.textPrimary;
+  return { ...(variants[variant] || variants.body), color: palette };
 };
 
-// Button style helper used across screens
-export const createButtonStyle = (variant = "primary", size = "md") => {
+export const createButtonStyle = (variant = "primary", size = "md", themeOverride = null) => {
+  const currentTheme = themeOverride || theme;
   const sizeScale = {
-    sm: {
-      paddingVertical: theme.spacing.sm,
-      paddingHorizontal: theme.spacing.md,
-      borderRadius: theme.borderRadius.md,
-    },
-    md: {
-      paddingVertical: theme.spacing.md,
-      paddingHorizontal: theme.spacing.lg,
-      borderRadius: theme.borderRadius.lg,
-    },
+    sm: { paddingVertical: currentTheme.spacing.sm, paddingHorizontal: currentTheme.spacing.md, borderRadius: currentTheme.borderRadius.md },
+    md: { paddingVertical: currentTheme.spacing.md, paddingHorizontal: currentTheme.spacing.lg, borderRadius: currentTheme.borderRadius.lg },
   };
-
   const variants = {
-    primary: {
-      backgroundColor: theme.colors.primary,
-    },
-    secondary: {
-      backgroundColor: theme.colors.secondary,
-      borderWidth: 1,
-      borderColor: theme.colors.border,
-    },
-    destructive: {
-      backgroundColor: theme.colors.destructive,
-    },
+    primary: { backgroundColor: currentTheme.colors.primary },
+    secondary: { backgroundColor: currentTheme.colors.secondary, borderWidth: 1, borderColor: currentTheme.colors.border },
+    destructive: { backgroundColor: currentTheme.colors.destructive },
   };
-
-  return {
-    alignItems: "center",
-    justifyContent: "center",
-    ...sizeScale[size],
-    ...(variants[variant] || variants.primary),
-  };
+  return { alignItems: "center", justifyContent: "center", ...sizeScale[size], ...(variants[variant] || variants.primary) };
 };
 
 export default theme;

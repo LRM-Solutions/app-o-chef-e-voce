@@ -8,14 +8,17 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
-import { theme } from "../utils/theme";
+import { useTheme } from "../utils/ThemeContext";
 import Button from "../components/ui/Button";
+import Avatar from "../components/ui/Avatar";
 
 import { useRoute } from "@react-navigation/native";
 
 const AppointmentSuccessScreen = ({ navigation }) => {
   const route = useRoute();
   const insets = useSafeAreaInsets();
+  const { theme, isDarkMode } = useTheme();
+  const styles = getStyles(theme, isDarkMode);
   const scaleAnim = useRef(new Animated.Value(0)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(50)).current;
@@ -24,10 +27,18 @@ const AppointmentSuccessScreen = ({ navigation }) => {
 
   const formatted = useMemo(() => {
     if (!appointment) return null;
-    const when = new Date(appointment.scheduled_at);
+    
+    // Forçar interpretação UTC
+    const dateStr = appointment.scheduled_at.replace(' ', 'T');
+    const when = new Date(dateStr.endsWith('Z') ? dateStr : dateStr + 'Z');
+    
+    // Obter partes UTC manuais
+    const h = String(when.getUTCHours()).padStart(2, '0');
+    const m = String(when.getUTCMinutes()).padStart(2, '0');
+    
     return {
-      dateLabel: when.toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "long" }),
-      timeLabel: when.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }),
+      dateLabel: when.toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "long", timeZone: "UTC" }),
+      timeLabel: `${h}:${m}`,
       service: appointment.service?.name || "Serviço",
       barber: appointment.professional?.name || "Barbeiro",
       user: appointment.user?.user_name || "Cliente",
@@ -100,17 +111,23 @@ const AppointmentSuccessScreen = ({ navigation }) => {
                 <MaterialIcons name="access-time" size={20} color={theme.colors.primary} />
                 <Text style={styles.detailText}>{formatted.timeLabel}</Text>
               </View>
-              <View style={styles.detailRow}>
-                <MaterialIcons name="content-cut" size={20} color={theme.colors.primary} />
-                <Text style={styles.detailText}>{formatted.service}</Text>
-              </View>
-              <View style={styles.detailRow}>
-                <MaterialIcons name="person" size={20} color={theme.colors.primary} />
-                <Text style={styles.detailText}>com {formatted.barber}</Text>
-              </View>
-              <View style={styles.detailRow}>
-                <MaterialIcons name="badge" size={20} color={theme.colors.primary} />
-                <Text style={styles.detailText}>Cliente: {formatted.user}</Text>
+              <View style={styles.barberProfileDivider} />
+              <View style={styles.barberProfileCard}>
+                {appointment.professional ? (
+                  <Avatar source={appointment.professional.avatar_url} size="lg" name={formatted.barber} />
+                ) : (
+                  <View style={styles.placeholderAvatar}>
+                    <MaterialIcons name="person" size={28} color="#FFF" />
+                  </View>
+                )}
+                <View style={styles.barberProfileInfo}>
+                  <Text style={styles.barberGreeting}>Seu profissional</Text>
+                  <Text style={styles.barberName}>{formatted.barber}</Text>
+                  <View style={styles.serviceTag}>
+                    <MaterialIcons name="content-cut" size={14} color={theme.colors.primary} />
+                    <Text style={styles.serviceTagText}>{formatted.service}</Text>
+                  </View>
+                </View>
               </View>
             </View>
           )}
@@ -139,10 +156,10 @@ const AppointmentSuccessScreen = ({ navigation }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const getStyles = (theme, isDarkMode) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: theme.colors.background,
+    backgroundColor: theme.colors.backgroundSecondary,
   },
   content: {
     flex: 1,
@@ -160,7 +177,7 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.success,
     alignItems: "center",
     justifyContent: "center",
-    ...theme.shadows.lg,
+    ...(isDarkMode ? {} : theme.shadows.lg),
   },
   messageContainer: {
     alignItems: "center",
@@ -179,7 +196,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   detailsCard: {
-    backgroundColor: theme.colors.secondary,
+    backgroundColor: theme.colors.card,
     borderRadius: theme.borderRadius.lg,
     padding: 20,
     width: "100%",
@@ -191,10 +208,72 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   detailText: {
-    fontSize: 15,
+    fontSize: 16,
     color: theme.colors.textPrimary,
     marginLeft: 12,
-    fontWeight: "500",
+    fontWeight: "600",
+  },
+  barberProfileDivider: {
+    height: 1,
+    backgroundColor: theme.colors.borderLight,
+    marginVertical: 16,
+  },
+  barberProfileCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: theme.colors.card,
+    padding: 16,
+    borderRadius: theme.borderRadius.lg,
+    borderWidth: 1,
+    borderColor: theme.colors.borderLight,
+    ...(isDarkMode ? {} : {
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.05,
+      shadowRadius: 8,
+      elevation: 2,
+    }),
+  },
+  placeholderAvatar: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: theme.colors.primary,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  barberProfileInfo: {
+    marginLeft: 16,
+    flex: 1,
+  },
+  barberGreeting: {
+    fontSize: 12,
+    color: theme.colors.textMuted,
+    textTransform: "uppercase",
+    fontWeight: "700",
+    letterSpacing: 0.5,
+  },
+  barberName: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: theme.colors.textPrimary,
+    marginTop: 2,
+    marginBottom: 6,
+  },
+  serviceTag: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: theme.colors.primaryLight + "20",
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+    alignSelf: "flex-start",
+  },
+  serviceTagText: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: theme.colors.primary,
+    marginLeft: 4,
   },
   coinsCard: {
     backgroundColor: theme.colors.coinsBackground,

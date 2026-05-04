@@ -15,17 +15,23 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { signUp } from "../api/authApi";
 import { validateEmail } from "../utils/helpers";
-import { theme, createButtonStyle, createTextStyle } from "../utils/theme";
+import { useTheme } from "../utils/ThemeContext";
 import { config } from "../utils/config";
 
 export default function SignUpScreen({ navigation }) {
+  const { theme } = useTheme();
+  const { isDarkMode } = theme;
+  const styles = getStyles(theme, isDarkMode);
+
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [nameError, setNameError] = useState("");
   const [emailError, setEmailError] = useState("");
+  const [phoneError, setPhoneError] = useState("");
   const [passwordError, setPasswordError] = useState("");
   const [confirmPasswordError, setConfirmPasswordError] = useState("");
 
@@ -52,6 +58,19 @@ export default function SignUpScreen({ navigation }) {
       isValid = false;
     } else {
       setEmailError("");
+    }
+
+    // Validar telefone (opcional, mas se preenchido, deve ter pelo menos 10 dígitos)
+    if (phone.trim()) {
+      const cleaned = phone.replace(/\D/g, "");
+      if (cleaned.length < 10) {
+        setPhoneError("Telefone deve ter pelo menos 10 dígitos");
+        isValid = false;
+      } else {
+        setPhoneError("");
+      }
+    } else {
+      setPhoneError("");
     }
 
     // Validar senha
@@ -87,21 +106,24 @@ export default function SignUpScreen({ navigation }) {
     setIsLoading(true);
 
     try {
-      const response = await signUp(name.trim(), email, password);
+      const response = await signUp(name.trim(), email, password, phone.trim() || null);
       if (response) {
         // Navegar para tela de verificação de email
         navigation.navigate("NewUserEmailCode", { userEmail: email });
       }
     } catch (error) {
       // O erro já é tratado na função signUp
-      console.log("Erro ao cadastrar:", error);
     }
 
     setIsLoading(false);
   };
 
   const handleBackToLogin = () => {
-    navigation.navigate("Login");
+    if (navigation.canGoBack()) {
+      navigation.goBack();
+    } else {
+      navigation.navigate("Login");
+    }
   };
 
   return (
@@ -119,7 +141,7 @@ export default function SignUpScreen({ navigation }) {
             {/* Header */}
             <View style={styles.header}>
               <Image
-                source={require("../../assets/icon.png")}
+                source={require("../../assets/sanslogo.png")}
                 style={styles.logo}
                 resizeMode="contain"
               />
@@ -170,6 +192,29 @@ export default function SignUpScreen({ navigation }) {
                 />
                 {emailError ? (
                   <Text style={styles.errorText}>{emailError}</Text>
+                ) : null}
+              </View>
+
+              {/* Phone Input */}
+              <View style={styles.inputContainer}>
+                <Text style={styles.label}>Telefone (WhatsApp)</Text>
+                <TextInput
+                  style={[styles.input, phoneError ? styles.inputError : null]}
+                  placeholder="(00) 00000-0000"
+                  placeholderTextColor={theme.colors.textMuted}
+                  value={phone}
+                  onChangeText={(text) => {
+                    setPhone(text);
+                    if (phoneError) setPhoneError("");
+                  }}
+                  keyboardType="phone-pad"
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  returnKeyType="next"
+                  blurOnSubmit={false}
+                />
+                {phoneError ? (
+                  <Text style={styles.errorText}>{phoneError}</Text>
                 ) : null}
               </View>
 
@@ -241,7 +286,7 @@ export default function SignUpScreen({ navigation }) {
               {/* Privacy notice (discreet & sophisticated) */}
               {config.PRIVACY_POLICY_URL ? (
                 <Text style={styles.privacyText}>
-                  Ao continuar, você concorda com nossa{' '}
+                  Ao continuar, você concorda com nossa{" "}
                   <Text
                     style={styles.privacyLink}
                     onPress={() => Linking.openURL(config.PRIVACY_POLICY_URL)}
@@ -269,7 +314,7 @@ export default function SignUpScreen({ navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (theme, isDarkMode) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.colors.background,
@@ -296,7 +341,8 @@ const styles = StyleSheet.create({
     marginBottom: theme.spacing.sm,
   },
   subtitle: {
-    ...createTextStyle("body", "textMuted"),
+    fontSize: theme.fontSizes.base,
+    color: theme.colors.textMuted,
     textAlign: "center",
   },
   form: {
@@ -306,7 +352,8 @@ const styles = StyleSheet.create({
     marginBottom: theme.spacing.md,
   },
   label: {
-    ...createTextStyle("body", "foreground"),
+    fontSize: theme.fontSizes.base,
+    color: theme.colors.textPrimary,
     marginBottom: theme.spacing.sm,
     fontWeight: "500",
   },
@@ -316,18 +363,23 @@ const styles = StyleSheet.create({
     borderRadius: theme.borderRadius.md,
     paddingHorizontal: theme.spacing.md,
     paddingVertical: theme.spacing.md,
-    color: theme.colors.foreground,
+    color: theme.colors.textPrimary,
+    backgroundColor: theme.colors.backgroundSecondary,
     fontSize: theme.fontSizes.base,
   },
   inputError: {
-    borderColor: theme.colors.destructive,
+    borderColor: theme.colors.error,
   },
   errorText: {
-    ...createTextStyle("small", "destructive"),
+    fontSize: theme.fontSizes.sm,
+    color: theme.colors.error,
     marginTop: theme.spacing.xs,
   },
   button: {
-    ...createButtonStyle("primary", "md"),
+    backgroundColor: theme.colors.primary,
+    borderRadius: theme.borderRadius.md,
+    alignItems: "center",
+    justifyContent: "center",
     marginTop: theme.spacing.lg,
     paddingVertical: theme.spacing.md,
   },
@@ -335,7 +387,8 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   buttonText: {
-    ...createTextStyle("body", "white"),
+    fontSize: theme.fontSizes.base,
+    color: "#FFFFFF",
     textAlign: "center",
     fontWeight: "600",
   },
@@ -343,7 +396,8 @@ const styles = StyleSheet.create({
     marginTop: theme.spacing.xl,
   },
   footerText: {
-    ...createTextStyle("body", "textMuted"),
+    fontSize: theme.fontSizes.base,
+    color: theme.colors.textMuted,
     textAlign: "center",
   },
   linkText: {

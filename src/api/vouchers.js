@@ -5,11 +5,9 @@ import api from "./apiConfig";
  */
 export const getVouchers = async () => {
   try {
-    console.log("🎫 [DEBUG] GET /vouchers - Buscando lista de vouchers");
-
     const response = await api.get("/vouchers");
 
-    console.log("✅ [DEBUG] GET /vouchers - Response:", {
+    console.log("📥 [DEBUG] GET /vouchers - Resposta:", {
       status: response.status,
       count: response.data?.data?.length || 0,
       firstVoucher: response.data?.data?.[0]?.voucher_name || "N/A",
@@ -18,22 +16,17 @@ export const getVouchers = async () => {
     if (response.data.success && Array.isArray(response.data.data)) {
       return response.data.data;
     } else {
-      console.warn(
-        "⚠️ [DEBUG] GET /vouchers - Resposta da API não contém dados válidos:",
-        response.data
-      );
+      console.warn("⚠️ [DEBUG] GET /vouchers - Resposta da API não contém dados válidos:", response.data);
       return [];
     }
   } catch (error) {
-    console.error("❌ [DEBUG] GET /vouchers - Erro:", {
+    console.log("❌ [DEBUG] GET /vouchers - Erro:", {
       message: error.message,
       status: error.response?.status,
       data: error.response?.data,
       url: error.config?.url,
     });
-    throw new Error(
-      error.response?.data?.message || "Erro ao carregar vouchers"
-    );
+    throw new Error(error.response?.data?.message || "Erro ao carregar vouchers");
   }
 };
 
@@ -42,13 +35,11 @@ export const getVouchers = async () => {
  */
 export const getVoucherById = async (voucherId) => {
   try {
-    console.log(
-      `🔍 [DEBUG] GET /vouchers/${voucherId} - Buscando voucher específico`
-    );
+    console.log(`🔍 [DEBUG] GET /vouchers/${voucherId} - Buscando voucher específico`);
 
     const response = await api.get(`/vouchers/${voucherId}`);
 
-    console.log("✅ [DEBUG] GET /vouchers/:id - Response:", {
+    console.log("📥 [DEBUG] GET /vouchers/:id - Resposta:", {
       status: response.status,
       voucherId: voucherId,
       voucherName: response.data?.data?.voucher_name || "N/A",
@@ -59,22 +50,17 @@ export const getVoucherById = async (voucherId) => {
     if (response.data.success && response.data.data) {
       return response.data.data;
     } else {
-      console.warn(
-        "⚠️ [DEBUG] GET /vouchers/:id - Resposta da API não contém dados válidos:",
-        response.data
-      );
+      console.warn("⚠️ [DEBUG] GET /vouchers/:id - Resposta da API não contém dados válidos:", response.data);
       throw new Error("Voucher não encontrado");
     }
   } catch (error) {
-    console.error("❌ [DEBUG] GET /vouchers/:id - Erro:", {
+    console.log("❌ [DEBUG] GET /vouchers/:id - Erro:", {
       message: error.message,
       status: error.response?.status,
       data: error.response?.data,
       url: error.config?.url,
     });
-    throw new Error(
-      error.response?.data?.message || "Erro ao carregar voucher"
-    );
+    throw new Error(error.response?.data?.message || "Erro ao carregar voucher");
   }
 };
 

@@ -10,6 +10,8 @@ import {
   StyleSheet,
   Image,
   Linking,
+  Keyboard,
+  TouchableWithoutFeedback,
 } from "react-native";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -18,14 +20,18 @@ import { useAuth } from "../components/AuthProvider";
 import { validateEmail } from "../utils/helpers";
 import { theme, createButtonStyle, createTextStyle } from "../utils/theme";
 import { config } from "../utils/config";
+import { useTheme } from "../utils/ThemeContext";
 
 export default function LoginScreen({ navigation }) {
+  const { login: authLogin } = useAuth();
+  const { theme } = useTheme();
+  const { isDarkMode } = theme;
+  const styles = getStyles(theme);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [emailError, setEmailError] = useState("");
   const [passwordError, setPasswordError] = useState("");
-  const { login: authLogin } = useAuth();
 
   const validateForm = () => {
     let isValid = true;
@@ -75,7 +81,7 @@ export default function LoginScreen({ navigation }) {
       } else {
         // Login bem-sucedido
         authLogin(); // Atualizar estado de autenticação
-        // A navegação para o fluxo principal é controlada pelo AuthProvider
+        navigation.navigate("Navigator");
       }
     }
 
@@ -92,131 +98,139 @@ export default function LoginScreen({ navigation }) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        style={styles.keyboardView}
-        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
-      >
-        <View style={styles.content}>
-          {/* Header */}
-          <View style={styles.header}>
-            <TouchableOpacity
-              style={styles.backButton}
-              onPress={() => navigation.goBack()}
-            >
-              <MaterialIcons name="arrow-back" size={24} color="#000" />
-            </TouchableOpacity>
-
-            <Image
-              source={require("../../assets/icon.png")}
-              style={styles.logo}
-              resizeMode="contain"
-            />
-
-            <Text style={styles.subtitle}>Faça login para continuar</Text>
-          </View>
-
-          {/* Form */}
-          <View style={styles.form}>
-            {/* Email Input */}
-            <View style={styles.inputContainer}>
-              <Text style={styles.label}>Email</Text>
-              <TextInput
-                style={[styles.input, emailError ? styles.inputError : null]}
-                placeholder="Digite seu email"
-                placeholderTextColor={theme.colors.textMuted}
-                value={email}
-                onChangeText={(text) => {
-                  setEmail(text);
-                  if (emailError) setEmailError("");
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          style={styles.keyboardView}
+          keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
+        >
+          <View style={styles.content}>
+            {/* ... previous content ... */}
+            <View style={styles.header}>
+              <TouchableOpacity
+                style={styles.backButton}
+                onPress={() => {
+                  if (navigation.canGoBack()) {
+                    navigation.goBack();
+                  } else {
+                    navigation.navigate("Navigator");
+                  }
                 }}
-                keyboardType="email-address"
-                autoCapitalize="none"
-                autoCorrect={false}
-                returnKeyType="next"
-                blurOnSubmit={false}
-              />
-              {emailError ? (
-                <Text style={styles.errorText}>{emailError}</Text>
-              ) : null}
-            </View>
-
-            {/* Password Input */}
-            <View style={styles.inputContainer}>
-              <Text style={styles.label}>Senha</Text>
-              <TextInput
-                style={[styles.input, passwordError ? styles.inputError : null]}
-                placeholder="Digite sua senha"
-                placeholderTextColor={theme.colors.textMuted}
-                value={password}
-                onChangeText={(text) => {
-                  setPassword(text);
-                  if (passwordError) setPasswordError("");
-                }}
-                secureTextEntry
-                autoCapitalize="none"
-                autoCorrect={false}
-                returnKeyType="done"
-                onSubmitEditing={handleLogin}
-              />
-              {passwordError ? (
-                <Text style={styles.errorText}>{passwordError}</Text>
-              ) : null}
-            </View>
-
-            {/* Login Button */}
-            <TouchableOpacity
-              style={[styles.button, isLoading && styles.buttonDisabled]}
-              onPress={handleLogin}
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <ActivityIndicator color="white" />
-              ) : (
-                <Text style={styles.buttonText}>Entrar</Text>
-              )}
-            </TouchableOpacity>
-
-            {/* Privacy notice (discreet & sophisticated) */}
-            {config.PRIVACY_POLICY_URL ? (
-              <Text style={styles.privacyText}>
-                Ao continuar, você concorda com nossa{" "}
-                <Text
-                  style={styles.privacyLink}
-                  onPress={() => Linking.openURL(config.PRIVACY_POLICY_URL)}
-                >
-                  Política de Privacidade
-                </Text>
-                .
-              </Text>
-            ) : null}
-          </View>
-
-          {/* Footer */}
-          <View style={styles.footer}>
-            <Text style={styles.footerText}>
-              Esqueceu sua senha?{" "}
-              <Text
-                style={styles.linkText}
-                onPress={handleNavigateToRecuperarSenha}
               >
-                Recuperar senha
+                <MaterialIcons name="arrow-back" size={24} color={theme.colors.textPrimary} />
+              </TouchableOpacity>
+
+              <Image
+                source={require("../../assets/sanslogo.png")}
+                style={styles.logo}
+                resizeMode="contain"
+              />
+
+              <Text style={styles.subtitle}>Faça login para continuar</Text>
+            </View>
+
+            {/* Form */}
+            <View style={styles.form}>
+              {/* Email Input */}
+              <View style={styles.inputContainer}>
+                <Text style={styles.label}>Email</Text>
+                <TextInput
+                  style={[styles.input, emailError ? styles.inputError : null]}
+                  placeholder="Digite seu email"
+                  placeholderTextColor={theme.colors.textMuted}
+                  value={email}
+                  onChangeText={(text) => {
+                    setEmail(text);
+                    if (emailError) setEmailError("");
+                  }}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  returnKeyType="next"
+                  blurOnSubmit={false}
+                />
+                {emailError ? (
+                  <Text style={styles.errorText}>{emailError}</Text>
+                ) : null}
+              </View>
+
+              {/* Password Input */}
+              <View style={styles.inputContainer}>
+                <Text style={styles.label}>Senha</Text>
+                <TextInput
+                  style={[styles.input, passwordError ? styles.inputError : null]}
+                  placeholder="Digite sua senha"
+                  placeholderTextColor={theme.colors.textMuted}
+                  value={password}
+                  onChangeText={(text) => {
+                    setPassword(text);
+                    if (passwordError) setPasswordError("");
+                  }}
+                  secureTextEntry
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  returnKeyType="done"
+                  onSubmitEditing={handleLogin}
+                />
+                {passwordError ? (
+                  <Text style={styles.errorText}>{passwordError}</Text>
+                ) : null}
+              </View>
+
+              {/* Login Button */}
+              <TouchableOpacity
+                style={[styles.button, isLoading && styles.buttonDisabled]}
+                onPress={handleLogin}
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <ActivityIndicator color="white" />
+                ) : (
+                  <Text style={styles.buttonText}>Entrar</Text>
+                )}
+              </TouchableOpacity>
+
+              {/* Privacy notice */}
+              {config.PRIVACY_POLICY_URL ? (
+                <Text style={styles.privacyText}>
+                  Ao continuar, você concorda com nossa{" "}
+                  <Text
+                    style={styles.privacyLink}
+                    onPress={() => Linking.openURL(config.PRIVACY_POLICY_URL)}
+                  >
+                    Política de Privacidade
+                  </Text>
+                  .
+                </Text>
+              ) : null}
+            </View>
+
+            {/* Footer */}
+            <View style={styles.footer}>
+              <Text style={styles.footerText}>
+                Esqueceu sua senha?{" "}
+                <Text
+                  style={styles.linkText}
+                  onPress={handleNavigateToRecuperarSenha}
+                >
+                  Recuperar senha
+                </Text>
               </Text>
-            </Text>
-            <Text style={[styles.footerText, { marginTop: theme.spacing.md }]}>
-              Não tem uma conta?{" "}
-              <Text style={styles.linkText} onPress={handleNavigateToSignUp}>
-                Cadastrar-se
+              <Text style={[styles.footerText, { marginTop: theme.spacing.md }]}>
+                Não tem uma conta?{" "}
+                <Text style={styles.linkText} onPress={handleNavigateToSignUp}>
+                  Cadastrar-se
+                </Text>
               </Text>
-            </Text>
+            </View>
           </View>
-        </View>
-      </KeyboardAvoidingView>
+        </KeyboardAvoidingView>
+      </TouchableWithoutFeedback>
     </SafeAreaView>
   );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (theme) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.colors.background,
@@ -239,12 +253,15 @@ const styles = StyleSheet.create({
     marginBottom: theme.spacing.sm,
   },
   title: {
-    ...createTextStyle("h1", "foreground"),
+    fontSize: theme.fontSizes.xl,
+    color: theme.colors.textPrimary,
+    fontWeight: "800",
     textAlign: "center",
     marginBottom: theme.spacing.sm,
   },
   subtitle: {
-    ...createTextStyle("body", "textMuted"),
+    fontSize: theme.fontSizes.base,
+    color: theme.colors.textMuted,
     textAlign: "center",
   },
   form: {
@@ -254,15 +271,16 @@ const styles = StyleSheet.create({
     marginBottom: theme.spacing.md,
   },
   label: {
-    ...createTextStyle("body", "foreground"),
+    fontSize: theme.fontSizes.base,
+    color: theme.colors.textPrimary,
+    marginBottom: theme.spacing.sm,
+    fontWeight: "500",
+  },
   backButton: {
     position: "absolute",
     left: theme.spacing.xl,
     top: 0,
     padding: 8,
-  },
-    marginBottom: theme.spacing.sm,
-    fontWeight: "500",
   },
   input: {
     borderWidth: 1,
@@ -270,18 +288,23 @@ const styles = StyleSheet.create({
     borderRadius: theme.borderRadius.md,
     paddingHorizontal: theme.spacing.md,
     paddingVertical: theme.spacing.md,
-    color: theme.colors.foreground,
+    color: theme.colors.textPrimary,
     fontSize: theme.fontSizes.base,
+    backgroundColor: theme.colors.backgroundSecondary,
   },
   inputError: {
-    borderColor: theme.colors.destructive,
+    borderColor: theme.colors.error,
   },
   errorText: {
-    ...createTextStyle("small", "destructive"),
+    fontSize: theme.fontSizes.sm,
+    color: theme.colors.error,
     marginTop: theme.spacing.xs,
   },
   button: {
-    ...createButtonStyle("primary", "md"),
+    backgroundColor: theme.colors.primary,
+    borderRadius: theme.borderRadius.md,
+    alignItems: "center",
+    justifyContent: "center",
     marginTop: theme.spacing.lg,
     paddingVertical: theme.spacing.md,
   },
@@ -289,7 +312,8 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   buttonText: {
-    ...createTextStyle("body", "white"),
+    fontSize: theme.fontSizes.base,
+    color: "#FFFFFF",
     textAlign: "center",
     fontWeight: "600",
   },
@@ -297,7 +321,8 @@ const styles = StyleSheet.create({
     marginTop: theme.spacing.xl,
   },
   footerText: {
-    ...createTextStyle("body", "textMuted"),
+    fontSize: theme.fontSizes.base,
+    color: theme.colors.textMuted,
     textAlign: "center",
   },
   linkText: {

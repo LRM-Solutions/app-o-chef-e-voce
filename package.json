@@ -1,5 +1,5 @@
 {
-  "name": "sans-club",
+  "name": "sans-company",
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
@@ -17,9 +17,14 @@
     "@react-navigation/stack": "^7.3.3",
     "axios": "^1.9.0",
     "expo": "54.0.21",
+    "expo-blur": "~15.0.8",
+    "expo-camera": "~17.0.10",
+    "expo-constants": "~18.0.13",
+    "expo-device": "~8.0.10",
     "expo-document-picker": "~14.0.7",
     "expo-image-picker": "~17.0.8",
     "expo-location": "~19.0.7",
+    "expo-notifications": "~0.32.16",
     "expo-status-bar": "~3.0.8",
     "react": "19.1.0",
     "react-dom": "19.1.0",

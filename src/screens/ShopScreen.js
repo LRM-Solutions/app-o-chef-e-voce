@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import CoinIcon from "../components/ui/CoinIcon";
 import {
   View,
   Text,
@@ -24,7 +25,10 @@ import {
 } from "../data/mockData";
 
 const { width } = Dimensions.get("window");
-const PRODUCT_WIDTH = (width - 56) / 2;
+const numColumns = theme.isTablet ? 3 : 2;
+const padding = theme.spacing.lg * 2;
+const gap = theme.spacing.md;
+const PRODUCT_WIDTH = (width - padding - (gap * (numColumns - 1))) / numColumns;
 
 const ShopScreen = ({ navigation }) => {
   const insets = useSafeAreaInsets();
@@ -79,7 +83,7 @@ const ShopScreen = ({ navigation }) => {
         )}
         {item.exclusive && (
           <View style={styles.exclusiveBadge}>
-            <Text style={styles.exclusiveBadgeText}>💎 EXCLUSIVO</Text>
+            <View style={{flexDirection: 'row', alignItems: 'center'}}><CoinIcon size={12} /><Text style={[styles.exclusiveBadgeText, {marginLeft: 4}]}>EXCLUSIVO</Text></View>
           </View>
         )}
       </View>
@@ -100,7 +104,7 @@ const ShopScreen = ({ navigation }) => {
       <View style={styles.header}>
         <View>
           <Text style={styles.title}>Shop 🛍️</Text>
-          <Text style={styles.subtitle}>Lifestyle Sans Club</Text>
+          <Text style={styles.subtitle}>Lifestyle Sans Company</Text>
         </View>
         <Card style={styles.coinsCard} padding="sm">
           <SansCoinsDisplay amount={currentUser.sansCoins} size="md" />
@@ -125,7 +129,8 @@ const ShopScreen = ({ navigation }) => {
         data={filteredProducts}
         renderItem={renderProduct}
         keyExtractor={(item) => item.id}
-        numColumns={2}
+        numColumns={numColumns}
+        key={numColumns}
         columnWrapperStyle={styles.productRow}
         contentContainerStyle={styles.productsList}
         showsVerticalScrollIndicator={false}
@@ -172,7 +177,7 @@ const ShopScreen = ({ navigation }) => {
                   {selectedProduct.exclusive && (
                     <View style={styles.exclusiveTag}>
                       <Text style={styles.exclusiveTagText}>
-                        💎 Produto Exclusivo - Apenas com Sans Coins
+                        Produto Exclusivo - Apenas com Sans Coins
                       </Text>
                     </View>
                   )}
@@ -257,7 +262,7 @@ const ShopScreen = ({ navigation }) => {
                           onPress={handlePurchase}
                           fullWidth
                           size="lg"
-                          icon={<Text style={{ fontSize: 18 }}>💎</Text>}
+                          icon={<CoinIcon size={18} />}
                         />
                       ) : (
                         <View style={styles.insufficientCoins}>
@@ -322,12 +327,12 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
   },
   title: {
-    fontSize: 28,
+    fontSize: theme.fontSizes["4xl"],
     fontWeight: "700",
     color: theme.colors.textPrimary,
   },
   subtitle: {
-    fontSize: 14,
+    fontSize: theme.fontSizes.sm,
     color: theme.colors.textMuted,
     marginTop: 2,
   },
@@ -412,13 +417,13 @@ const styles = StyleSheet.create({
     padding: 12,
   },
   productName: {
-    fontSize: 14,
+    fontSize: theme.fontSizes.base,
     fontWeight: "600",
     color: theme.colors.textPrimary,
     marginBottom: 6,
   },
   productPrice: {
-    fontSize: 16,
+    fontSize: theme.fontSizes.lg,
     fontWeight: "700",
     color: theme.colors.primary,
   },

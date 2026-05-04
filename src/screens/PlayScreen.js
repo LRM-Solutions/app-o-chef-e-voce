@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
+import CoinIcon from "../components/ui/CoinIcon";
 import {
   View,
   Text,
@@ -123,7 +124,7 @@ const PlayScreen = ({ navigation }) => {
           </View>
         ) : (
           <View style={styles.rewardBadge}>
-            <Text style={styles.rewardBadgeText}>💎 {item.reward}</Text>
+            <View style={{flexDirection: 'row', alignItems: 'center'}}><CoinIcon size={10} /><Text style={[styles.rewardBadgeText, {marginLeft: 4}]}>{item.reward}</Text></View>
           </View>
         )}
       </View>
@@ -174,7 +175,7 @@ const PlayScreen = ({ navigation }) => {
           ) : (
             <View style={styles.missionCoins}>
               <Text style={styles.missionCoinsText}>+{item.reward}</Text>
-              <Text style={styles.coinEmoji}>💎</Text>
+              <CoinIcon size={16} />
             </View>
           )}
         </View>
@@ -248,7 +249,7 @@ const PlayScreen = ({ navigation }) => {
               <View style={styles.walletBalance}>
                 <Text style={styles.balanceLabel}>Saldo</Text>
                 <View style={styles.balanceRow}>
-                  <Text style={styles.coinEmojiBig}>💎</Text>
+                  <CoinIcon size={24} />
                   <Text style={styles.balanceAmount}>
                     {currentUser.sansCoins.toLocaleString("pt-BR")}
                   </Text>
@@ -347,7 +348,7 @@ const PlayScreen = ({ navigation }) => {
                   ) : (
                     <View style={styles.missionCoins}>
                       <Text style={styles.missionCoinsText}>+{mission.reward}</Text>
-                      <Text style={styles.coinEmojiSmall}>💎</Text>
+                      <CoinIcon size={12} />
                     </View>
                   )}
                 </View>
@@ -396,7 +397,7 @@ const PlayScreen = ({ navigation }) => {
                   transaction.type === "earn" ? styles.earnAmount : styles.spendAmount,
                 ]}
               >
-                {transaction.type === "earn" ? "+" : ""}{transaction.amount} 💎
+                <View style={{flexDirection: 'row', alignItems: 'center'}}><Text style={[styles.transactionAmount, transaction.type === "earn" ? styles.earnAmount : styles.spendAmount]}>{transaction.type === "earn" ? "+" : ""}{transaction.amount} </Text><CoinIcon size={12} /></View>
               </Text>
             </View>
           ))}
@@ -454,7 +455,7 @@ const PlayScreen = ({ navigation }) => {
                         </View>
                       ))}
                       <View style={styles.rouletteCenter}>
-                        <Text style={styles.rouletteCenterText}>💎</Text>
+                        <CoinIcon size={24} />
                       </View>
                     </View>
                   </Animated.View>

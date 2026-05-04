@@ -7,22 +7,17 @@ import Constants from "expo-constants";
 // 2) Constants.manifest.extra.API_BASE_URL (expo config plugin / app.json extra)
 // 3) Host padrão baseado na plataforma (Android emulator vs iOS simulator)
 
-const envUrl = process.env.EXPO_PUBLIC_API_URL ||
-  (Constants?.manifest?.extra && Constants.manifest.extra.API_BASE_URL);
+// Endereço da API de produção fixado (hardcoded)
+// Importante: .env nem sempre é carregado corretamente em builds de produção da Apple
+const API_PRODUCTION_URL = "https://api-barber-nine.vercel.app";
 
-let defaultHost = "http://192.168.0.99:3333";
-if (Platform.OS === "android") {
-  // Android emulator uses 10.0.2.2 to reach host machine
-      defaultHost = "http://192.168.0.99:3333";
-}
-
-const apiBase = (envUrl || defaultHost).replace(/\/$/, "");
+const apiBase = API_PRODUCTION_URL;
 
 export const config = {
   API_BASE_URL: apiBase,
   APP_NAME: "SEU_NOME_DO_APP",
-  PRIVACY_POLICY_URL: "https://SEU_SITE_AQUI.exemplo.com/privacidade",
-  TERMS_OF_USE_URL: "https://SEU_SITE_AQUI.exemplo.com/termos",
-  SUPPORT_URL: "https://SEU_SITE_AQUI.exemplo.com/suporte",
+  PRIVACY_POLICY_URL: "https://sejasans.com.br/privacidade/",
+  TERMS_OF_USE_URL: "https://sejasans.com.br/termos/",
+  SUPPORT_URL: "https://sejasans.com.br/contato/",
   // Adicione outras configurações aqui conforme necessário
 };

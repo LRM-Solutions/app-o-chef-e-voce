@@ -3,18 +3,16 @@ import api from "./apiConfig";
 // Buscar endereços do usuário
 export const getUserEnderecos = async () => {
   try {
-    console.log(
-      "🔍 [DEBUG] GET /user/enderecos - Buscando endereços do usuário"
-    );
+    console.log("🔍 [DEBUG] GET /user/enderecos - Buscando endereços do usuário");
     const response = await api.get("/user/enderecos");
-    console.log("✅ [DEBUG] GET /user/enderecos - Response:", {
+    console.log("📥 [DEBUG] GET /user/enderecos - Resposta:", {
       status: response.status,
       data: response.data,
       count: response.data?.count || 0,
     });
     return response.data;
   } catch (error) {
-    console.error("❌ [DEBUG] GET /user/enderecos - Erro:", {
+    console.log("❌ [DEBUG] GET /user/enderecos - Erro:", {
       message: error.message,
       status: error.response?.status,
       data: error.response?.data,
@@ -27,16 +25,14 @@ export const getUserEnderecos = async () => {
 // Criar novo endereço
 export const createEndereco = async (enderecoData) => {
   try {
-    console.log("📝 [DEBUG] POST /enderecos - Criando novo endereço");
-    console.log("📤 [DEBUG] POST /enderecos - Payload:", enderecoData);
     const response = await api.post("/enderecos", enderecoData);
-    console.log("✅ [DEBUG] POST /enderecos - Response:", {
+    console.log("📥 [DEBUG] POST /enderecos - Resposta:", {
       status: response.status,
       data: response.data,
     });
     return response.data;
   } catch (error) {
-    console.error("❌ [DEBUG] POST /enderecos - Erro:", {
+    console.log("❌ [DEBUG] POST /enderecos - Erro:", {
       message: error.message,
       status: error.response?.status,
       data: error.response?.data,
@@ -47,21 +43,18 @@ export const createEndereco = async (enderecoData) => {
   }
 };
 
-// Atualizar endereço existente (para futuro uso)
+// Atualizar endereço existente
 export const updateEndereco = async (enderecoId, enderecoData) => {
   try {
-    console.log(
-      `✏️ [DEBUG] PUT /enderecos/${enderecoId} - Atualizando endereço`
-    );
-    console.log("📤 [DEBUG] PUT /enderecos - Payload:", enderecoData);
+    console.log(`✏️ [DEBUG] PUT /enderecos/${enderecoId} - Atualizando endereço`);
     const response = await api.put(`/enderecos/${enderecoId}`, enderecoData);
-    console.log("✅ [DEBUG] PUT /enderecos - Response:", {
+    console.log("📥 [DEBUG] PUT /enderecos - Resposta:", {
       status: response.status,
       data: response.data,
     });
     return response.data;
   } catch (error) {
-    console.error("❌ [DEBUG] PUT /enderecos - Erro:", {
+    console.log("❌ [DEBUG] PUT /enderecos - Erro:", {
       message: error.message,
       status: error.response?.status,
       data: error.response?.data,
@@ -73,20 +66,18 @@ export const updateEndereco = async (enderecoId, enderecoData) => {
   }
 };
 
-// Deletar endereço (para futuro uso)
+// Deletar endereço
 export const deleteEndereco = async (enderecoId) => {
   try {
-    console.log(
-      `🗑️ [DEBUG] DELETE /enderecos/${enderecoId} - Deletando endereço`
-    );
+    console.log(`🗑️ [DEBUG] DELETE /enderecos/${enderecoId} - Deletando endereço`);
     const response = await api.delete(`/enderecos/${enderecoId}`);
-    console.log("✅ [DEBUG] DELETE /enderecos - Response:", {
+    console.log("📥 [DEBUG] DELETE /enderecos - Resposta:", {
       status: response.status,
       data: response.data,
     });
     return response.data;
   } catch (error) {
-    console.error("❌ [DEBUG] DELETE /enderecos - Erro:", {
+    console.log("❌ [DEBUG] DELETE /enderecos - Erro:", {
       message: error.message,
       status: error.response?.status,
       data: error.response?.data,

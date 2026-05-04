@@ -12,24 +12,21 @@ const api = axios.create({
  */
 export const getProducts = async () => {
   try {
-    console.log("🛍️ [DEBUG] GET /products - Buscando lista de produtos");
     const response = await api.get("/products");
-    console.log("✅ [DEBUG] GET /products - Response:", {
+    console.log("📥 [DEBUG] GET /products - Resposta:", {
       status: response.status,
       count: response.data?.length || 0,
       firstProduct: response.data?.[0]?.product_name || "N/A",
     });
     return response.data;
   } catch (error) {
-    console.error("❌ [DEBUG] GET /products - Erro:", {
+    console.log("❌ [DEBUG] GET /products - Erro:", {
       message: error.message,
       status: error.response?.status,
       data: error.response?.data,
       url: error.config?.url,
     });
-    throw new Error(
-      error.response?.data?.message || "Erro ao carregar produtos"
-    );
+    throw new Error(error.response?.data?.message || "Erro ao carregar produtos");
   }
 };
 
@@ -38,11 +35,9 @@ export const getProducts = async () => {
  */
 export const getProductById = async (productId) => {
   try {
-    console.log(
-      `🔍 [DEBUG] GET /products/${productId} - Buscando produto específico`
-    );
+    console.log(`🔍 [DEBUG] GET /products/${productId} - Buscando produto específico`);
     const response = await api.get(`/products/${productId}`);
-    console.log("✅ [DEBUG] GET /products/:id - Response:", {
+    console.log("📥 [DEBUG] GET /products/:id - Resposta:", {
       status: response.status,
       productId: productId,
       productName: response.data?.product_name || "N/A",
@@ -50,16 +45,14 @@ export const getProductById = async (productId) => {
     });
     return response.data;
   } catch (error) {
-    console.error("❌ [DEBUG] GET /products/:id - Erro:", {
+    console.log("❌ [DEBUG] GET /products/:id - Erro:", {
       message: error.message,
       status: error.response?.status,
       data: error.response?.data,
       productId: productId,
       url: error.config?.url,
     });
-    throw new Error(
-      error.response?.data?.message || "Erro ao carregar produto"
-    );
+    throw new Error(error.response?.data?.message || "Erro ao carregar produto");
   }
 };
 
@@ -68,7 +61,6 @@ export const getProductById = async (productId) => {
  */
 export const formatPrice = (price) => {
   if (!price && price !== 0) return "R$ 0,00";
-
   return new Intl.NumberFormat("pt-BR", {
     style: "currency",
     currency: "BRL",
@@ -80,8 +72,6 @@ export const formatPrice = (price) => {
  */
 export const formatCategory = (category) => {
   if (!category) return "Categoria não informada";
-
-  // Capitaliza a primeira letra
   return category.charAt(0).toUpperCase() + category.slice(1).toLowerCase();
 };
 
@@ -99,7 +89,7 @@ export const getProductMainImage = (product) => {
   if (product.imagens && product.imagens.length > 0) {
     return product.imagens[0].imagem_url;
   }
-  return null; // Retorna null se não houver imagem
+  return null;
 };
 
 /**
@@ -109,5 +99,5 @@ export const getProductImages = (product) => {
   if (product.imagens && product.imagens.length > 0) {
     return product.imagens.map((img) => img.imagem_url);
   }
-  return []; // Retorna array vazio se não houver imagens
+  return [];
 };

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import CoinIcon from "../components/ui/CoinIcon";
 import {
   View,
   Text,
@@ -24,6 +25,10 @@ import {
 } from "../data/mockData";
 
 const { width } = Dimensions.get("window");
+const numColumns = theme.isTablet ? 3 : 2;
+const padding = theme.spacing.lg * 2;
+const gap = theme.spacing.md;
+const PRODUCT_WIDTH = (width - padding - (gap * (numColumns - 1))) / numColumns;
 
 const CoffeeScreen = ({ navigation }) => {
   const insets = useSafeAreaInsets();
@@ -188,7 +193,8 @@ const CoffeeScreen = ({ navigation }) => {
         data={filteredProducts}
         renderItem={renderProduct}
         keyExtractor={(item) => item.id}
-        numColumns={2}
+        numColumns={numColumns}
+        key={numColumns}
         columnWrapperStyle={styles.productRow}
         contentContainerStyle={styles.productsList}
         showsVerticalScrollIndicator={false}
@@ -203,7 +209,7 @@ const CoffeeScreen = ({ navigation }) => {
             </View>
             <View>
               <Text style={styles.cartTotal}>R$ {cartTotal.toFixed(2)}</Text>
-              <Text style={styles.cartCoins}>ou 💎 {cartTotalCoins}</Text>
+              <View style={{flexDirection: 'row', alignItems: 'center'}}><Text style={styles.cartCoins}>ou </Text><CoinIcon size={14} /><Text style={styles.cartCoins}> {cartTotalCoins}</Text></View>
             </View>
           </View>
           <Button
@@ -316,12 +322,12 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
   },
   title: {
-    fontSize: 28,
+    fontSize: theme.fontSizes["4xl"],
     fontWeight: "700",
     color: theme.colors.textPrimary,
   },
   subtitle: {
-    fontSize: 14,
+    fontSize: theme.fontSizes.sm,
     color: theme.colors.textMuted,
     marginTop: 2,
   },
@@ -351,8 +357,8 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   productCard: {
-    width: (width - 56) / 2,
-    marginBottom: 16,
+    width: PRODUCT_WIDTH,
+    marginBottom: theme.spacing.md,
     overflow: "hidden",
     backgroundColor: "#FFFFFF",
     borderRadius: theme.borderRadius.lg,
@@ -366,7 +372,7 @@ const styles = StyleSheet.create({
   },
   productImage: {
     width: "100%",
-    height: 130,
+    height: theme.isTablet ? 180 : 130,
     backgroundColor: theme.colors.secondary,
   },
   productBadge: {
@@ -387,15 +393,15 @@ const styles = StyleSheet.create({
     padding: 12,
   },
   productName: {
-    fontSize: 15,
+    fontSize: theme.fontSizes.base,
     fontWeight: "600",
     color: theme.colors.textPrimary,
   },
   productDescription: {
-    fontSize: 12,
+    fontSize: theme.fontSizes.sm,
     color: theme.colors.textMuted,
     marginTop: 4,
-    lineHeight: 16,
+    lineHeight: theme.fontSizes.sm * 1.3,
   },
   priceRow: {
     flexDirection: "row",
@@ -404,7 +410,7 @@ const styles = StyleSheet.create({
     marginTop: 12,
   },
   productPrice: {
-    fontSize: 16,
+    fontSize: theme.fontSizes.lg,
     fontWeight: "700",
     color: theme.colors.textPrimary,
   },

@@ -40,9 +40,7 @@ export default function SingleProductScreen({ route, navigation }) {
   const loadProduct = async () => {
     try {
       setLoading(true);
-      console.log("Carregando produto:", productId);
       const productData = await getProductById(productId);
-      console.log("Produto carregado:", productData);
       setProduct(productData);
     } catch (error) {
       console.error("Erro ao carregar produto:", error);

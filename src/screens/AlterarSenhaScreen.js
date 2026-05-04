@@ -13,11 +13,14 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
-import { theme } from "../utils/theme";
 import { changePassword } from "../api/resetPasswordApi";
 import Toast from "react-native-toast-message";
+import { useTheme } from "../utils/ThemeContext";
 
 export default function AlterarSenhaScreen({ navigation }) {
+  const { theme } = useTheme();
+  const { isDarkMode } = theme;
+  const styles = getStyles(theme, isDarkMode);
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -99,7 +102,7 @@ export default function AlterarSenhaScreen({ navigation }) {
             <MaterialIcons
               name="arrow-back"
               size={24}
-              color={theme.colors.foreground}
+              color={theme.colors.textPrimary}
             />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Alterar Senha</Text>
@@ -224,10 +227,10 @@ export default function AlterarSenhaScreen({ navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (theme, isDarkMode) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: theme.colors.background,
+    backgroundColor: theme.colors.backgroundSecondary,
   },
   keyboardView: {
     flex: 1,
@@ -236,11 +239,11 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    backgroundColor: "white",
+    backgroundColor: theme.colors.card,
     paddingHorizontal: 16,
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: theme.colors.border,
+    borderBottomColor: theme.colors.borderLight,
   },
   backButton: {
     padding: 8,
@@ -249,7 +252,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 18,
     fontWeight: "600",
-    color: theme.colors.foreground,
+    color: theme.colors.textPrimary,
     flex: 1,
     textAlign: "center",
     marginHorizontal: 16,
@@ -273,7 +276,7 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: theme.colors.primary + "20",
+    backgroundColor: isDarkMode ? "rgba(225, 172, 70, 0.15)" : theme.colors.primary + "20",
     justifyContent: "center",
     alignItems: "center",
     marginBottom: 24,
@@ -281,7 +284,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: "700",
-    color: theme.colors.foreground,
+    color: theme.colors.textPrimary,
     textAlign: "center",
     marginBottom: 12,
   },
@@ -297,37 +300,37 @@ const styles = StyleSheet.create({
   inputContainer: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "white",
+    backgroundColor: theme.colors.card,
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 16,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: theme.colors.border,
-    ...theme.shadows.sm,
+    borderColor: theme.colors.borderLight,
+    ...(isDarkMode ? {} : theme.shadows.sm),
   },
   input: {
     flex: 1,
     marginLeft: 12,
     fontSize: 16,
-    color: theme.colors.foreground,
+    color: theme.colors.textPrimary,
   },
   eyeButton: {
     padding: 4,
   },
   securityTips: {
-    backgroundColor: "white",
+    backgroundColor: theme.colors.card,
     borderRadius: 12,
     padding: 16,
     marginBottom: 20,
     borderWidth: 1,
-    borderColor: theme.colors.border,
-    ...theme.shadows.sm,
+    borderColor: theme.colors.borderLight,
+    ...(isDarkMode ? {} : theme.shadows.sm),
   },
   securityTitle: {
     fontSize: 14,
     fontWeight: "600",
-    color: theme.colors.foreground,
+    color: theme.colors.textPrimary,
     marginBottom: 8,
   },
   securityTip: {
@@ -348,7 +351,7 @@ const styles = StyleSheet.create({
     opacity: 0.7,
   },
   changeButtonText: {
-    color: "white",
+    color: "#FFFFFF",
     fontSize: 16,
     fontWeight: "600",
     marginLeft: 8,

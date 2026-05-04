@@ -1,6 +1,6 @@
 import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
-import { theme } from "../../utils/theme";
+import { useTheme } from "../../utils/ThemeContext";
 
 const SectionHeader = ({
   title,
@@ -9,6 +9,9 @@ const SectionHeader = ({
   onActionPress,
   style,
 }) => {
+  const { theme } = useTheme();
+  const styles = getStyles(theme);
+
   return (
     <View style={[styles.container, style]}>
       <View style={styles.titleContainer}>
@@ -24,7 +27,7 @@ const SectionHeader = ({
   );
 };
 
-const styles = StyleSheet.create({
+const getStyles = (theme) => StyleSheet.create({
   container: {
     flexDirection: "row",
     alignItems: "center",

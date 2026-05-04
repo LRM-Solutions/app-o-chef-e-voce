@@ -258,7 +258,6 @@ export default function CarrinhoScreen({ navigation }) {
   const openPaymentUrl = async (paymentData) => {
     try {
       // Log completo dos dados de pagamento recebidos
-      console.log(
         "💳 Dados completos do pagamento recebidos:",
         JSON.stringify(paymentData, null, 2)
       );
@@ -276,8 +275,6 @@ export default function CarrinhoScreen({ navigation }) {
         throw new Error("URL de pagamento não encontrada na resposta");
       }
 
-      console.log("🌐 Tentando abrir URL de pagamento:", paymentUrl);
-      console.log("🔍 Informações do pagamento:", {
         payment_id: paymentData.payment_id,
         preference_id: paymentData.preference_id,
         transaction_amount: paymentData.transaction_amount,
@@ -288,7 +285,6 @@ export default function CarrinhoScreen({ navigation }) {
       const supported = await Linking.canOpenURL(paymentUrl);
 
       if (supported) {
-        console.log("✅ URL suportada, abrindo no navegador...");
 
         // Mostrar feedback antes de redirecionar
         Toast.show({
@@ -301,7 +297,6 @@ export default function CarrinhoScreen({ navigation }) {
         // Aguardar um pouco antes de abrir para o usuário ver o toast
         setTimeout(async () => {
           await Linking.openURL(paymentUrl);
-          console.log("🚀 URL aberta com sucesso!");
         }, 500);
       } else {
         console.error("❌ URL não suportada pelo dispositivo");
@@ -436,12 +431,10 @@ export default function CarrinhoScreen({ navigation }) {
       };
 
       // Debug dos dados de pagamento
-      console.log(
         "🔍 PaymentData recebido:",
         JSON.stringify(paymentData, null, 2)
       );
 
-      console.log("🛒 Criando pedido...");
       const pedidoResponse = await createPedido(pedidoPayload);
 
       if (!pedidoResponse.pedido_id) {
@@ -461,7 +454,6 @@ export default function CarrinhoScreen({ navigation }) {
         },
       };
 
-      console.log("💳 Processando pagamento...");
       const paymentResponse = await createPayment(paymentPayload);
 
       // Verificar se a resposta tem a estrutura esperada
@@ -489,7 +481,6 @@ export default function CarrinhoScreen({ navigation }) {
       });
 
       // 5. Preparar dados para o modal
-      console.log(
         "🛒 [DEBUG] CarrinhoScreen - selectedFrete antes do modal:",
         selectedFrete
       );
@@ -515,7 +506,6 @@ export default function CarrinhoScreen({ navigation }) {
         paymentResponseData: paymentResponseData,
       };
 
-      console.log(
         "🛒 [DEBUG] CarrinhoScreen - dadosPedido criado:",
         dadosPedido
       );

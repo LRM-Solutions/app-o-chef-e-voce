@@ -1,4 +1,4 @@
-// Sans Club - Mock Data para Wizard of Oz
+// Sans Company - Mock Data para Wizard of Oz
 // Este arquivo contém todos os dados mockados para demonstração
 
 import { hassanAvatar } from './assets';
@@ -278,7 +278,7 @@ export const shopProducts = [
   {
     id: "1",
     categoryId: "2",
-    name: "Camiseta Sans Club",
+    name: "Camiseta Sans Company",
     description: "Camiseta premium 100% algodão com logo bordado",
     price: 89.90,
     priceCoins: null,

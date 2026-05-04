@@ -2,18 +2,8 @@ import api from "./apiConfig";
 
 /**
  * Calcula o frete para um pedido
- * @param {string} destinationCEP - CEP de destino
- * @param {number} invoiceValue - Valor total dos produtos (sem vouchers)
- * @param {Array} products - Lista de produtos
- * @param {Array} vouchers - Lista de vouchers
- * @returns {Promise} Response da API
  */
-export const calcularFrete = async (
-  destinationCEP,
-  invoiceValue,
-  products,
-  vouchers
-) => {
+export const calcularFrete = async (destinationCEP, invoiceValue, products, vouchers) => {
   try {
     const payload = {
       destinationCEP,
@@ -22,18 +12,18 @@ export const calcularFrete = async (
       vouchers,
     };
 
-    console.log("🚚 [DEBUG] POST /frete/calcular - Calculando frete:", payload);
+    console.log("🚚 [DEBUG] POST /frete/calcular - Payload:", payload);
 
     const response = await api.post("/frete/calcular", payload);
 
-    console.log("✅ [DEBUG] POST /frete/calcular - Response:", {
+    console.log("📥 [DEBUG] POST /frete/calcular - Resposta:", {
       status: response.status,
       data: response.data,
     });
 
     return response.data;
   } catch (error) {
-    console.error("❌ [DEBUG] POST /frete/calcular - Erro:", {
+    console.log("❌ [DEBUG] POST /frete/calcular - Erro:", {
       message: error.message,
       status: error.response?.status,
       data: error.response?.data,
@@ -45,8 +35,6 @@ export const calcularFrete = async (
 
 /**
  * Formata o preço do frete para exibição
- * @param {number|string} price - Preço do frete
- * @returns {string} Preço formatado
  */
 export const formatFretePrice = (price) => {
   const numericPrice = parseFloat(price);
@@ -61,8 +49,6 @@ export const formatFretePrice = (price) => {
 
 /**
  * Formata o prazo de entrega
- * @param {number} days - Dias de entrega
- * @returns {string} Prazo formatado
  */
 export const formatDeliveryTime = (days) => {
   if (days === 1) {

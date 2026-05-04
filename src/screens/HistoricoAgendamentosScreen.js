@@ -9,18 +9,22 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
-import { theme } from "../utils/theme";
+import { useTheme } from "../utils/ThemeContext";
 import { listMyAppointments } from "../api/barberApi";
 import Avatar from "../components/ui/Avatar";
 
-const statusConfig = {
-  COMPLETED: { label: "Concluído", color: theme.colors.success, icon: "check-circle", bg: theme.colors.successLight },
-  CONFIRMED: { label: "Confirmado", color: theme.colors.primary, icon: "event-available", bg: theme.colors.primaryLight + "20" },
-  PENDING: { label: "Pendente", color: theme.colors.warning, icon: "schedule", bg: theme.colors.warningLight },
-  CANCELED: { label: "Cancelado", color: theme.colors.error, icon: "cancel", bg: theme.colors.errorLight },
-};
-
 const HistoricoAgendamentosScreen = ({ navigation }) => {
+  const { theme } = useTheme();
+  const { isDarkMode } = theme;
+  const styles = getStyles(theme, isDarkMode);
+
+  const statusConfig = {
+    COMPLETED: { label: "Concluído", color: theme.colors.success, icon: "check-circle", bg: theme.colors.successLight },
+    CONFIRMED: { label: "Confirmado", color: theme.colors.primary, icon: "event-available", bg: theme.colors.primaryLight + "20" },
+    PENDING: { label: "Pendente", color: theme.colors.warning, icon: "schedule", bg: theme.colors.warningLight },
+    CANCELED: { label: "Cancelado", color: theme.colors.error, icon: "cancel", bg: theme.colors.errorLight },
+  };
+
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("all"); // all, past, upcoming
@@ -66,7 +70,13 @@ const HistoricoAgendamentosScreen = ({ navigation }) => {
   );
 
   const renderAppointment = ({ item }) => {
-    const when = new Date(item.scheduled_at);
+    const dateStr = item.scheduled_at.replace(' ', 'T');
+    const when = new Date(dateStr.endsWith('Z') ? dateStr : dateStr + 'Z');
+    
+    // Obter horas/minutos em UTC para evitar o offset do sistema
+    const h = String(when.getUTCHours()).padStart(2, '0');
+    const m = String(when.getUTCMinutes()).padStart(2, '0');
+
     const config = statusConfig[item.status] || statusConfig.PENDING;
     const isPast = when < new Date();
 
@@ -101,20 +111,17 @@ const HistoricoAgendamentosScreen = ({ navigation }) => {
                 day: "numeric",
                 month: "short",
                 year: "numeric",
+                timeZone: "UTC",
               })}
             </Text>
           </View>
           <View style={styles.cardDetail}>
             <MaterialIcons name="access-time" size={16} color={theme.colors.textMuted} />
-            <Text style={styles.cardDetailText}>
-              {when.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
-            </Text>
+            <Text style={styles.cardDetailText}>{h}:{m}</Text>
           </View>
-          {item.service?.price && (
+          {item.service?.price !== undefined && (
             <View style={styles.cardDetail}>
-              <Text style={styles.cardPrice}>
-                R$ {Number(item.service.price).toFixed(2)}
-              </Text>
+              <Text style={styles.cardPrice}>{Number(item.service.price) === 0 ? "Grátis" : `R$ ${Number(item.service.price).toFixed(2)}`}</Text>
             </View>
           )}
         </View>
@@ -143,7 +150,7 @@ const HistoricoAgendamentosScreen = ({ navigation }) => {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-          <MaterialIcons name="arrow-back" size={24} color={theme.colors.foreground} />
+          <MaterialIcons name="arrow-back" size={24} color={theme.colors.textPrimary} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Agendamentos</Text>
         <View style={styles.headerRight} />
@@ -176,10 +183,10 @@ const HistoricoAgendamentosScreen = ({ navigation }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const getStyles = (theme, isDarkMode) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: theme.colors.background,
+    backgroundColor: theme.colors.backgroundSecondary,
   },
   header: {
     flexDirection: "row",
@@ -197,7 +204,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 18,
     fontWeight: "600",
-    color: theme.colors.foreground,
+    color: theme.colors.textPrimary,
     flex: 1,
     textAlign: "center",
     marginHorizontal: 16,
@@ -242,7 +249,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     borderWidth: 1,
     borderColor: theme.colors.borderLight,
-    ...theme.shadows.sm,
+    ...(isDarkMode ? {} : theme.shadows.sm),
   },
   appointmentCardPast: {
     opacity: 0.8,

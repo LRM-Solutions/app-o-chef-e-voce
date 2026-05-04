@@ -41,11 +41,7 @@ export default function EpisodiosScreen() {
   const loadInitialVideos = async () => {
     try {
       setLoading(true);
-      console.log("Carregando vídeos iniciais da playlist...");
       const response = await getPlaylistVideos("", 10);
-      console.log("Resposta recebida:", response);
-      console.log("Número de vídeos:", response.videos.length);
-      console.log("Primeiro vídeo:", response.videos[0]);
       setVideos(response.videos);
       setNextPageToken(response.nextPageToken || "");
     } catch (error) {
@@ -62,28 +58,22 @@ export default function EpisodiosScreen() {
   };
 
   const loadMoreVideos = async () => {
-    console.log("loadMoreVideos chamado:", { loadingMore, nextPageToken });
 
     if (loadingMore || !nextPageToken) {
-      console.log("Condição de parada:", { loadingMore, nextPageToken });
       return;
     }
 
     try {
       setLoadingMore(true);
-      console.log("Carregando mais vídeos com token:", nextPageToken);
 
       const response = await getPlaylistVideos(nextPageToken, 10);
-      console.log("Novos vídeos carregados:", response.videos.length);
 
       setVideos((prev) => {
         const newVideos = [...prev, ...response.videos];
-        console.log("Total de vídeos após adição:", newVideos.length);
         return newVideos;
       });
 
       setNextPageToken(response.nextPageToken || "");
-      console.log("Próximo token:", response.nextPageToken);
     } catch (error) {
       console.error("Erro ao carregar mais vídeos:", error);
       Toast.show({
@@ -140,7 +130,6 @@ export default function EpisodiosScreen() {
         `https://www.youtube.com/watch?v=${videoId}`,
       ].filter(Boolean); // Remove valores null
 
-      console.log("📹 [YouTube] Tentando abrir vídeo:", {
         videoId,
         plataforma: Platform.OS,
         urls: youtubeUrls,
@@ -151,23 +140,19 @@ export default function EpisodiosScreen() {
       // Tenta cada URL sequencialmente
       for (let i = 0; i < youtubeUrls.length; i++) {
         const url = youtubeUrls[i];
-        console.log(
           `📹 [YouTube] Tentativa ${i + 1}/${youtubeUrls.length}:`,
           url
         );
 
         try {
           const canOpen = await Linking.canOpenURL(url);
-          console.log(`📹 [YouTube] canOpenURL(${url}):`, canOpen);
 
           if (canOpen) {
             await Linking.openURL(url);
             opened = true;
-            console.log(`📹 [YouTube] ✅ Vídeo aberto com sucesso via: ${url}`);
             break;
           }
         } catch (urlError) {
-          console.log(
             `📹 [YouTube] ⚠️ Falha na tentativa ${i + 1}:`,
             urlError.message
           );
@@ -237,7 +222,6 @@ export default function EpisodiosScreen() {
   };
 
   const VideoItem = ({ item }) => {
-    console.log("Renderizando item:", {
       id: item.id,
       title: item.title?.substring(0, 30) + "...",
       viewCount: item.viewCount,
@@ -249,7 +233,6 @@ export default function EpisodiosScreen() {
     const formattedViews = formatViewCount(item.viewCount);
     const formattedDate = formatPublishedDate(item.publishedAt);
 
-    console.log("Dados formatados:", {
       viewCount: item.viewCount,
       formattedViews,
       publishedAt: item.publishedAt,

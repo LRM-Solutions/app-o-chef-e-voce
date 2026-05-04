@@ -22,7 +22,10 @@ import {
 import Toast from "react-native-toast-message";
 
 const { width: screenWidth } = Dimensions.get("window");
-const ITEM_WIDTH = (screenWidth - 48) / 2; // 2 colunas com 16px de margin
+const numColumns = theme.isTablet ? 3 : 2;
+const padding = theme.spacing.md * 2;
+const gap = theme.spacing.md;
+const ITEM_WIDTH = (screenWidth - padding - (gap * (numColumns - 1))) / numColumns;
 
 export default function VouchersScreen({ navigation }) {
   const [vouchers, setVouchers] = useState([]);
@@ -36,9 +39,7 @@ export default function VouchersScreen({ navigation }) {
   const loadVouchers = async () => {
     try {
       setLoading(true);
-      console.log("Carregando vouchers...");
       const vouchersData = await getVouchers();
-      console.log("Vouchers carregados:", vouchersData.length);
       setVouchers(vouchersData);
     } catch (error) {
       console.error("Erro ao carregar vouchers:", error);
@@ -169,7 +170,8 @@ export default function VouchersScreen({ navigation }) {
         keyExtractor={(item) => item.voucher_id.toString()}
         renderItem={VoucherItem}
         ListHeaderComponent={renderHeader}
-        numColumns={2}
+        numColumns={numColumns}
+        key={numColumns}
         columnWrapperStyle={styles.row}
         refreshControl={
           <RefreshControl
@@ -201,13 +203,13 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.background,
   },
   sectionTitle: {
-    fontSize: 24,
+    fontSize: theme.fontSizes["3xl"],
     fontWeight: "bold",
     color: theme.colors.foreground,
     marginBottom: 4,
   },
   sectionSubtitle: {
-    fontSize: 16,
+    fontSize: theme.fontSizes.base,
     color: "#666",
     fontWeight: "400",
   },
@@ -307,17 +309,17 @@ const styles = StyleSheet.create({
     padding: 12,
   },
   voucherName: {
-    fontSize: 14,
+    fontSize: theme.fontSizes.base,
     fontWeight: "600",
     color: theme.colors.foreground,
     marginBottom: 8,
-    lineHeight: 18,
+    lineHeight: theme.fontSizes.base * 1.2,
   },
   priceContainer: {
     marginBottom: 8,
   },
   voucherPrice: {
-    fontSize: 16,
+    fontSize: theme.fontSizes.lg,
     fontWeight: "bold",
     color: theme.colors.primary,
   },

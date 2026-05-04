@@ -13,9 +13,14 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import { getUserPedidos } from "../api/pedidosApi";
 import { formatarStatusPagamento } from "../api/pedidoDetalhesApi";
-import { theme, createTextStyle, createButtonStyle } from "../utils/theme";
+import { createTextStyle, createButtonStyle } from "../utils/theme";
+import { useTheme } from "../utils/ThemeContext";
 
 const MeusPedidosScreen = ({ navigation }) => {
+  const { theme } = useTheme();
+  const { isDarkMode } = theme;
+  const styles = getStyles(theme, isDarkMode);
+
   const [pedidos, setPedidos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -140,17 +145,8 @@ const MeusPedidosScreen = ({ navigation }) => {
           <Text style={styles.sectionTitle}>Itens:</Text>
           {item.pedido_product.map((produtoItem, index) => (
             <View key={index} style={styles.produtoItem}>
-              <Text style={styles.produtoNome}>
-                {produtoItem.pedido_product_quantity}x{" "}
-                {produtoItem.product.product_name}
-              </Text>
-              <Text style={styles.produtoPreco}>
-                R${" "}
-                {(
-                  produtoItem.product.product_price *
-                  produtoItem.pedido_product_quantity
-                ).toFixed(2)}
-              </Text>
+              <Text style={styles.produtoNome}>{produtoItem.pedido_product_quantity}x {produtoItem.product.product_name}</Text>
+              <Text style={styles.produtoPreco}>R$ {(produtoItem.product.product_price * produtoItem.pedido_product_quantity).toFixed(2)}</Text>
             </View>
           ))}
         </View>
@@ -160,17 +156,8 @@ const MeusPedidosScreen = ({ navigation }) => {
           <>
             {item.pedido_voucher.map((voucherItem, index) => (
               <View key={index} style={styles.produtoItem}>
-                <Text style={styles.produtoNome}>
-                  {voucherItem.pedido_voucher_quantity}x{" "}
-                  {voucherItem.voucher.voucher_name}
-                </Text>
-                <Text style={styles.produtoPreco}>
-                  R${" "}
-                  {(
-                    voucherItem.voucher.voucher_price *
-                    voucherItem.pedido_voucher_quantity
-                  ).toFixed(2)}
-                </Text>
+                <Text style={styles.produtoNome}>{voucherItem.pedido_voucher_quantity}x {voucherItem.voucher.voucher_name}</Text>
+                <Text style={styles.produtoPreco}>R$ {(voucherItem.voucher.voucher_price * voucherItem.pedido_voucher_quantity).toFixed(2)}</Text>
               </View>
             ))}
           </>
@@ -260,10 +247,10 @@ const MeusPedidosScreen = ({ navigation }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const getStyles = (theme, isDarkMode) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: theme.colors.background,
+    backgroundColor: theme.colors.backgroundSecondary,
   },
   header: {
     flexDirection: "row",
@@ -273,13 +260,13 @@ const styles = StyleSheet.create({
     paddingVertical: theme.spacing.md,
     backgroundColor: theme.colors.card,
     borderBottomWidth: 1,
-    borderBottomColor: theme.colors.border,
+    borderBottomColor: theme.colors.borderLight,
   },
   backButton: {
     padding: theme.spacing.sm,
   },
   headerTitle: {
-    ...createTextStyle("h3", "foreground"),
+    ...createTextStyle("h3", "textPrimary", theme),
   },
   headerSpacer: {
     width: 40, // Para equilibrar o botão de voltar
@@ -293,7 +280,7 @@ const styles = StyleSheet.create({
     borderRadius: theme.borderRadius.lg,
     padding: theme.spacing.lg,
     marginBottom: theme.spacing.md,
-    ...theme.shadows.sm,
+    ...(isDarkMode ? {} : theme.shadows.sm),
   },
   cardHeader: {
     flexDirection: "row",
@@ -305,11 +292,11 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   pedidoId: {
-    ...createTextStyle("body", "foreground"),
+    ...createTextStyle("body", "textPrimary", theme),
     fontWeight: "600",
   },
   pedidoData: {
-    ...createTextStyle("caption", "textMuted"),
+    ...createTextStyle("caption", "textMuted", theme),
     marginTop: 2,
   },
   statusBadge: {
@@ -320,7 +307,7 @@ const styles = StyleSheet.create({
     borderRadius: theme.borderRadius.sm,
   },
   statusText: {
-    ...createTextStyle("caption", "white"),
+    ...createTextStyle("caption", "white", theme),
     fontWeight: "600",
     marginLeft: theme.spacing.xs,
   },
@@ -331,7 +318,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: theme.spacing.sm,
   },
   enderecoText: {
-    ...createTextStyle("caption", "textMuted"),
+    ...createTextStyle("caption", "textMuted", theme),
     marginLeft: theme.spacing.sm,
     flex: 1,
   },
@@ -339,7 +326,7 @@ const styles = StyleSheet.create({
     marginBottom: theme.spacing.md,
   },
   sectionTitle: {
-    ...createTextStyle("caption", "foreground"),
+    ...createTextStyle("caption", "textPrimary", theme),
     fontWeight: "600",
     marginBottom: theme.spacing.sm,
   },
@@ -350,18 +337,18 @@ const styles = StyleSheet.create({
     paddingVertical: theme.spacing.xs,
   },
   produtoNome: {
-    ...createTextStyle("caption", "foreground"),
+    ...createTextStyle("caption", "textPrimary", theme),
     flex: 1,
   },
   produtoPreco: {
-    ...createTextStyle("caption", "foreground"),
+    ...createTextStyle("caption", "textPrimary", theme),
     fontWeight: "600",
   },
   observacoesSection: {
     marginBottom: theme.spacing.md,
   },
   observacoesText: {
-    ...createTextStyle("caption", "textMuted"),
+    ...createTextStyle("caption", "textMuted", theme),
     fontStyle: "italic",
   },
   cardFooter: {
@@ -369,17 +356,17 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     borderTopWidth: 1,
-    borderTopColor: theme.colors.border,
+    borderTopColor: theme.colors.borderLight,
     paddingTop: theme.spacing.md,
   },
   totalSection: {
     flex: 1,
   },
   totalLabel: {
-    ...createTextStyle("caption", "textMuted"),
+    ...createTextStyle("caption", "textMuted", theme),
   },
   totalValue: {
-    ...createTextStyle("body", "foreground"),
+    ...createTextStyle("body", "textPrimary", theme),
     fontWeight: "700",
     fontSize: theme.fontSizes.lg,
   },
@@ -388,7 +375,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: theme.spacing.md,
   },
   detalhesButtonText: {
-    ...createTextStyle("caption", "primary"),
+    ...createTextStyle("caption", "primary", theme),
     fontWeight: "600",
     textDecorationLine: "underline",
   },
@@ -398,7 +385,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   loadingText: {
-    ...createTextStyle("body", "textMuted"),
+    ...createTextStyle("body", "textMuted", theme),
     marginTop: theme.spacing.md,
   },
   emptyState: {
@@ -408,12 +395,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: theme.spacing.xl,
   },
   emptyTitle: {
-    ...createTextStyle("h3", "foreground"),
+    ...createTextStyle("h3", "textPrimary", theme),
     marginTop: theme.spacing.lg,
     textAlign: "center",
   },
   emptySubtitle: {
-    ...createTextStyle("body", "textMuted"),
+    ...createTextStyle("body", "textMuted", theme),
     marginTop: theme.spacing.sm,
     textAlign: "center",
   },

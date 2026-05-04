@@ -22,7 +22,10 @@ import {
 import Toast from "react-native-toast-message";
 
 const { width: screenWidth } = Dimensions.get("window");
-const ITEM_WIDTH = (screenWidth - 48) / 2; // 2 colunas com 16px de margin
+const numColumns = theme.isTablet ? 3 : 2;
+const padding = theme.spacing.md * 2;
+const gap = theme.spacing.md;
+const ITEM_WIDTH = (screenWidth - padding - (gap * (numColumns - 1))) / numColumns;
 
 export default function ProductsScreen({ navigation }) {
   const [products, setProducts] = useState([]);
@@ -36,9 +39,7 @@ export default function ProductsScreen({ navigation }) {
   const loadProducts = async () => {
     try {
       setLoading(true);
-      console.log("Carregando produtos...");
       const productsData = await getProducts();
-      console.log("Produtos carregados:", productsData.length);
       setProducts(productsData);
     } catch (error) {
       console.error("Erro ao carregar produtos:", error);
@@ -168,7 +169,8 @@ export default function ProductsScreen({ navigation }) {
         keyExtractor={(item) => item.product_id.toString()}
         renderItem={ProductItem}
         ListHeaderComponent={renderHeader}
-        numColumns={2}
+        numColumns={numColumns}
+        key={numColumns} // Força re-render se mudar o número de colunas
         columnWrapperStyle={styles.row}
         refreshControl={
           <RefreshControl
@@ -200,13 +202,13 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.background,
   },
   sectionTitle: {
-    fontSize: 24,
+    fontSize: theme.fontSizes["3xl"],
     fontWeight: "bold",
     color: theme.colors.foreground,
     marginBottom: 4,
   },
   sectionSubtitle: {
-    fontSize: 16,
+    fontSize: theme.fontSizes.base,
     color: "#666",
     fontWeight: "400",
   },
@@ -303,17 +305,17 @@ const styles = StyleSheet.create({
     padding: 12,
   },
   productName: {
-    fontSize: 14,
+    fontSize: theme.fontSizes.base,
     fontWeight: "600",
     color: theme.colors.foreground,
     marginBottom: 8,
-    lineHeight: 18,
+    lineHeight: theme.fontSizes.base * 1.2,
   },
   priceContainer: {
     marginBottom: 8,
   },
   productPrice: {
-    fontSize: 16,
+    fontSize: theme.fontSizes.lg,
     fontWeight: "bold",
     color: theme.colors.primary,
   },

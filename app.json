@@ -1,19 +1,35 @@
 {
   "expo": {
-    "name": "Sans Club",
+    "name": "Sans Company",
     "slug": "sans-club",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/sansicon.png",
     "userInterfaceStyle": "light",
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#6200EA"
+      "backgroundColor": "#ffffff"
     },
     "assetBundlePatterns": [
       "**/*"
     ],
+    "plugins": [
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/sansicon.png",
+          "color": "#6200EA",
+          "defaultChannel": "default"
+        }
+      ]
+    ],
+    "notification": {
+      "icon": "./assets/sansicon.png",
+      "color": "#6200EA",
+      "androidMode": "default",
+      "androidCollapsedTitle": "Sans Company"
+    },
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.sansclub.app",
@@ -27,10 +43,21 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#6200EA"
-      }
+      },
+      "permissions": [
+        "RECEIVE_BOOT_COMPLETED",
+        "VIBRATE",
+        "WAKE_LOCK"
+      ],
+      "useNextNotificationsApi": true
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "f5314f8e-8e80-4340-9541-b7b9cdd36d18"
+      }
     }
   }
 }

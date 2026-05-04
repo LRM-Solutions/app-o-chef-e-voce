@@ -17,12 +17,16 @@ import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import { confirmDeleteAccount, requestDeleteAccount } from "../api/authApi";
 import { useAuth } from "../components/AuthProvider";
 import { CartService } from "../services/cartService";
-import { theme, createButtonStyle, createTextStyle } from "../utils/theme";
+import { createButtonStyle, createTextStyle } from "../utils/theme";
+import { useTheme } from "../utils/ThemeContext";
 
 export default function ConfirmarExclusaoCodeScreen({ navigation, route }) {
   // Email vem como parâmetro da tela anterior
   const { userEmail } = route.params;
   const { logout: authLogout } = useAuth();
+  const { theme } = useTheme();
+  const { isDarkMode } = theme;
+  const styles = getStyles(theme, isDarkMode);
 
   const [code, setCode] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -81,7 +85,6 @@ export default function ConfirmarExclusaoCodeScreen({ navigation, route }) {
         );
       }
     } catch (error) {
-      console.log("Erro ao confirmar exclusão:", error);
     }
 
     setIsLoading(false);
@@ -101,7 +104,6 @@ export default function ConfirmarExclusaoCodeScreen({ navigation, route }) {
         setCodeError("");
       }
     } catch (error) {
-      console.log("Erro ao reenviar código:", error);
     }
 
     setIsResending(false);
@@ -142,7 +144,7 @@ export default function ConfirmarExclusaoCodeScreen({ navigation, route }) {
             {/* Header */}
             <View style={styles.header}>
               <Image
-                source={require("../../assets/icon.png")}
+                source={require("../../assets/sanslogo.png")}
                 style={styles.logo}
                 resizeMode="contain"
               />
@@ -162,7 +164,7 @@ export default function ConfirmarExclusaoCodeScreen({ navigation, route }) {
               <MaterialIcons
                 name="arrow-back"
                 size={24}
-                color={theme.colors.foreground}
+                color={theme.colors.textPrimary}
               />
             </TouchableOpacity>
 
@@ -270,7 +272,7 @@ export default function ConfirmarExclusaoCodeScreen({ navigation, route }) {
   );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (theme, isDarkMode) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.colors.background,
@@ -307,17 +309,17 @@ const styles = StyleSheet.create({
     marginBottom: theme.spacing.md,
   },
   title: {
-    ...createTextStyle("h2", "foreground"),
+    ...createTextStyle("h2", "textPrimary", theme),
     textAlign: "center",
     marginBottom: theme.spacing.sm,
   },
   subtitle: {
-    ...createTextStyle("body", "textMuted"),
+    ...createTextStyle("body", "textMuted", theme),
     textAlign: "center",
     marginBottom: theme.spacing.xs,
   },
   emailText: {
-    ...createTextStyle("body", "primary"),
+    ...createTextStyle("body", "primary", theme),
     textAlign: "center",
     fontWeight: "600",
   },
@@ -333,7 +335,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   label: {
-    ...createTextStyle("body", "foreground"),
+    ...createTextStyle("body", "textPrimary", theme),
     marginBottom: theme.spacing.md,
     fontWeight: "500",
     textAlign: "center",
@@ -366,7 +368,7 @@ const styles = StyleSheet.create({
     borderColor: theme.colors.destructive,
   },
   codeDigitText: {
-    ...createTextStyle("h2", "foreground"),
+    ...createTextStyle("h2", "textPrimary", theme),
     fontWeight: "600",
   },
   hiddenInput: {
@@ -376,12 +378,12 @@ const styles = StyleSheet.create({
     height: 1,
   },
   errorText: {
-    ...createTextStyle("small", "destructive"),
+    ...createTextStyle("small", "destructive", theme),
     marginTop: theme.spacing.sm,
     textAlign: "center",
   },
   codeHint: {
-    ...createTextStyle("caption", "textMuted"),
+    ...createTextStyle("caption", "textMuted", theme),
     marginTop: theme.spacing.md,
     textAlign: "center",
     paddingHorizontal: theme.spacing.md,
@@ -399,7 +401,7 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   deleteButtonText: {
-    ...createTextStyle("body", "white"),
+    ...createTextStyle("body", "white", theme),
     textAlign: "center",
     fontWeight: "600",
   },
@@ -407,7 +409,7 @@ const styles = StyleSheet.create({
     marginTop: theme.spacing.xl,
   },
   footerText: {
-    ...createTextStyle("caption", "textMuted"),
+    ...createTextStyle("caption", "textMuted", theme),
     textAlign: "center",
   },
   linkText: {

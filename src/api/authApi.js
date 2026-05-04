@@ -3,24 +3,24 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import Toast from "react-native-toast-message";
 
 // Função de cadastro
-export const signUp = async (userName, userEmail, userPassword) => {
+export const signUp = async (userName, userEmail, userPassword, userPhone = null) => {
   try {
     const payload = {
       user_name: userName,
       user_email: userEmail,
       user_password: userPassword,
+      user_phone: userPhone,
       user_type_id: 1,
     };
 
-    console.log("👤 [DEBUG] POST /sign-up - Criando nova conta");
     console.log("📤 [DEBUG] POST /sign-up - Payload:", {
       ...payload,
-      user_password: "[HIDDEN]", // Não mostrar senha no log
+      user_password: "[HIDDEN]",
     });
 
     const response = await api.post("/sign-up", payload);
 
-    console.log("✅ [DEBUG] POST /sign-up - Response:", {
+    console.log("📥 [DEBUG] POST /sign-up - Resposta:", {
       status: response.status,
       data: {
         ...response.data,
@@ -37,7 +37,7 @@ export const signUp = async (userName, userEmail, userPassword) => {
 
     return response.data;
   } catch (error) {
-    console.error("❌ [DEBUG] POST /sign-up - Erro:", {
+    console.log("❌ [DEBUG] POST /sign-up - Erro:", {
       message: error.message,
       status: error.response?.status,
       data: error.response?.data,
@@ -68,15 +68,14 @@ export const login = async (userEmail, userPassword) => {
       user_password: userPassword,
     };
 
-    console.log("🔐 [DEBUG] POST /login - Fazendo login");
     console.log("📤 [DEBUG] POST /login - Payload:", {
       user_email: userEmail,
-      user_password: "[HIDDEN]", // Não mostrar senha no log
+      user_password: "[HIDDEN]",
     });
 
     const response = await api.post("/login", payload);
 
-    console.log("✅ [DEBUG] POST /login - Response:", {
+    console.log("📥 [DEBUG] POST /login - Resposta:", {
       status: response.status,
       data: {
         ...response.data,
@@ -84,48 +83,28 @@ export const login = async (userEmail, userPassword) => {
       },
     });
 
-    // Armazenar o token e user_id no AsyncStorage
     if (response.data.token) {
       await AsyncStorage.setItem("auth_token", response.data.token);
-      console.log("💾 [DEBUG] Token salvo no AsyncStorage");
     }
 
     if (response.data.user && response.data.user.user_id) {
-      await AsyncStorage.setItem(
-        "user_id",
-        response.data.user.user_id.toString()
-      );
-      console.log(
-        "💾 [DEBUG] User ID salvo no AsyncStorage:",
-        response.data.user.user_id
-      );
+      await AsyncStorage.setItem("user_id", response.data.user.user_id.toString());
+      console.log("💾 [DEBUG] User ID salvo no AsyncStorage:", response.data.user.user_id);
 
-      // Salvar também outros dados do usuário que podem ser úteis
-      await AsyncStorage.setItem(
-        "user_name",
-        response.data.user.user_name || ""
-      );
-      await AsyncStorage.setItem(
-        "user_email",
-        response.data.user.user_email || ""
-      );
-      console.log("💾 [DEBUG] Dados do usuário salvos no AsyncStorage");
+      await AsyncStorage.setItem("user_name", response.data.user.user_name || "");
+      await AsyncStorage.setItem("user_email", response.data.user.user_email || "");
     }
 
     return response.data;
   } catch (error) {
-    console.error("❌ [DEBUG] POST /login - Erro:", {
+    console.log("❌ [DEBUG] POST /login - Erro:", {
       message: error.message,
       status: error.response?.status,
       data: error.response?.data,
       url: error.config?.url,
     });
 
-    // Verificar se é erro de conta não verificada
-    if (
-      error.response?.status === 403 &&
-      error.response?.data?.needVerification
-    ) {
+    if (error.response?.status === 403 && error.response?.data?.needVerification) {
       Toast.show({
         type: "info",
         text1: "Conta não verificada",
@@ -133,7 +112,6 @@ export const login = async (userEmail, userPassword) => {
         visibilityTime: 3000,
       });
 
-      // Retornar informação especial para redirecionamento
       return {
         needVerification: true,
         userEmail: userEmail,
@@ -141,8 +119,7 @@ export const login = async (userEmail, userPassword) => {
       };
     }
 
-    let errorMessage =
-      error.response?.data?.error || "Erro interno do servidor";
+    let errorMessage = error.response?.data?.error || "Erro interno do servidor";
 
     Toast.show({
       type: "error",
@@ -162,9 +139,7 @@ export const logout = async () => {
     await AsyncStorage.removeItem("user_id");
     await AsyncStorage.removeItem("user_name");
     await AsyncStorage.removeItem("user_email");
-    console.log(
-      "💾 [DEBUG] Todos os dados do usuário removidos do AsyncStorage"
-    );
+    console.log("💾 [DEBUG] Todos os dados do usuário removidos do AsyncStorage");
     return true;
   } catch (error) {
     console.error("Erro no logout:", error);
@@ -191,12 +166,11 @@ export const verifyEmail = async (userEmail, verificationCode) => {
       code: verificationCode,
     };
 
-    console.log("✉️ [DEBUG] PATCH /user-verify - Verificando email");
     console.log("📤 [DEBUG] PATCH /user-verify - Payload:", payload);
 
     const response = await api.patch("/user-verify", payload);
 
-    console.log("✅ [DEBUG] PATCH /user-verify - Response:", {
+    console.log("📥 [DEBUG] PATCH /user-verify - Resposta:", {
       status: response.status,
       data: response.data,
     });
@@ -210,7 +184,7 @@ export const verifyEmail = async (userEmail, verificationCode) => {
 
     return response.data;
   } catch (error) {
-    console.error("❌ [DEBUG] PATCH /user-verify - Erro:", {
+    console.log("❌ [DEBUG] PATCH /user-verify - Erro:", {
       message: error.message,
       status: error.response?.status,
       data: error.response?.data,
@@ -240,12 +214,11 @@ export const resendVerificationCode = async (userEmail) => {
       email: userEmail,
     };
 
-    console.log("📧 [DEBUG] POST /resend-verification - Reenviando código");
     console.log("📤 [DEBUG] POST /resend-verification - Payload:", payload);
 
     const response = await api.post("/resend-verification", payload);
 
-    console.log("✅ [DEBUG] POST /resend-verification - Response:", {
+    console.log("📥 [DEBUG] POST /resend-verification - Resposta:", {
       status: response.status,
       data: response.data,
     });
@@ -259,7 +232,7 @@ export const resendVerificationCode = async (userEmail) => {
 
     return response.data;
   } catch (error) {
-    console.error("❌ [DEBUG] POST /resend-verification - Erro:", {
+    console.log("❌ [DEBUG] POST /resend-verification - Erro:", {
       message: error.message,
       status: error.response?.status,
       data: error.response?.data,
@@ -326,13 +299,11 @@ export const getUserEmail = async () => {
 // Função para solicitar exclusão de conta
 export const requestDeleteAccount = async () => {
   try {
-    console.log(
-      "🗑️ [DEBUG] POST /excluir-conta - Solicitando exclusão de conta"
-    );
+    console.log("🗑️ [DEBUG] POST /excluir-conta - Solicitando exclusão de conta");
 
     const response = await api.post("/excluir-conta", {});
 
-    console.log("✅ [DEBUG] POST /excluir-conta - Response:", {
+    console.log("📥 [DEBUG] POST /excluir-conta - Resposta:", {
       status: response.status,
       data: response.data,
     });
@@ -346,7 +317,7 @@ export const requestDeleteAccount = async () => {
 
     return response.data;
   } catch (error) {
-    console.error("❌ [DEBUG] POST /excluir-conta - Erro:", {
+    console.log("❌ [DEBUG] POST /excluir-conta - Erro:", {
       message: error.message,
       status: error.response?.status,
       data: error.response?.data,
@@ -376,17 +347,12 @@ export const confirmDeleteAccount = async (code) => {
       code: code.toString(),
     };
 
-    console.log(
-      "🗑️ [DEBUG] POST /confirmar-exclusao-conta - Confirmando exclusão"
-    );
-    console.log(
-      "📤 [DEBUG] POST /confirmar-exclusao-conta - Payload:",
-      payload
-    );
+    console.log("🗑️ [DEBUG] POST /confirmar-exclusao-conta - Confirmando exclusão");
+    console.log("📤 [DEBUG] POST /confirmar-exclusao-conta - Payload:", payload);
 
     const response = await api.post("/confirmar-exclusao-conta", payload);
 
-    console.log("✅ [DEBUG] POST /confirmar-exclusao-conta - Response:", {
+    console.log("📥 [DEBUG] POST /confirmar-exclusao-conta - Resposta:", {
       status: response.status,
       data: response.data,
     });
@@ -400,7 +366,7 @@ export const confirmDeleteAccount = async (code) => {
 
     return response.data;
   } catch (error) {
-    console.error("❌ [DEBUG] POST /confirmar-exclusao-conta - Erro:", {
+    console.log("❌ [DEBUG] POST /confirmar-exclusao-conta - Erro:", {
       message: error.message,
       status: error.response?.status,
       data: error.response?.data,
