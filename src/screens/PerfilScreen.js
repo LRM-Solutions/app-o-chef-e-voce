@@ -249,7 +249,7 @@ const PerfilScreen = ({ navigation }) => {
   // ========================
   if (!isAuthenticated) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={styles.container} edges={["top"]}>
         <ScrollView style={styles.scrollView} contentContainerStyle={[styles.content, styles.contentNotLogged, { padding: 24, paddingBottom: 40 }]}>
           <View style={{ alignItems: 'center', marginTop: 20 }}>
             <Image
@@ -324,7 +324,7 @@ const PerfilScreen = ({ navigation }) => {
   // Tela para logados
   // ========================
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={["top"]}>
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
@@ -536,7 +536,7 @@ const getStyles = (theme) => StyleSheet.create({
     paddingBottom: 30,
   },
   content: {
-    flex: 1,
+    flexGrow: 1,
     paddingHorizontal: 20,
     paddingTop: theme.spacing.lg,
     justifyContent: "space-between",

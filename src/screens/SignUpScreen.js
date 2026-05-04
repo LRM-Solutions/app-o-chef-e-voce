@@ -60,11 +60,11 @@ export default function SignUpScreen({ navigation }) {
       setEmailError("");
     }
 
-    // Validar telefone (opcional, mas se preenchido, deve ter pelo menos 10 dígitos)
+    // Validar telefone (opcional, mas se preenchido, deve ter 10 ou 11 dígitos)
     if (phone.trim()) {
       const cleaned = phone.replace(/\D/g, "");
-      if (cleaned.length < 10) {
-        setPhoneError("Telefone deve ter pelo menos 10 dígitos");
+      if (cleaned.length < 10 || cleaned.length > 11) {
+        setPhoneError("Telefone inválido");
         isValid = false;
       } else {
         setPhoneError("");
@@ -106,7 +106,9 @@ export default function SignUpScreen({ navigation }) {
     setIsLoading(true);
 
     try {
-      const response = await signUp(name.trim(), email, password, phone.trim() || null);
+      // Adicionar +55 antes de enviar para o servidor
+      const formattedPhone = phone.trim() ? `+55 ${phone.trim()}` : null;
+      const response = await signUp(name.trim(), email, password, formattedPhone);
       if (response) {
         // Navegar para tela de verificação de email
         navigation.navigate("NewUserEmailCode", { userEmail: email });
@@ -204,7 +206,19 @@ export default function SignUpScreen({ navigation }) {
                   placeholderTextColor={theme.colors.textMuted}
                   value={phone}
                   onChangeText={(text) => {
-                    setPhone(text);
+                    let digits = text.replace(/\D/g, "");
+                    if (digits.length === 0) {
+                      setPhone("");
+                      if (phoneError) setPhoneError("");
+                      return;
+                    }
+                    digits = digits.slice(0, 11);
+                    let result = "";
+                    if (digits.length > 0) result += `(${digits.slice(0, 2)}`;
+                    if (digits.length > 2) result += `) ${digits.slice(2, 7)}`;
+                    if (digits.length > 7) result += `-${digits.slice(7, 11)}`;
+                    
+                    setPhone(result);
                     if (phoneError) setPhoneError("");
                   }}
                   keyboardType="phone-pad"
