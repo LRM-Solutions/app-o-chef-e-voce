@@ -1,4 +1,5 @@
 import api from "./apiConfig";
+import { Platform } from "react-native";
 
 export const getBalance = async () => {
   const { data } = await api.get("/user/balance");
@@ -63,15 +64,22 @@ export const updateProfile = async ({ userName }) => {
 
 export const uploadAvatar = async (imageUri) => {
   const formData = new FormData();
-  const filename = imageUri.split("/").pop();
-  const match = /\.(\w+)$/.exec(filename);
-  const type = match ? `image/${match[1]}` : "image/jpeg";
 
-  formData.append("image", {
-    uri: imageUri,
-    name: filename,
-    type,
-  });
+  if (Platform.OS === 'web') {
+    const response = await fetch(imageUri);
+    const blob = await response.blob();
+    formData.append("image", blob, "avatar.jpg");
+  } else {
+    const filename = imageUri.split("/").pop() || "avatar.jpg";
+    const match = /\.(\w+)$/.exec(filename);
+    const type = match ? `image/${match[1]}` : "image/jpeg";
+
+    formData.append("image", {
+      uri: imageUri,
+      name: filename,
+      type,
+    });
+  }
 
   const { data } = await api.post("/user/avatar", formData, {
     headers: {

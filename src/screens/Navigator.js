@@ -64,8 +64,8 @@ const MainTabs = () => {
         tabBarStyle: [
           styles.tabBar,
           {
-            paddingBottom: Platform.OS === "ios" ? insets.bottom : 10,
-            height: Platform.OS === "ios" ? 60 + insets.bottom : 70,
+            paddingBottom: Platform.OS === "ios" ? insets.bottom : (Platform.OS === "web" ? 25 : 10),
+            height: Platform.OS === "ios" ? 60 + insets.bottom : (Platform.OS === "web" ? 95 : 70),
           },
         ],
         tabBarLabelStyle: styles.tabBarLabel,
@@ -145,6 +145,19 @@ const getStyles = (theme) => StyleSheet.create({
   },
   container: {
     flex: 1,
+    ...(Platform.OS === 'web' ? {
+      maxWidth: 800,
+      width: '100%',
+      alignSelf: 'center',
+      backgroundColor: theme.colors.background,
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: 0 },
+      shadowOpacity: 0.05,
+      shadowRadius: 30,
+      borderLeftWidth: 1,
+      borderRightWidth: 1,
+      borderColor: theme.colors.border,
+    } : {}),
   },
   tabBar: {
     backgroundColor: theme.colors.background,

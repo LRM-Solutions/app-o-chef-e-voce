@@ -72,4 +72,5 @@ build/
 # Keystore files
 *.keystore
 android/*.keystore
+expo-project-*.json
 

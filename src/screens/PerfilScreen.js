@@ -200,6 +200,24 @@ const PerfilScreen = ({ navigation }) => {
   };
 
   const handleLogout = async () => {
+    if (Platform.OS === 'web') {
+      const confirmLogout = window.confirm("Tem certeza que deseja sair?");
+      if (confirmLogout) {
+        try {
+          await logout();
+          if (typeof CartService !== 'undefined') await CartService.clearAllCart();
+          authLogout();
+          navigation.reset({
+            index: 0,
+            routes: [{ name: 'Intro' }],
+          });
+        } catch (error) {
+          alert("Erro ao fazer logout");
+        }
+      }
+      return;
+    }
+
     Alert.alert("Confirmar Logout", "Tem certeza que deseja sair?", [
       { text: "Cancelar", style: "cancel" },
       {
@@ -208,8 +226,12 @@ const PerfilScreen = ({ navigation }) => {
         onPress: async () => {
           try {
             await logout();
-            await CartService.clearAllCart();
+            if (typeof CartService !== 'undefined') await CartService.clearAllCart();
             authLogout();
+            navigation.reset({
+              index: 0,
+              routes: [{ name: 'Login' }],
+            });
           } catch (error) {
             Alert.alert("Erro", "Erro ao fazer logout");
           }

@@ -67,9 +67,11 @@ export default function NewUserEmailCodeScreen({ navigation, route }) {
     try {
       const response = await verifyEmail(userEmail, codeToVerify.trim());
       if (response) {
-        if (fromLogin) {
-          // Se veio do login, fazer o login automaticamente e redirecionar
-          authLogin();
+        authLogin();
+        if (Platform.OS === 'web') {
+          alert("Email verificado com sucesso! Bem-vindo!");
+          navigation.navigate("Navigator");
+        } else {
           Alert.alert(
             "Email verificado!",
             "Sua conta foi verificada com sucesso. Bem-vindo!",
@@ -77,18 +79,6 @@ export default function NewUserEmailCodeScreen({ navigation, route }) {
               {
                 text: "OK",
                 onPress: () => navigation.navigate("Navigator"),
-              },
-            ]
-          );
-        } else {
-          // Se veio do cadastro, apenas mostrar sucesso e ir para login
-          Alert.alert(
-            "Email verificado!",
-            "Sua conta foi criada com sucesso. Você já pode fazer login.",
-            [
-              {
-                text: "Fazer Login",
-                onPress: () => navigation.navigate("Login"),
               },
             ]
           );

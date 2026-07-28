@@ -175,6 +175,15 @@ export const verifyEmail = async (userEmail, verificationCode) => {
       data: response.data,
     });
 
+    if (response.data && response.data.token) {
+      await AsyncStorage.setItem("auth_token", response.data.token);
+    }
+    if (response.data && response.data.user && response.data.user.user_id) {
+      await AsyncStorage.setItem("user_id", response.data.user.user_id.toString());
+      await AsyncStorage.setItem("user_name", response.data.user.user_name || "");
+      await AsyncStorage.setItem("user_email", response.data.user.user_email || "");
+    }
+
     Toast.show({
       type: "success",
       text1: "Email verificado!",

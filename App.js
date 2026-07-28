@@ -6,6 +6,8 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { createStackNavigator } from "@react-navigation/stack";
 import * as Notifications from "expo-notifications";
 
+import { Platform } from "react-native";
+import IntroScreen from "./src/screens/IntroScreen";
 import Navigator from "./src/screens/Navigator";
 import LoginScreen from "./src/screens/LoginScreen";
 import SignUpScreen from "./src/screens/SignUpScreen";
@@ -78,13 +80,58 @@ const RootNavigator = () => {
     };
   }, [isAuthenticated]);
 
+  // Disable zoom and scroll bounce on web, and fix root background color
+  useEffect(() => {
+    if (Platform.OS === 'web') {
+      const style = document.createElement('style');
+      style.textContent = `
+        body, html, #root {
+          background-color: #111111;
+          overscroll-behavior: none;
+          touch-action: pan-y;
+        }
+        input, textarea, select {
+          font-size: 16px !important;
+        }
+      `;
+      document.head.appendChild(style);
+
+      let meta = document.querySelector('meta[name="viewport"]');
+      if (meta) {
+        meta.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no');
+      } else {
+        meta = document.createElement('meta');
+        meta.name = 'viewport';
+        meta.content = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no';
+        document.head.appendChild(meta);
+      }
+    }
+  }, []);
+
   if (isLoading) {
     return <LoadingScreen />;
   }
 
   return (
     <>
-    <Stack.Navigator screenOptions={{ headerShown: false }} initialRouteName="Navigator">
+    <Stack.Navigator 
+      screenOptions={{ 
+        headerShown: false,
+        animationEnabled: true,
+        ...(Platform.OS === 'web' && {
+          cardStyleInterpolator: ({ current: { progress } }) => ({
+            cardStyle: {
+              opacity: progress.interpolate({
+                inputRange: [0, 1],
+                outputRange: [0, 1],
+              }),
+            },
+          }),
+        }),
+      }} 
+      initialRouteName={Platform.OS === "web" && !isAuthenticated ? "Intro" : "Navigator"}
+    >
+      {Platform.OS === "web" && <Stack.Screen name="Intro" component={IntroScreen} />}
       <Stack.Screen name="Navigator" component={Navigator} />
       <Stack.Screen name="Login" component={LoginScreen} />
       <Stack.Screen name="SignUp" component={SignUpScreen} />
@@ -99,11 +146,15 @@ const RootNavigator = () => {
 
 export default function App() {
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <SafeAreaProvider>
+    <GestureHandlerRootView style={{ flex: 1, backgroundColor: '#111111' }}>
+      <SafeAreaProvider style={{ backgroundColor: '#111111' }}>
         <ThemeProvider>
           <AuthProvider>
-            <NavigationContainer>
+            <NavigationContainer
+              documentTitle={{
+                formatter: (options, route) => `Sans Company`,
+              }}
+            >
               <RootNavigator />
             </NavigationContainer>
 

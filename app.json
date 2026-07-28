@@ -2,7 +2,7 @@
   "expo": {
     "name": "Sans Company",
     "slug": "sans-club",
-    "version": "1.1.0",
+    "version": "1.2.0",
     "orientation": "portrait",
     "icon": "./assets/sansicon.png",
     "userInterfaceStyle": "light",
@@ -33,13 +33,14 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.sansclub.app",
+      "buildNumber": "3",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
       "package": "com.sansclub.app",
-      "versionCode": 1,
+      "versionCode": 2,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#6200EA"
@@ -52,7 +53,9 @@
       "useNextNotificationsApi": true
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "name": "Sans Company",
+      "shortName": "Sans",
+      "favicon": "./assets/favicon-rounded.png"
     },
     "extra": {
       "eas": {
