@@ -537,7 +537,7 @@ const BarberScreen = ({ navigation }) => {
           {item.name}
         </Text>
         {item.specialty ? (
-          <Text style={styles.barberSpecialty}>{item.specialty}</Text>
+          <Text style={styles.barberSpecialty} numberOfLines={1} ellipsizeMode="tail">{item.specialty}</Text>
         ) : null}
 
         {!isAny && (
