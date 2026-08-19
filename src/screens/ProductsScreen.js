@@ -89,12 +89,7 @@ export default function ProductsScreen({ navigation }) {
             </View>
           )}
 
-          {/* Badge de categoria */}
-          <View style={styles.categoryBadge}>
-            <Text style={styles.categoryText}>
-              {formatCategory(item.product_category)}
-            </Text>
-          </View>
+
 
           {/* Badge de estoque */}
           {!inStock && (
