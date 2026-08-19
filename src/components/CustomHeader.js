@@ -8,6 +8,7 @@ import { CartService } from "../services/cartService";
 import CarrinhoComponent from "./CarrinhoComponent";
 import { useNavigation } from "@react-navigation/native";
 import { useAuth } from "./AuthProvider";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const Logo = Platform.OS === "android" ? LogoAndroid : LogoDefault;
 
@@ -17,7 +18,8 @@ const CustomHeader = () => {
   const navigation = useNavigation();
   const { isAuthenticated } = useAuth();
   const { theme, themeMode } = useTheme();
-  const styles = getStyles(theme);
+  const insets = useSafeAreaInsets();
+  const styles = getStyles(theme, insets);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -92,17 +94,17 @@ const CustomHeader = () => {
   );
 };
 
-const getStyles = (theme) => StyleSheet.create({
+const getStyles = (theme, insets) => StyleSheet.create({
   header: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: 16,
-    paddingVertical: 10,
+    paddingTop: (insets?.top || (Platform.OS === "ios" ? 44 : 20)) + 6,
+    paddingBottom: 12,
     borderBottomWidth: 1,
     borderBottomColor: theme.colors.border,
     backgroundColor: theme.colors.background,
-    minHeight: 60,
   },
   logoContainer: {
     justifyContent: "center",

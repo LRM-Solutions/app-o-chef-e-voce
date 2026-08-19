@@ -197,7 +197,7 @@ export default function SingleProductScreen({ route, navigation }) {
             style={styles.backButton}
             onPress={() => navigation.goBack()}
           >
-            <MaterialIcons name="arrow-back" size={24} color="#000" />
+            <MaterialIcons name="arrow-back" size={24} color={theme.colors.foreground} />
           </TouchableOpacity>
           <Text style={styles.productName} numberOfLines={1}>
             {product?.product_name || "Carregando..."}
@@ -208,16 +208,6 @@ export default function SingleProductScreen({ route, navigation }) {
 
         {/* Informações do produto */}
         <View style={styles.productInfo}>
-          {/* Categoria */}
-          <View style={styles.categoryContainer}>
-            <Text style={styles.categoryLabel}>
-              {formatCategory(product.product_category)}
-            </Text>
-          </View>
-
-          {/* Nome do produto */}
-          {/*<Text style={styles.productName}>{product.product_name}</Text>*/}
-
           {/* Preço */}
           <Text style={styles.productPrice}>
             {formatPrice(product.product_price)}
@@ -241,6 +231,14 @@ export default function SingleProductScreen({ route, navigation }) {
                 : "Produto esgotado"}
             </Text>
           </View>
+
+          {/* Descrição do produto */}
+          {Boolean(product.description) && (
+            <View style={styles.descriptionSection}>
+              <Text style={styles.descriptionTitle}>Descrição</Text>
+              <Text style={styles.descriptionText}>{product.description}</Text>
+            </View>
+          )}
 
           {/* Seletor de quantidade */}
           {inStock && isAuthenticated && (
@@ -453,10 +451,29 @@ const getStyles = (theme) => StyleSheet.create({
     color: theme.colors.primary,
     marginBottom: 16,
   },
+  descriptionSection: {
+    marginBottom: 24,
+    padding: 16,
+    backgroundColor: theme.colors.card,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+  },
+  descriptionTitle: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: theme.colors.foreground,
+    marginBottom: 8,
+  },
+  descriptionText: {
+    fontSize: 14,
+    color: theme.colors.textMuted,
+    lineHeight: 22,
+  },
   stockContainer: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 24,
+    marginBottom: 20,
   },
   stockText: {
     fontSize: 16,
