@@ -3,9 +3,7 @@ import { View, Image, StyleSheet, Platform } from "react-native";
 import { theme } from "../../utils/theme";
 
 const CoinIcon = ({ size = 20, style }) => {
-  const coinSource = Platform.OS === "android"
-    ? require("../../../assets/sanscoinsnobg.png")
-    : require("../../../assets/Coins_Sans.png");
+  const coinSource = require("../../../assets/sanscoinsnobg.png");
 
   return (
     <View style={[styles.container, { width: size, height: size }, style]}>
