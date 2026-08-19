@@ -7,7 +7,7 @@ import {
   Image,
   ActivityIndicator,
   StyleSheet,
-  Dimensions,
+  useWindowDimensions,
   RefreshControl,
 } from "react-native";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
@@ -23,15 +23,15 @@ import {
 import Toast from "react-native-toast-message";
 import Skeleton from "../components/ui/Skeleton";
 
-const { width: screenWidth } = Dimensions.get("window");
 const numColumns = defaultTheme.isTablet ? 3 : 2;
-const padding = defaultTheme.spacing.md * 2;
-const gap = defaultTheme.spacing.md;
-const ITEM_WIDTH = (screenWidth - padding - (gap * (numColumns - 1))) / numColumns;
+const padding = 32; // 16 * 2
+const gap = 16;
 
 export default function ProductsScreen({ navigation }) {
   const { theme, themeMode } = useTheme();
-  const styles = getStyles(theme);
+  const { width: screenWidth } = useWindowDimensions();
+  const ITEM_WIDTH = (screenWidth - padding - (gap * (numColumns - 1))) / numColumns;
+  const styles = getStyles(theme, ITEM_WIDTH);
 
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -208,7 +208,7 @@ export default function ProductsScreen({ navigation }) {
   );
 }
 
-const getStyles = (theme) => StyleSheet.create({
+const getStyles = (theme, itemWidth) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.colors.background,
@@ -254,7 +254,7 @@ const getStyles = (theme) => StyleSheet.create({
     paddingHorizontal: 16,
   },
   productItem: {
-    width: ITEM_WIDTH,
+    width: itemWidth,
     backgroundColor: theme.colors.card,
     borderRadius: 12,
     marginBottom: 16,
@@ -275,7 +275,7 @@ const getStyles = (theme) => StyleSheet.create({
   imageContainer: {
     position: "relative",
     width: "100%",
-    height: ITEM_WIDTH * 0.8,
+    height: itemWidth * 0.8,
   },
   productImage: {
     width: "100%",

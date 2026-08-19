@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { View, Image, StyleSheet, TouchableOpacity, Text, Platform } from "react-native";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
-import { theme } from "../utils/theme";
+import { useTheme } from "../utils/ThemeContext";
 import LogoDefault from "../../assets/sanslogo.png";
 import LogoAndroid from "../../assets/logosansnobg.png";
 import { CartService } from "../services/cartService";
@@ -16,6 +16,8 @@ const CustomHeader = () => {
   const [showCartModal, setShowCartModal] = useState(false);
   const navigation = useNavigation();
   const { isAuthenticated } = useAuth();
+  const { theme, themeMode } = useTheme();
+  const styles = getStyles(theme);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -90,24 +92,24 @@ const CustomHeader = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const getStyles = (theme) => StyleSheet.create({
   header: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: 16,
-    paddingVertical: 0,
-    borderBottomWidth: 1.5,
+    paddingVertical: 10,
+    borderBottomWidth: 1,
     borderBottomColor: theme.colors.border,
     backgroundColor: theme.colors.background,
+    minHeight: 60,
   },
   logoContainer: {
-    flex: 1,
-    alignItems: "center",
+    justifyContent: "center",
   },
   logo: {
-    width: 150,
-    height: 100,
+    width: 120,
+    height: 45,
   },
   cartButton: {
     position: "relative",
