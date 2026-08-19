@@ -113,3 +113,9 @@ export const getBanners = async () => {
   const { data } = await api.get("/banners");
   return data;
 };
+
+export const getRanking = async () => {
+  const { data } = await api.get("/users/ranking");
+  return data;
+};
+

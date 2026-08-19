@@ -19,7 +19,7 @@ import { useFocusEffect } from "@react-navigation/native";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import * as ImagePicker from "expo-image-picker";
 import { logout, requestDeleteAccount, getUserEmail } from "../api/authApi";
-import { getProfile, uploadAvatar, updateProfile, getMyRedemptions } from "../api/barberApi";
+import { getProfile, uploadAvatar, updateProfile, getMyRedemptions, getRanking } from "../api/barberApi";
 import { useAuth } from "../components/AuthProvider";
 import { CartService } from "../services/cartService";
 import { theme, createTextStyle, createButtonStyle } from "../utils/theme";
@@ -64,11 +64,16 @@ const PerfilScreen = ({ navigation }) => {
   const [loadingProfile, setLoadingProfile] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [redemptions, setRedemptions] = useState([]);
+  const [rankingList, setRankingList] = useState([]);
+  const [loadingRanking, setLoadingRanking] = useState(false);
+  const [myRankingPosition, setMyRankingPosition] = useState(null);
 
   useFocusEffect(
     useCallback(() => {
       if (isAuthenticated) {
         loadProfile();
+        loadRedemptions();
+        loadRanking();
       }
     }, [isAuthenticated])
   );
@@ -112,13 +117,18 @@ const PerfilScreen = ({ navigation }) => {
     }
   };
 
-  useFocusEffect(
-    useCallback(() => {
-      if (isAuthenticated) {
-        loadRedemptions();
-      }
-    }, [isAuthenticated])
-  );
+  const loadRanking = async () => {
+    setLoadingRanking(true);
+    try {
+      const data = await getRanking();
+      setRankingList(data?.ranking || []);
+      setMyRankingPosition(data?.myPosition || null);
+    } catch (e) {
+      console.log("Erro ao carregar ranking:", e);
+    } finally {
+      setLoadingRanking(false);
+    }
+  };
 
   const handlePickAvatar = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -463,42 +473,94 @@ const PerfilScreen = ({ navigation }) => {
               </View>
             )}
 
-            {[
-              { id: '1', name: 'João Silva', coins: 1500, avatar: null },
-              { id: '2', name: 'Carlos Santos', coins: 1200, avatar: null },
-              { id: '3', name: 'Marcos Paulo', coins: 950, avatar: null },
-              { id: '4', name: 'Você', coins: profile?.user_coins_balance || 0, avatar: profile?.avatar_url, isMe: true }
-            ].map((user, index) => (
-              <View key={user.id} style={[styles.rankingItem, user.isMe && styles.rankingItemMe]}>
-                <View style={styles.rankingPosition}>
-                  {index === 0 ? (
-                    <MaterialIcons name="emoji-events" size={24} color="#FFD700" />
-                  ) : index === 1 ? (
-                    <MaterialIcons name="emoji-events" size={24} color="#C0C0C0" />
-                  ) : index === 2 ? (
-                    <MaterialIcons name="emoji-events" size={24} color="#CD7F32" />
-                  ) : (
-                    <Text style={styles.rankingPositionText}>{index + 1}º</Text>
-                  )}
+            {loadingRanking ? (
+              [1, 2, 3, 4].map((item) => (
+                <View key={item} style={styles.rankingItem}>
+                  <View style={styles.rankingPosition}>
+                    <Skeleton width={20} height={20} borderRadius={10} />
+                  </View>
+                  <View style={styles.rankingAvatar}>
+                    <Skeleton width={36} height={36} borderRadius={18} />
+                  </View>
+                  <View style={styles.rankingContent}>
+                    <Skeleton width={120} height={16} borderRadius={4} />
+                  </View>
+                  <View style={styles.rankingPoints}>
+                    <Skeleton width={40} height={16} borderRadius={4} />
+                  </View>
                 </View>
-                <View style={styles.rankingAvatar}>
-                  {user.avatar ? (
-                    <Image source={{ uri: user.avatar }} style={styles.rankingAvatarImg} />
-                  ) : (
-                    <View style={styles.rankingAvatarPlaceholder}>
-                      <Text style={styles.rankingAvatarInitials}>{getInitials(user.name)}</Text>
-                    </View>
-                  )}
-                </View>
-                <View style={styles.rankingContent}>
-                  <Text style={[styles.rankingName, user.isMe && styles.rankingNameMe]}>{user.name}</Text>
-                </View>
-                <View style={styles.rankingPoints}>
-                  <CoinIcon size={14} />
-                  <Text style={styles.rankingPointsText}>{user.coins}</Text>
-                </View>
+              ))
+            ) : rankingList.length === 0 ? (
+              <View style={{ padding: 24, alignItems: "center" }}>
+                <MaterialIcons name="emoji-events" size={36} color={theme.colors.textMuted} />
+                <Text style={{ color: theme.colors.textMuted, fontSize: 14, marginTop: 8 }}>
+                  Nenhum participante no ranking ainda
+                </Text>
               </View>
-            ))}
+            ) : (
+              <>
+                {rankingList.slice(0, 10).map((user, index) => (
+                  <View key={user.id || index} style={[styles.rankingItem, user.isMe && styles.rankingItemMe]}>
+                    <View style={styles.rankingPosition}>
+                      {index === 0 ? (
+                        <MaterialIcons name="emoji-events" size={24} color="#FFD700" />
+                      ) : index === 1 ? (
+                        <MaterialIcons name="emoji-events" size={24} color="#C0C0C0" />
+                      ) : index === 2 ? (
+                        <MaterialIcons name="emoji-events" size={24} color="#CD7F32" />
+                      ) : (
+                        <Text style={styles.rankingPositionText}>{user.position || index + 1}º</Text>
+                      )}
+                    </View>
+                    <View style={styles.rankingAvatar}>
+                      {user.avatar ? (
+                        <Image source={{ uri: user.avatar }} style={styles.rankingAvatarImg} />
+                      ) : (
+                        <View style={styles.rankingAvatarPlaceholder}>
+                          <Text style={styles.rankingAvatarInitials}>{getInitials(user.name)}</Text>
+                        </View>
+                      )}
+                    </View>
+                    <View style={styles.rankingContent}>
+                      <Text style={[styles.rankingName, user.isMe && styles.rankingNameMe]} numberOfLines={1}>
+                        {user.name} {user.isMe ? " (Você)" : ""}
+                      </Text>
+                    </View>
+                    <View style={styles.rankingPoints}>
+                      <CoinIcon size={14} />
+                      <Text style={styles.rankingPointsText}>{user.coins}</Text>
+                    </View>
+                  </View>
+                ))}
+
+                {/* Se o usuário não estiver no top 10, mostrar a posição dele no rodapé do card */}
+                {myRankingPosition && myRankingPosition > 10 && !rankingList.slice(0, 10).some(u => u.isMe) && (
+                  <View style={[styles.rankingItem, styles.rankingItemMe, { borderTopWidth: 1, borderTopColor: theme.colors.border }]}>
+                    <View style={styles.rankingPosition}>
+                      <Text style={styles.rankingPositionText}>{myRankingPosition}º</Text>
+                    </View>
+                    <View style={styles.rankingAvatar}>
+                      {profile?.avatar_url ? (
+                        <Image source={{ uri: profile.avatar_url }} style={styles.rankingAvatarImg} />
+                      ) : (
+                        <View style={styles.rankingAvatarPlaceholder}>
+                          <Text style={styles.rankingAvatarInitials}>{getInitials(profile?.user_name || "Você")}</Text>
+                        </View>
+                      )}
+                    </View>
+                    <View style={styles.rankingContent}>
+                      <Text style={[styles.rankingName, styles.rankingNameMe]} numberOfLines={1}>
+                        {profile?.user_name || "Você"} (Você)
+                      </Text>
+                    </View>
+                    <View style={styles.rankingPoints}>
+                      <CoinIcon size={14} />
+                      <Text style={styles.rankingPointsText}>{profile?.user_coins_balance || 0}</Text>
+                    </View>
+                  </View>
+                )}
+              </>
+            )}
           </View>
         </View>
 
