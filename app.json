@@ -2,7 +2,7 @@
   "expo": {
     "name": "Sans Company",
     "slug": "sans-club",
-    "version": "1.2.0",
+    "version": "1.2.1",
     "orientation": "portrait",
     "icon": "./assets/sansicon.png",
     "userInterfaceStyle": "light",
@@ -22,7 +22,8 @@
           "color": "#6200EA",
           "defaultChannel": "default"
         }
-      ]
+      ],
+      "expo-font"
     ],
     "notification": {
       "icon": "./assets/sansicon.png",
@@ -40,17 +41,17 @@
     },
     "android": {
       "package": "com.sansclub.app",
-      "versionCode": 2,
+      "versionCode": 3,
+      "icon": "./assets/Logo_Sans.png",
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/Logo_Sans.png",
         "backgroundColor": "#6200EA"
       },
       "permissions": [
         "RECEIVE_BOOT_COMPLETED",
         "VIBRATE",
         "WAKE_LOCK"
-      ],
-      "useNextNotificationsApi": true
+      ]
     },
     "web": {
       "name": "Sans Company",

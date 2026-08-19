@@ -8,6 +8,7 @@ import {
   ScrollView,
   ActivityIndicator,
   Alert,
+  Platform,
   Linking,
 } from "react-native";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
@@ -96,6 +97,36 @@ export default function CarrinhoScreen({ navigation }) {
   };
 
   const handleRemoveItem = async (productId, productName) => {
+    const doRemove = async () => {
+      try {
+        await CartService.removeFromCart(productId);
+        await loadCartItems();
+        Toast.show({
+          type: "success",
+          text1: "Produto removido",
+          visibilityTime: 2000,
+        });
+      } catch (error) {
+        console.error("Erro ao remover item:", error);
+        Toast.show({
+          type: "error",
+          text1: "Erro",
+          text2: "Não foi possível remover o produto",
+          visibilityTime: 3000,
+        });
+      }
+    };
+
+    if (Platform.OS === "web") {
+      const confirmRemove = window.confirm(
+        `Deseja remover "${productName}" do carrinho?`
+      );
+      if (confirmRemove) {
+        await doRemove();
+      }
+      return;
+    }
+
     Alert.alert(
       "Remover Produto",
       `Deseja remover "${productName}" do carrinho?`,
@@ -107,27 +138,10 @@ export default function CarrinhoScreen({ navigation }) {
         {
           text: "Remover",
           style: "destructive",
-          onPress: async () => {
-            try {
-              await CartService.removeFromCart(productId);
-              await loadCartItems();
-              Toast.show({
-                type: "success",
-                text1: "Produto removido",
-                visibilityTime: 2000,
-              });
-            } catch (error) {
-              console.error("Erro ao remover item:", error);
-              Toast.show({
-                type: "error",
-                text1: "Erro",
-                text2: "Não foi possível remover o produto",
-                visibilityTime: 3000,
-              });
-            }
-          },
+          onPress: doRemove,
         },
-      ]
+      ],
+      { cancelable: true }
     );
   };
 
@@ -152,6 +166,36 @@ export default function CarrinhoScreen({ navigation }) {
   };
 
   const handleRemoveVoucher = async (voucherId, voucherName) => {
+    const doRemove = async () => {
+      try {
+        await CartService.removeVoucherFromCart(voucherId);
+        await loadCartItems();
+        Toast.show({
+          type: "success",
+          text1: "Voucher removido",
+          visibilityTime: 2000,
+        });
+      } catch (error) {
+        console.error("Erro ao remover voucher:", error);
+        Toast.show({
+          type: "error",
+          text1: "Erro",
+          text2: "Não foi possível remover o voucher",
+          visibilityTime: 3000,
+        });
+      }
+    };
+
+    if (Platform.OS === "web") {
+      const confirmRemove = window.confirm(
+        `Deseja remover "${voucherName}" do carrinho?`
+      );
+      if (confirmRemove) {
+        await doRemove();
+      }
+      return;
+    }
+
     Alert.alert(
       "Remover Voucher",
       `Deseja remover "${voucherName}" do carrinho?`,
@@ -163,31 +207,44 @@ export default function CarrinhoScreen({ navigation }) {
         {
           text: "Remover",
           style: "destructive",
-          onPress: async () => {
-            try {
-              await CartService.removeVoucherFromCart(voucherId);
-              await loadCartItems();
-              Toast.show({
-                type: "success",
-                text1: "Voucher removido",
-                visibilityTime: 2000,
-              });
-            } catch (error) {
-              console.error("Erro ao remover voucher:", error);
-              Toast.show({
-                type: "error",
-                text1: "Erro",
-                text2: "Não foi possível remover o voucher",
-                visibilityTime: 3000,
-              });
-            }
-          },
+          onPress: doRemove,
         },
-      ]
+      ],
+      { cancelable: true }
     );
   };
 
   const handleClearCart = () => {
+    const doClear = async () => {
+      try {
+        await CartService.clearAllCart();
+        await loadCartItems();
+        Toast.show({
+          type: "success",
+          text1: "Carrinho limpo",
+          visibilityTime: 2000,
+        });
+      } catch (error) {
+        console.error("Erro ao limpar carrinho:", error);
+        Toast.show({
+          type: "error",
+          text1: "Erro",
+          text2: "Não foi possível limpar o carrinho",
+          visibilityTime: 3000,
+        });
+      }
+    };
+
+    if (Platform.OS === "web") {
+      const confirmClear = window.confirm(
+        "Deseja remover todos os produtos e vouchers do carrinho?"
+      );
+      if (confirmClear) {
+        doClear();
+      }
+      return;
+    }
+
     Alert.alert(
       "Limpar Carrinho",
       "Deseja remover todos os produtos e vouchers do carrinho?",
@@ -199,27 +256,10 @@ export default function CarrinhoScreen({ navigation }) {
         {
           text: "Limpar",
           style: "destructive",
-          onPress: async () => {
-            try {
-              await CartService.clearAllCart();
-              await loadCartItems();
-              Toast.show({
-                type: "success",
-                text1: "Carrinho limpo",
-                visibilityTime: 2000,
-              });
-            } catch (error) {
-              console.error("Erro ao limpar carrinho:", error);
-              Toast.show({
-                type: "error",
-                text1: "Erro",
-                text2: "Não foi possível limpar o carrinho",
-                visibilityTime: 3000,
-              });
-            }
-          },
+          onPress: doClear,
         },
-      ]
+      ],
+      { cancelable: true }
     );
   };
 

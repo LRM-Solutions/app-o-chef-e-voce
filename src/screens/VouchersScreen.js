@@ -20,6 +20,7 @@ import {
   getVoucherMainImage,
 } from "../api/vouchers";
 import Toast from "react-native-toast-message";
+import Skeleton from "../components/ui/Skeleton";
 
 const { width: screenWidth } = Dimensions.get("window");
 const numColumns = theme.isTablet ? 3 : 2;
@@ -156,9 +157,21 @@ export default function VouchersScreen({ navigation }) {
 
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={theme.colors.primary} />
-        <Text style={styles.loadingText}>Carregando vouchers...</Text>
+      <View style={styles.container}>
+        {renderHeader()}
+        <View style={styles.skeletonGrid}>
+          {[1, 2, 3, 4, 5, 6].map((key) => (
+            <View key={key} style={styles.voucherItem}>
+              <Skeleton width="100%" height={ITEM_WIDTH * 0.8} style={{ borderTopLeftRadius: 12, borderTopRightRadius: 12, borderRadius: 0 }} />
+              <View style={styles.voucherInfo}>
+                <Skeleton width="80%" height={16} style={{ marginBottom: 8 }} />
+                <Skeleton width="50%" height={16} style={{ marginBottom: 8 }} />
+                <Skeleton width="40%" height={20} style={{ marginBottom: 8 }} />
+                <Skeleton width="60%" height={14} />
+              </View>
+            </View>
+          ))}
+        </View>
       </View>
     );
   }
@@ -228,6 +241,12 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
   },
   row: {
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
+  },
+  skeletonGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
     justifyContent: "space-between",
     paddingHorizontal: 16,
   },

@@ -20,6 +20,8 @@ import AlterarSenhaScreen from "./AlterarSenhaScreen";
 import MeusPedidosStack from "./MeusPedidosStack";
 import PrizeScannerScreen from "./PrizeScannerScreen";
 import RedemptionSuccessScreen from "./RedemptionSuccessScreen";
+import MinhaJornadaScreen from "./MinhaJornadaScreen";
+import ProductsStack from "./ProductsStack";
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -33,6 +35,8 @@ const TabIcon = ({ name, focused, theme, styles }) => {
     switch (name) {
       case "Barber":
         return <MaterialCommunityIcons name="content-cut" size={size} color={color} />;
+      case "Loja":
+        return <MaterialIcons name="local-mall" size={size} color={color} />;
       case "Perfil":
         return <MaterialIcons name="person" size={size} color={color} />;
       default:
@@ -77,6 +81,11 @@ const MainTabs = () => {
         name="Barber"
         component={BarberScreen}
         options={{ tabBarLabel: "Barber" }}
+      />
+      <Tab.Screen
+        name="Loja"
+        component={ProductsStack}
+        options={{ tabBarLabel: "Loja" }}
       />
       <Tab.Screen
         name="Perfil"
@@ -131,6 +140,10 @@ const Navigator = () => {
             name="RedemptionSuccess"
             component={RedemptionSuccessScreen}
             options={{ gestureEnabled: false }}
+          />
+          <Stack.Screen
+            name="MinhaJornada"
+            component={MinhaJornadaScreen}
           />
         </Stack.Navigator>
       </SafeAreaView>

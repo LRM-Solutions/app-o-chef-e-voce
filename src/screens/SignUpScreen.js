@@ -143,7 +143,7 @@ export default function SignUpScreen({ navigation }) {
             {/* Header */}
             <View style={styles.header}>
               <Image
-                source={require("../../assets/sanslogo.png")}
+                source={Platform.OS === "android" ? require("../../assets/logosansnobg.png") : require("../../assets/sanslogo.png")}
                 style={styles.logo}
                 resizeMode="contain"
               />

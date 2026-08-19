@@ -11,7 +11,7 @@ import {
   Alert,
 } from "react-native";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
-import { theme } from "../utils/theme";
+import { useTheme } from "../utils/ThemeContext";
 import {
   getProductById,
   formatPrice,
@@ -32,6 +32,8 @@ export default function SingleProductScreen({ route, navigation }) {
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const { isAuthenticated } = useAuth();
+  const { theme, themeMode } = useTheme();
+  const styles = getStyles(theme);
 
   useEffect(() => {
     loadProduct();
@@ -315,7 +317,7 @@ export default function SingleProductScreen({ route, navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (theme) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.colors.background,
@@ -328,7 +330,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderBottomWidth: 1,
     borderBottomColor: theme.colors.border,
-    backgroundColor: "white",
+    backgroundColor: theme.colors.card,
   },
   backButton: {
     padding: 8,
@@ -388,14 +390,14 @@ const styles = StyleSheet.create({
   noImageContainer: {
     width: screenWidth,
     height: screenHeight * 0.4,
-    backgroundColor: "#f0f0f0",
+    backgroundColor: theme.colors.backgroundSecondary,
     justifyContent: "center",
     alignItems: "center",
   },
   noImageText: {
     marginTop: 16,
     fontSize: 16,
-    color: "#999",
+    color: theme.colors.textMuted,
   },
   paginationContainer: {
     position: "absolute",
@@ -473,7 +475,7 @@ const styles = StyleSheet.create({
   quantityContainer: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#f0f0f0",
+    backgroundColor: theme.colors.backgroundSecondary,
     borderRadius: 8,
     padding: 4,
     alignSelf: "flex-start",
@@ -483,15 +485,16 @@ const styles = StyleSheet.create({
     height: 40,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "white",
+    backgroundColor: theme.colors.card,
     borderRadius: 6,
   },
   quantityButtonDisabled: {
-    backgroundColor: "#e0e0e0",
+    backgroundColor: theme.colors.backgroundSecondary,
   },
   quantityText: {
     fontSize: 18,
     fontWeight: "600",
+    color: theme.colors.foreground,
     marginHorizontal: 20,
     minWidth: 30,
     textAlign: "center",

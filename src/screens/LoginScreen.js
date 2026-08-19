@@ -121,7 +121,7 @@ export default function LoginScreen({ navigation }) {
               </TouchableOpacity>
 
               <Image
-                source={require("../../assets/sanslogo.png")}
+                source={Platform.OS === "android" ? require("../../assets/logosansnobg.png") : require("../../assets/sanslogo.png")}
                 style={styles.logo}
                 resizeMode="contain"
               />

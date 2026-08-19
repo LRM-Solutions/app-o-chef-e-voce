@@ -23,6 +23,7 @@ import {
 } from "../api/pedidoDetalhesApi";
 import { createPayment } from "../api/paymentsApi";
 import Toast from "react-native-toast-message";
+import Skeleton from "../components/ui/Skeleton";
 
 export default function PedidoDetalhesScreen({ route, navigation }) {
   const { theme, isDarkMode } = useTheme();
@@ -160,10 +161,58 @@ export default function PedidoDetalhesScreen({ route, navigation }) {
           <Text style={styles.headerTitle}>Detalhes do Pedido</Text>
           <View style={styles.headerRight} />
         </View>
-        <View style={styles.loadingContent}>
-          <ActivityIndicator size="large" color={theme.colors.primary} />
-          <Text style={styles.loadingText}>Carregando detalhes...</Text>
-        </View>
+        <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+          <View style={styles.section}>
+            <View style={styles.pedidoHeader}>
+              <View>
+                <Skeleton width={120} height={22} style={{ marginBottom: 8 }} />
+                <Skeleton width={150} height={14} />
+              </View>
+              <Skeleton width={80} height={28} style={{ borderRadius: 16 }} />
+            </View>
+          </View>
+          <View style={styles.statusContainer}>
+            <View style={styles.statusCard}>
+              <Skeleton width={24} height={24} style={{ borderRadius: 12, marginBottom: 8 }} />
+              <Skeleton width={60} height={14} style={{ marginBottom: 4 }} />
+              <Skeleton width={80} height={16} />
+            </View>
+            <View style={styles.statusCard}>
+              <Skeleton width={24} height={24} style={{ borderRadius: 12, marginBottom: 8 }} />
+              <Skeleton width={60} height={14} style={{ marginBottom: 4 }} />
+              <Skeleton width={80} height={16} />
+            </View>
+          </View>
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Skeleton width={20} height={20} style={{ borderRadius: 10 }} />
+              <Skeleton width={150} height={18} style={{ marginLeft: 8 }} />
+            </View>
+            <View style={styles.enderecoCard}>
+              <Skeleton width="90%" height={14} style={{ marginBottom: 8 }} />
+              <Skeleton width="80%" height={14} style={{ marginBottom: 8 }} />
+              <Skeleton width="40%" height={14} />
+            </View>
+          </View>
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Skeleton width={20} height={20} style={{ borderRadius: 10 }} />
+              <Skeleton width={100} height={18} style={{ marginLeft: 8 }} />
+            </View>
+            {[1, 2].map(key => (
+              <View key={key} style={styles.itemCard}>
+                <View style={styles.itemInfo}>
+                  <Skeleton width="80%" height={18} style={{ marginBottom: 4 }} />
+                  <Skeleton width="60%" height={14} />
+                </View>
+                <View style={styles.itemPricing}>
+                  <Skeleton width={40} height={14} style={{ marginBottom: 4 }} />
+                  <Skeleton width={60} height={16} />
+                </View>
+              </View>
+            ))}
+          </View>
+        </ScrollView>
       </SafeAreaView>
     );
   }

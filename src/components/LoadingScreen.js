@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from "react";
-import { View, Text, StyleSheet, Animated, Easing, Dimensions, ActivityIndicator, Image } from "react-native";
+import { View, Text, StyleSheet, Animated, Easing, Dimensions, ActivityIndicator, Image, Platform } from "react-native";
 import { theme as defaultTheme } from "../utils/theme";
 import { useTheme } from "../utils/ThemeContext";
 
@@ -16,56 +16,59 @@ export default function LoadingScreen() {
   const textOpacity = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    // Animação de entrada
+    // Entrance animations
     Animated.parallel([
-      Animated.spring(scaleAnim, {
+      Animated.timing(scaleAnim, {
         toValue: 1,
-        tension: 10,
-        friction: 5,
+        duration: 800,
+        easing: Easing.out(Easing.back(1.5)),
         useNativeDriver: true,
       }),
       Animated.timing(opacityAnim, {
         toValue: 1,
-        duration: 800,
-        useNativeDriver: true,
-      }),
-      Animated.timing(rotateAnim, {
-        toValue: 1,
-        duration: 1500,
-        easing: Easing.out(Easing.back(1.5)),
+        duration: 600,
         useNativeDriver: true,
       }),
       Animated.timing(textOpacity, {
         toValue: 1,
         duration: 800,
-        delay: 500,
+        delay: 300,
         useNativeDriver: true,
-      })
+      }),
     ]).start();
 
-    // Loop de pulso infinito e suave
+    // Subtle continuous rotation for ring/glow effect
+    Animated.loop(
+      Animated.timing(rotateAnim, {
+        toValue: 1,
+        duration: 10000,
+        easing: Easing.linear,
+        useNativeDriver: true,
+      })
+    ).start();
+
+    // Pulse effect
     Animated.loop(
       Animated.sequence([
         Animated.timing(pulseAnim, {
-          toValue: 1.1,
-          duration: 2000,
+          toValue: 1.05,
+          duration: 1200,
           easing: Easing.inOut(Easing.ease),
           useNativeDriver: true,
         }),
         Animated.timing(pulseAnim, {
-          toValue: 1,
-          duration: 2000,
+          toValue: 0.98,
+          duration: 1200,
           easing: Easing.inOut(Easing.ease),
           useNativeDriver: true,
-        })
+        }),
       ])
     ).start();
-
   }, []);
 
   const spin = rotateAnim.interpolate({
     inputRange: [0, 1],
-    outputRange: ['-10deg', '0deg']
+    outputRange: ["0deg", "360deg"],
   });
 
   return (
@@ -83,7 +86,7 @@ export default function LoadingScreen() {
         ]}
       >
         <Image 
-          source={require("../../assets/splash-icon.png")}
+          source={Platform.OS === "android" ? require("../../assets/logosansnobg.png") : require("../../assets/splash-icon.png")}
           style={styles.logo}
           resizeMode="contain"
         />

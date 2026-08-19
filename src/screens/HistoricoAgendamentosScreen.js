@@ -6,12 +6,15 @@ import {
   FlatList,
   TouchableOpacity,
   ActivityIndicator,
+  Alert,
+  Platform,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import { useTheme } from "../utils/ThemeContext";
-import { listMyAppointments } from "../api/barberApi";
+import { listMyAppointments, cancelMyAppointment } from "../api/barberApi";
 import Avatar from "../components/ui/Avatar";
+import Skeleton from "../components/ui/Skeleton";
 
 const HistoricoAgendamentosScreen = ({ navigation }) => {
   const { theme } = useTheme();
@@ -27,6 +30,7 @@ const HistoricoAgendamentosScreen = ({ navigation }) => {
 
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [cancelingId, setCancelingId] = useState(null);
   const [filter, setFilter] = useState("all"); // all, past, upcoming
 
   useEffect(() => {
@@ -44,6 +48,58 @@ const HistoricoAgendamentosScreen = ({ navigation }) => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleCancelAppointment = async (apptId, serviceName) => {
+    const performCancel = async () => {
+      try {
+        setCancelingId(apptId);
+        await cancelMyAppointment(apptId);
+        if (Platform.OS === "web") {
+          window.alert("Agendamento cancelado com sucesso.");
+        } else {
+          Alert.alert("Cancelado", "Seu agendamento foi cancelado com sucesso.");
+        }
+        await loadAppointments();
+      } catch (err) {
+        console.error("Erro ao cancelar histórico:", err);
+        const msg =
+          err.response?.data?.error ||
+          err.message ||
+          "Não foi possível cancelar o agendamento.";
+        if (Platform.OS === "web") {
+          window.alert(`Erro: ${msg}`);
+        } else {
+          Alert.alert("Erro", msg);
+        }
+      } finally {
+        setCancelingId(null);
+      }
+    };
+
+    if (Platform.OS === "web") {
+      const confirm = window.confirm(
+        `Tem certeza que deseja cancelar seu agendamento de ${serviceName || "serviço"}?`
+      );
+      if (confirm) {
+        await performCancel();
+      }
+      return;
+    }
+
+    Alert.alert(
+      "Cancelar Agendamento",
+      `Tem certeza que deseja cancelar seu agendamento de ${serviceName || "serviço"}?`,
+      [
+        { text: "Não", style: "cancel" },
+        {
+          text: "Sim, Cancelar",
+          style: "destructive",
+          onPress: performCancel,
+        },
+      ],
+      { cancelable: true }
+    );
   };
 
   const filteredAppointments = () => {
@@ -125,6 +181,25 @@ const HistoricoAgendamentosScreen = ({ navigation }) => {
             </View>
           )}
         </View>
+
+        {!isPast && (item.status === "CONFIRMED" || item.status === "PENDING") && (
+          <View style={styles.cardActions}>
+            <TouchableOpacity
+              style={styles.cancelAppointmentBtn}
+              onPress={() => handleCancelAppointment(item.appointment_id, item.service?.name)}
+              disabled={cancelingId === item.appointment_id}
+            >
+              {cancelingId === item.appointment_id ? (
+                <ActivityIndicator size="small" color={theme.colors.error} />
+              ) : (
+                <>
+                  <MaterialIcons name="close" size={14} color={theme.colors.error} />
+                  <Text style={styles.cancelAppointmentText}>Cancelar Horário</Text>
+                </>
+              )}
+            </TouchableOpacity>
+          </View>
+        )}
       </View>
     );
   };
@@ -165,9 +240,25 @@ const HistoricoAgendamentosScreen = ({ navigation }) => {
 
       {/* List */}
       {loading ? (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={theme.colors.primary} />
-          <Text style={styles.loadingText}>Carregando agendamentos...</Text>
+        <View style={[styles.listContent, { paddingTop: 16 }]}>
+          {[1, 2, 3].map((key) => (
+            <View key={key} style={styles.appointmentCard}>
+              <View style={styles.cardHeader}>
+                <View style={styles.cardHeaderLeft}>
+                  <Skeleton width={48} height={48} style={{ borderRadius: 24 }} />
+                  <View style={styles.cardInfo}>
+                    <Skeleton width={120} height={18} style={{ marginBottom: 6 }} />
+                    <Skeleton width={100} height={14} />
+                  </View>
+                </View>
+                <Skeleton width={80} height={24} style={{ borderRadius: 12 }} />
+              </View>
+              <View style={styles.cardFooter}>
+                <Skeleton width={100} height={16} />
+                <Skeleton width={60} height={16} />
+              </View>
+            </View>
+          ))}
         </View>
       ) : (
         <FlatList
@@ -314,6 +405,28 @@ const getStyles = (theme, isDarkMode) => StyleSheet.create({
     fontSize: 13,
     fontWeight: "700",
     color: theme.colors.primary,
+  },
+  cardActions: {
+    marginTop: 10,
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    borderTopWidth: 1,
+    borderTopColor: theme.colors.borderLight,
+    paddingTop: 8,
+  },
+  cancelAppointmentBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    backgroundColor: theme.colors.errorLight || "#FEE2E2",
+  },
+  cancelAppointmentText: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: theme.colors.error,
   },
   loadingContainer: {
     flex: 1,

@@ -26,6 +26,7 @@ import { theme, createTextStyle, createButtonStyle } from "../utils/theme";
 import { config } from "../utils/config";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useTheme } from "../utils/ThemeContext";
+import Skeleton from "../components/ui/Skeleton";
 
 const Watermark = ({ styles }) => {
   return (
@@ -151,6 +152,10 @@ const PerfilScreen = ({ navigation }) => {
     navigation.navigate("HistoricoAgendamentos");
   };
 
+  const handleMinhaJornada = () => {
+    navigation.navigate("MinhaJornada");
+  };
+
   const handleMeusPedidos = () => {
     navigation.navigate("MeusPedidos");
   };
@@ -160,6 +165,38 @@ const PerfilScreen = ({ navigation }) => {
   };
 
   const handleDeleteAccount = () => {
+    const doDelete = async () => {
+      try {
+        const userEmail = await getUserEmail();
+        const response = await requestDeleteAccount();
+        if (response && userEmail) {
+          navigation.navigate("ConfirmarExclusaoCode", { userEmail });
+        } else {
+          if (Platform.OS === "web") {
+            window.alert("Não foi possível processar a solicitação.");
+          } else {
+            Alert.alert("Erro", "Não foi possível processar a solicitação.");
+          }
+        }
+      } catch (error) {
+        if (Platform.OS === "web") {
+          window.alert("Erro ao processar a exclusão da conta.");
+        } else {
+          Alert.alert("Erro", "Erro ao processar a exclusão da conta.");
+        }
+      }
+    };
+
+    if (Platform.OS === "web") {
+      const confirmDelete = window.confirm(
+        "Esta ação é irreversível. Ao confirmar, todos os seus dados pessoais, histórico de agendamentos e saldo de Sans Coins serão apagados permanentemente de nossos servidores.\n\nDeseja prosseguir com a exclusão?"
+      );
+      if (confirmDelete) {
+        doDelete();
+      }
+      return;
+    }
+
     Alert.alert(
       "Excluir Minha Conta",
       "Esta ação é irreversível. Ao confirmar, todos os seus dados pessoais, histórico de agendamentos e saldo de Sans Coins serão apagados permanentemente de nossos servidores.\n\nDeseja prosseguir com a exclusão?",
@@ -168,21 +205,10 @@ const PerfilScreen = ({ navigation }) => {
         {
           text: "Excluir Definitivamente",
           style: "destructive",
-          onPress: async () => {
-            try {
-              const userEmail = await getUserEmail();
-              const response = await requestDeleteAccount();
-              if (response && userEmail) {
-                navigation.navigate("ConfirmarExclusaoCode", { userEmail });
-              } else {
-                Alert.alert("Erro", "Não foi possível processar a solicitação.");
-              }
-            } catch (error) {
-              Alert.alert("Erro", "Erro ao processar a exclusão da conta.");
-            }
-          },
+          onPress: doDelete,
         },
-      ]
+      ],
+      { cancelable: true }
     );
   };
 
@@ -275,7 +301,7 @@ const PerfilScreen = ({ navigation }) => {
         <ScrollView style={styles.scrollView} contentContainerStyle={[styles.content, styles.contentNotLogged, { padding: 24, paddingBottom: 40 }]}>
           <View style={{ alignItems: 'center', marginTop: 20 }}>
             <Image
-              source={require("../../assets/sanslogo.png")}
+              source={Platform.OS === "android" ? require("../../assets/logosansnobg.png") : require("../../assets/sanslogo.png")}
               style={{ width: 120, height: 120, marginBottom: 24 }}
               resizeMode="contain"
             />
@@ -354,113 +380,126 @@ const PerfilScreen = ({ navigation }) => {
       >
         {/* Profile Header Card */}
         <View style={styles.profileCard}>
-          <TouchableOpacity
-            style={styles.avatarContainer}
-            onPress={handlePickAvatar}
-            activeOpacity={0.7}
-          >
-            {profile?.avatar_url ? (
-              <Image source={{ uri: profile.avatar_url }} style={styles.avatarImage} />
-            ) : (
-              <View style={styles.avatarPlaceholder}>
-                <Text style={styles.avatarInitials}>
-                  {getInitials(profile?.user_name)}
-                </Text>
+          {loadingProfile ? (
+            <>
+              <View style={styles.avatarContainer}>
+                <Skeleton width={96} height={96} style={{ borderRadius: 48 }} />
               </View>
-            )}
+              <Skeleton width={150} height={24} style={{ marginBottom: 4 }} />
+              <Skeleton width={180} height={16} style={{ marginBottom: 14 }} />
+              <Skeleton width={120} height={32} style={{ borderRadius: 16 }} />
+            </>
+          ) : (
+            <>
+              <TouchableOpacity
+                style={styles.avatarContainer}
+                onPress={handlePickAvatar}
+                activeOpacity={0.7}
+              >
+                {profile?.avatar_url ? (
+                  <Image source={{ uri: profile.avatar_url }} style={styles.avatarImage} />
+                ) : (
+                  <View style={styles.avatarPlaceholder}>
+                    <Text style={styles.avatarInitials}>
+                      {getInitials(profile?.user_name)}
+                    </Text>
+                  </View>
+                )}
 
-            {/* Camera overlay badge */}
-            <View style={styles.cameraBadge}>
-              {uploadingAvatar ? (
-                <ActivityIndicator size={14} color="#FFF" />
-              ) : (
-                <MaterialIcons name="camera-alt" size={14} color="#FFF" />
-              )}
-            </View>
-          </TouchableOpacity>
+                {/* Camera overlay badge */}
+                <View style={styles.cameraBadge}>
+                  {uploadingAvatar ? (
+                    <ActivityIndicator size={14} color="#FFF" />
+                  ) : (
+                    <MaterialIcons name="camera-alt" size={14} color="#FFF" />
+                  )}
+                </View>
+              </TouchableOpacity>
 
-          <Text style={styles.profileName}>
-            {loadingProfile ? "Carregando..." : profile?.user_name || "Usuário"}
-          </Text>
-          <Text style={styles.profileEmail}>
-            {profile?.user_email || ""}
-          </Text>
-
-          {profile?.user_coins_balance !== undefined && (
-            <View style={styles.coinsBadge}>
-              <CoinIcon size={14} style={{ marginRight: 6 }} />
-              <Text style={styles.coinsText}>
-                {profile.user_coins_balance} Sans Coins
+              <Text style={styles.profileName}>
+                {profile?.user_name || "Usuário"}
               </Text>
-            </View>
+              <Text style={styles.profileEmail}>
+                {profile?.user_email || ""}
+              </Text>
+
+              {profile?.user_coins_balance !== undefined && (
+                <View style={styles.coinsBadge}>
+                  <CoinIcon size={14} style={{ marginRight: 6 }} />
+                  <Text style={styles.coinsText}>
+                    {profile.user_coins_balance} Sans Coins
+                  </Text>
+                </View>
+              )}
+            </>
           )}
         </View>
 
-        {/* Minha Jornada */}
-        <Text style={styles.sectionLabel}>Minha Jornada</Text>
-        <View style={styles.jornadaContainer}>
-          <View style={styles.jornadaCard}>
-            {(!profile?.clube_sans ? [
-              { redemption_id: 'f1', prize: { name: 'Cerveja Artesanal', icon_url: null, coins: 300 }, redeemed_at: new Date(Date.now() - 86400000 * 2) },
-              { redemption_id: 'f2', prize: { name: 'Pomada Modeladora', icon_url: null, coins: 500 }, redeemed_at: new Date(Date.now() - 86400000 * 5) }
-            ] : redemptions).length > 0 ? (
-              (!profile?.clube_sans ? [
-                { redemption_id: 'f1', prize: { name: 'Cerveja Artesanal', icon_url: null, coins: 300 }, redeemed_at: new Date(Date.now() - 86400000 * 2) },
-                { redemption_id: 'f2', prize: { name: 'Pomada Modeladora', icon_url: null, coins: 500 }, redeemed_at: new Date(Date.now() - 86400000 * 5) }
-              ] : redemptions).map((redemption, index, array) => (
-                <View key={redemption.redemption_id} style={styles.jornadaItem}>
-                  <View style={styles.jornadaTimeline}>
-                    <View style={styles.jornadaIconContainer}>
-                      {redemption.prize.icon_url ? (
-                        <Image source={{ uri: redemption.prize.icon_url }} style={styles.jornadaPrizeIcon} />
-                      ) : (
-                        <MaterialIcons name="redeem" size={16} color={theme.colors.primary} />
-                      )}
-                    </View>
-                    {index < array.length - 1 && <View style={styles.jornadaLine} />}
+        {/* Ranking de Sans Coins */}
+        <Text style={styles.sectionLabel}>Top Clube Sans</Text>
+        <View style={styles.rankingContainer}>
+          <View style={styles.rankingCard}>
+            {(!profile?.clube_sans) && (
+              <View style={styles.clubeOverlay}>
+                <BlurView intensity={themeMode === 'dark' ? 30 : 10} tint={themeMode === 'dark' ? 'dark' : 'light'} style={styles.blurContainer} />
+                <View style={styles.clubeOverlayContent}>
+                  <View style={styles.clubeLockCircle}>
+                    <MaterialIcons name="lock" size={24} color={theme.colors.primary} />
                   </View>
-                  <View style={styles.jornadaContent}>
-                    <Text style={styles.jornadaTitle}>{redemption.prize.name}</Text>
-                    <Text style={styles.jornadaDate}>
-                      {new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' }).format(new Date(redemption.redeemed_at))}
-                    </Text>
-                  </View>
-                  <View style={styles.jornadaPoints}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center' }}><CoinIcon size={16} /><Text style={[styles.jornadaPointsText, { marginLeft: 4 }]}>{redemption.prize.coins_cost || redemption.prize.coins}</Text></View>
-                  </View>
+                  <Text style={styles.clubeOverlayTitle}>Ranking Exclusivo</Text>
+                  <Text style={styles.clubeOverlayText}>
+                    Assine o Clube Sans para participar do ranking e disputar prêmios.
+                  </Text>
+                  <TouchableOpacity
+                    style={styles.clubeCTAButton}
+                    onPress={() => {
+                      const message = encodeURIComponent("Olá! Gostaria de saber mais sobre como fazer parte do Clube Sans!");
+                      Linking.openURL(`whatsapp://send?phone=5541997355454&text=${message}`);
+                    }}
+                  >
+                    <Text style={styles.clubeCTAButtonText}>QUERO SER CLUBE SANS</Text>
+                  </TouchableOpacity>
                 </View>
-              ))
-            ) : (
-              <View style={styles.emptyJornada}>
-                <MaterialIcons name="timeline" size={40} color={theme.colors.textMuted} />
-                <Text style={styles.emptyJornadaText}>Sua jornada de prêmios começa aqui.</Text>
               </View>
             )}
-          </View>
 
-          {(!profile?.clube_sans) && (
-            <View style={styles.clubeOverlay}>
-              <BlurView intensity={themeMode === 'dark' ? 30 : 10} tint={themeMode === 'dark' ? 'dark' : 'light'} style={styles.blurContainer} />
-              <View style={styles.clubeOverlayContent}>
-                <View style={styles.clubeLockCircle}>
-                  <MaterialIcons name="lock" size={24} color={theme.colors.primary} />
+            {[
+              { id: '1', name: 'João Silva', coins: 1500, avatar: null },
+              { id: '2', name: 'Carlos Santos', coins: 1200, avatar: null },
+              { id: '3', name: 'Marcos Paulo', coins: 950, avatar: null },
+              { id: '4', name: 'Você', coins: profile?.user_coins_balance || 0, avatar: profile?.avatar_url, isMe: true }
+            ].map((user, index) => (
+              <View key={user.id} style={[styles.rankingItem, user.isMe && styles.rankingItemMe]}>
+                <View style={styles.rankingPosition}>
+                  {index === 0 ? (
+                    <MaterialIcons name="emoji-events" size={24} color="#FFD700" />
+                  ) : index === 1 ? (
+                    <MaterialIcons name="emoji-events" size={24} color="#C0C0C0" />
+                  ) : index === 2 ? (
+                    <MaterialIcons name="emoji-events" size={24} color="#CD7F32" />
+                  ) : (
+                    <Text style={styles.rankingPositionText}>{index + 1}º</Text>
+                  )}
                 </View>
-                <Text style={styles.clubeOverlayTitle}>Histórico Reservado</Text>
-                <Text style={styles.clubeOverlayText}>
-                  Apenas membros do Clube Sans acompanham sua evolução e resgates exclusivos.
-                </Text>
-                <TouchableOpacity
-                  style={styles.clubeCTAButton}
-                  onPress={() => {
-                    const message = encodeURIComponent("Olá! Gostaria de saber mais sobre como fazer parte do Clube Sans!");
-                    Linking.openURL(`whatsapp://send?phone=5541997355454&text=${message}`);
-                  }}
-                >
-                  <Text style={styles.clubeCTAButtonText}>QUERO SER CLUBE SANS</Text>
-                </TouchableOpacity>
+                <View style={styles.rankingAvatar}>
+                  {user.avatar ? (
+                    <Image source={{ uri: user.avatar }} style={styles.rankingAvatarImg} />
+                  ) : (
+                    <View style={styles.rankingAvatarPlaceholder}>
+                      <Text style={styles.rankingAvatarInitials}>{getInitials(user.name)}</Text>
+                    </View>
+                  )}
+                </View>
+                <View style={styles.rankingContent}>
+                  <Text style={[styles.rankingName, user.isMe && styles.rankingNameMe]}>{user.name}</Text>
+                </View>
+                <View style={styles.rankingPoints}>
+                  <CoinIcon size={14} />
+                  <Text style={styles.rankingPointsText}>{user.coins}</Text>
+                </View>
               </View>
-            </View>
-          )}
+            ))}
+          </View>
         </View>
 
         {/* Menu - Conta */}
@@ -469,6 +508,8 @@ const PerfilScreen = ({ navigation }) => {
           {renderMenuItem("history", "Histórico de Agendamentos", handleHistorico)}
           {renderSeparator()}
           {renderMenuItem("receipt-long", "Meus Pedidos", handleMeusPedidos)}
+          {renderSeparator()}
+          {renderMenuItem("redeem", "Histórico de Prêmios", handleMinhaJornada)}
           {renderSeparator()}
           {renderMenuItem("lock", "Alterar Senha", handleAlterarSenha)}
         </View>
@@ -663,9 +704,94 @@ const getStyles = (theme) => StyleSheet.create({
     paddingHorizontal: 16,
   },
   menuItemContent: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     flex: 1,
+  },
+  rankingContainer: {
+    paddingHorizontal: 20,
+    marginBottom: theme.spacing.xl,
+  },
+  rankingCard: {
+    backgroundColor: theme.colors.card,
+    borderRadius: theme.borderRadius.xl,
+    padding: theme.spacing.lg,
+    overflow: 'hidden',
+    position: 'relative',
+    ...(theme.isDarkMode ? {} : theme.shadows.md),
+  },
+  rankingItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.borderLight,
+  },
+  rankingItemMe: {
+    backgroundColor: theme.colors.primaryLight + "10",
+    borderRadius: theme.borderRadius.md,
+    paddingHorizontal: 8,
+    marginHorizontal: -8,
+    borderBottomWidth: 0,
+  },
+  rankingPosition: {
+    width: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  rankingPositionText: {
+    ...createTextStyle("body", "textMuted", theme),
+    fontWeight: '700',
+  },
+  rankingAvatar: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    marginLeft: 8,
+    backgroundColor: theme.colors.backgroundSecondary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    overflow: 'hidden',
+  },
+  rankingAvatarImg: {
+    width: '100%',
+    height: '100%',
+  },
+  rankingAvatarPlaceholder: {
+    width: '100%',
+    height: '100%',
+    backgroundColor: theme.colors.borderLight,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  rankingAvatarInitials: {
+    ...createTextStyle("caption", "textMuted", theme),
+    fontWeight: 'bold',
+  },
+  rankingContent: {
+    flex: 1,
+    paddingLeft: 12,
+  },
+  rankingName: {
+    ...createTextStyle("body", "textPrimary", theme),
+    fontWeight: '500',
+  },
+  rankingNameMe: {
+    fontWeight: '700',
+    color: theme.colors.primary,
+  },
+  rankingPoints: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: theme.colors.backgroundSecondary,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  rankingPointsText: {
+    ...createTextStyle("caption", "textPrimary", theme),
+    fontWeight: '700',
+    marginLeft: 4,
   },
   menuIconBox: {
     width: 36,
@@ -731,12 +857,7 @@ const getStyles = (theme) => StyleSheet.create({
     fontWeight: '500',
   },
   // Clube Overlay
-  jornadaContainer: {
-    position: 'relative',
-    borderRadius: 24,
-    overflow: 'hidden',
-    marginBottom: 24,
-  },
+
   clubeOverlay: {
     ...StyleSheet.absoluteFillObject,
     justifyContent: 'center',
@@ -797,86 +918,7 @@ const getStyles = (theme) => StyleSheet.create({
     fontWeight: '800',
     letterSpacing: 0.8,
   },
-  // Minha Jornada
-  jornadaCard: {
-    backgroundColor: theme.colors.card,
-    borderRadius: 24,
-    padding: 24,
-    borderWidth: 1,
-    borderColor: theme.colors.borderLight,
-    ...theme.shadows.sm,
-  },
-  emptyJornada: {
-    alignItems: 'center',
-    paddingVertical: 30,
-  },
-  emptyJornadaText: {
-    color: theme.colors.textMuted,
-    marginTop: 16,
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  jornadaItem: {
-    flexDirection: 'row',
-    marginBottom: 20,
-  },
-  jornadaTimeline: {
-    width: 32,
-    alignItems: 'center',
-    marginRight: 16,
-  },
-  jornadaIconContainer: {
-    width: 32,
-    height: 32,
-    borderRadius: 10,
-    backgroundColor: theme.colors.primary + '20',
-    alignItems: 'center',
-    justifyContent: 'center',
-    zIndex: 2,
-    borderWidth: 1,
-    borderColor: theme.colors.primary + '30',
-  },
-  jornadaPrizeIcon: {
-    width: 20,
-    height: 20,
-    borderRadius: 4,
-  },
-  jornadaLine: {
-    width: 2,
-    flex: 1,
-    backgroundColor: theme.colors.borderLight,
-    marginTop: 4,
-    marginBottom: -20,
-  },
-  jornadaContent: {
-    flex: 1,
-    paddingBottom: 4,
-  },
-  jornadaTitle: {
-    fontSize: 15,
-    fontWeight: '800',
-    color: theme.colors.textPrimary,
-  },
-  jornadaDate: {
-    fontSize: 12,
-    color: theme.colors.textMuted,
-    marginTop: 2,
-    fontWeight: '500',
-  },
-  jornadaPoints: {
-    backgroundColor: theme.colors.primary + '20',
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 12,
-    alignSelf: 'flex-start',
-    borderWidth: 1,
-    borderColor: theme.colors.primary + '30',
-  },
-  jornadaPointsText: {
-    fontSize: 12,
-    fontWeight: '800',
-    color: theme.colors.primary,
-  },
+
   watermarkWrapper: {
     alignItems: 'center',
     marginTop: 24,

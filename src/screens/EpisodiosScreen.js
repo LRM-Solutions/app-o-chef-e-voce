@@ -21,6 +21,7 @@ import {
   formatViewCount,
 } from "../api/youtube";
 import Toast from "react-native-toast-message";
+import Skeleton from "../components/ui/Skeleton";
 const { width: screenWidth } = Dimensions.get("window");
 const ITEM_WIDTH = screenWidth - 32; // 16px margin on each side
 
@@ -346,9 +347,18 @@ export default function EpisodiosScreen() {
 
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={theme.colors.primary} />
-        <Text style={styles.loadingText}>Carregando episódios...</Text>
+      <View style={styles.container}>
+        {renderHeader()}
+        {[1, 2, 3].map((key) => (
+          <View key={key} style={styles.videoItem}>
+            <Skeleton width="100%" height={(ITEM_WIDTH * 9) / 16} style={{ borderTopLeftRadius: 12, borderTopRightRadius: 12, borderRadius: 0 }} />
+            <View style={styles.videoInfo}>
+              <Skeleton width="90%" height={20} style={{ marginBottom: 8 }} />
+              <Skeleton width="50%" height={16} style={{ marginBottom: 8 }} />
+              <Skeleton width="30%" height={14} />
+            </View>
+          </View>
+        ))}
       </View>
     );
   }

@@ -12,6 +12,7 @@ import {
   Animated,
   ActivityIndicator,
   Alert,
+  Platform,
   RefreshControl,
   Linking,
 } from "react-native";
@@ -27,6 +28,7 @@ import Button from "../components/ui/Button";
 import SansCoinsDisplay from "../components/ui/SansCoinsDisplay";
 import SectionHeader from "../components/ui/SectionHeader";
 import Chip from "../components/ui/Chip";
+import Skeleton from "../components/ui/Skeleton";
 // mockData removido
 
 import {
@@ -352,6 +354,15 @@ const BarberScreen = ({ navigation }) => {
     }
 
     if (!isAuthenticated) {
+      if (Platform.OS === "web") {
+        const goToLogin = window.confirm(
+          "Entre na sua conta para confirmar o agendamento.\n\nDeseja fazer login agora?"
+        );
+        if (goToLogin) {
+          navigation.navigate("Login");
+        }
+        return;
+      }
       Alert.alert(
         "Login necessário",
         "Entre na sua conta para confirmar o agendamento.",
@@ -385,10 +396,13 @@ const BarberScreen = ({ navigation }) => {
       if (selectedBarber.id === "any") {
         finalProfessionalId = providerMap[selectedTime.time];
         if (!finalProfessionalId) {
-          Alert.alert(
-            "Aviso",
-            "Não foi possível alocar um barbeiro para este horário. Escolha outro horário ou recarregue a página.",
-          );
+          const msg =
+            "Não foi possível alocar um barbeiro para este horário. Escolha outro horário ou recarregue a página.";
+          if (Platform.OS === "web") {
+            window.alert(msg);
+          } else {
+            Alert.alert("Aviso", msg);
+          }
           setSubmitting(false);
           return;
         }
@@ -415,15 +429,64 @@ const BarberScreen = ({ navigation }) => {
       }, 600);
     } catch (err) {
       setSubmitting(false);
-      Alert.alert(
-        "Não foi possível agendar",
-        "Tente outro horário ou fale com a barbearia.",
-      );
+      const msg =
+        err.response?.data?.error ||
+        "Não foi possível agendar. Tente outro horário ou fale com a barbearia.";
+      if (Platform.OS === "web") {
+        window.alert(typeof msg === "string" ? msg : JSON.stringify(msg));
+      } else {
+        Alert.alert(
+          "Não foi possível agendar",
+          typeof msg === "string" ? msg : "Tente outro horário ou fale com a barbearia.",
+        );
+      }
     }
   };
 
   const handleCancelAppointment = async () => {
     if (!nextAppointment) return;
+
+    const appointmentId = nextAppointment.id || nextAppointment.appointment_id;
+    if (!appointmentId) return;
+
+    const performCancel = async () => {
+      try {
+        setSubmitting(true);
+        await cancelMyAppointment(appointmentId);
+        await loadUserBalanceAndNext();
+        if (Platform.OS === "web") {
+          window.alert("Seu agendamento foi cancelado com sucesso.");
+        } else {
+          Alert.alert(
+            "Cancelado",
+            "Seu agendamento foi cancelado com sucesso.",
+          );
+        }
+      } catch (err) {
+        console.error("Erro ao cancelar agendamento:", err);
+        const errorMsg =
+          err.response?.data?.error ||
+          err.message ||
+          "Não foi possível cancelar o agendamento.";
+        if (Platform.OS === "web") {
+          window.alert(`Erro: ${errorMsg}`);
+        } else {
+          Alert.alert("Erro", errorMsg);
+        }
+      } finally {
+        setSubmitting(false);
+      }
+    };
+
+    if (Platform.OS === "web") {
+      const confirmCancel = window.confirm(
+        "Tem certeza que deseja cancelar seu próximo horário?"
+      );
+      if (confirmCancel) {
+        await performCancel();
+      }
+      return;
+    }
 
     Alert.alert(
       "Cancelar Agendamento",
@@ -433,23 +496,10 @@ const BarberScreen = ({ navigation }) => {
         {
           text: "Sim, Cancelar",
           style: "destructive",
-          onPress: async () => {
-            try {
-              setSubmitting(true);
-              await cancelMyAppointment(nextAppointment.id);
-              await loadUserBalanceAndNext();
-              Alert.alert(
-                "Cancelado",
-                "Seu agendamento foi cancelado com sucesso.",
-              );
-            } catch (err) {
-              Alert.alert("Erro", "Não foi possível cancelar o agendamento.");
-            } finally {
-              setSubmitting(false);
-            }
-          },
+          onPress: performCancel,
         },
       ],
+      { cancelable: true }
     );
   };
 
@@ -669,6 +719,15 @@ const BarberScreen = ({ navigation }) => {
 
   const handlePrizePress = (item) => {
     if (!isAuthenticated) {
+      if (Platform.OS === "web") {
+        const goToLogin = window.confirm(
+          "Entre na sua conta para resgatar prêmios.\n\nDeseja fazer login agora?"
+        );
+        if (goToLogin) {
+          navigation.navigate("Login");
+        }
+        return;
+      }
       Alert.alert(
         "Login necessário",
         "Entre na sua conta para resgatar prêmios.",
@@ -683,17 +742,29 @@ const BarberScreen = ({ navigation }) => {
       return;
     }
     if (!currentUser.clubeSans) {
-      Alert.alert(
-        "Clube Sans",
-        "Apenas membros do Clube Sans podem resgatar prêmios incríveis!",
-      );
+      if (Platform.OS === "web") {
+        window.alert(
+          "Apenas membros do Clube Sans podem resgatar prêmios incríveis!"
+        );
+      } else {
+        Alert.alert(
+          "Clube Sans",
+          "Apenas membros do Clube Sans podem resgatar prêmios incríveis!",
+        );
+      }
       return;
     }
     if (currentUser.sansCoins < item.coins) {
-      Alert.alert(
-        "Saldo Insuficiente",
-        `Você precisa de ${item.coins} Sans Coins para resgatar este prêmio.`,
-      );
+      if (Platform.OS === "web") {
+        window.alert(
+          `Você precisa de ${item.coins} Sans Coins para resgatar este prêmio.`
+        );
+      } else {
+        Alert.alert(
+          "Saldo Insuficiente",
+          `Você precisa de ${item.coins} Sans Coins para resgatar este prêmio.`,
+        );
+      }
       return;
     }
     navigation.navigate("PrizeScanner", { prize: item });
@@ -806,20 +877,40 @@ const BarberScreen = ({ navigation }) => {
 
   if (loading) {
     return (
-      <View
-        style={[
-          styles.container,
-          {
-            paddingTop: insets.top,
-            justifyContent: "center",
-            alignItems: "center",
-          },
-        ]}
-      >
-        <ActivityIndicator size="large" color={theme.colors.primary} />
-        <Text style={{ marginTop: 12, color: theme.colors.textMuted }}>
-          Carregando barbearia...
-        </Text>
+      <View style={[styles.container, { paddingTop: insets.top }]}>
+        <View style={{ paddingHorizontal: 24, marginTop: 16, marginBottom: 24 }}>
+          <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+            <View>
+              <Skeleton width={180} height={28} style={{ marginBottom: 8 }} />
+              <Skeleton width={120} height={16} />
+            </View>
+            <Skeleton width={80} height={32} style={{ borderRadius: 16 }} />
+          </View>
+        </View>
+
+        <View style={{ paddingHorizontal: 24, marginBottom: 32 }}>
+          <Skeleton width="100%" height={140} style={{ borderRadius: 20 }} />
+        </View>
+
+        <View style={{ paddingHorizontal: 24, marginBottom: 16 }}>
+          <Skeleton width={140} height={24} style={{ marginBottom: 8 }} />
+          <Skeleton width={200} height={16} />
+        </View>
+
+        <View style={{ paddingHorizontal: 24, flexDirection: "row", gap: 16, marginBottom: 32 }}>
+          <Skeleton width={100} height={140} style={{ borderRadius: 16 }} />
+          <Skeleton width={100} height={140} style={{ borderRadius: 16 }} />
+          <Skeleton width={100} height={140} style={{ borderRadius: 16 }} />
+        </View>
+
+        <View style={{ paddingHorizontal: 24, marginBottom: 16 }}>
+          <Skeleton width={120} height={24} style={{ marginBottom: 8 }} />
+          <Skeleton width={180} height={16} />
+        </View>
+        <View style={{ paddingHorizontal: 24, gap: 12 }}>
+          <Skeleton width="100%" height={100} style={{ borderRadius: 16 }} />
+          <Skeleton width="100%" height={100} style={{ borderRadius: 16 }} />
+        </View>
       </View>
     );
   }
@@ -1131,8 +1222,10 @@ const BarberScreen = ({ navigation }) => {
                   style={styles.sectionHeader}
                 />
                 {loadingSlots ? (
-                  <View style={{ paddingVertical: 16 }}>
-                    <ActivityIndicator color={theme.colors.primary} />
+                  <View style={styles.timeSlotsGrid}>
+                    {[1, 2, 3, 4, 5, 6, 7, 8].map(key => (
+                      <Skeleton key={key} width={(width - 48 - 32) / 4} height={44} style={{ borderRadius: 12, marginBottom: 12 }} />
+                    ))}
                   </View>
                 ) : availableSlots.length === 0 ? (
                   <Text

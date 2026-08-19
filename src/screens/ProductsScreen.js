@@ -11,7 +11,8 @@ import {
   RefreshControl,
 } from "react-native";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
-import { theme } from "../utils/theme";
+import { useTheme } from "../utils/ThemeContext";
+import { theme as defaultTheme } from "../utils/theme";
 import {
   getProducts,
   formatPrice,
@@ -20,14 +21,18 @@ import {
   getProductMainImage,
 } from "../api/products";
 import Toast from "react-native-toast-message";
+import Skeleton from "../components/ui/Skeleton";
 
 const { width: screenWidth } = Dimensions.get("window");
-const numColumns = theme.isTablet ? 3 : 2;
-const padding = theme.spacing.md * 2;
-const gap = theme.spacing.md;
+const numColumns = defaultTheme.isTablet ? 3 : 2;
+const padding = defaultTheme.spacing.md * 2;
+const gap = defaultTheme.spacing.md;
 const ITEM_WIDTH = (screenWidth - padding - (gap * (numColumns - 1))) / numColumns;
 
 export default function ProductsScreen({ navigation }) {
+  const { theme, themeMode } = useTheme();
+  const styles = getStyles(theme);
+
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -79,7 +84,7 @@ export default function ProductsScreen({ navigation }) {
             <Image source={{ uri: mainImage }} style={styles.productImage} />
           ) : (
             <View style={styles.noImageContainer}>
-              <MaterialIcons name="image" size={40} color="#ccc" />
+              <MaterialIcons name="image" size={40} color={theme.colors.textMuted} />
               <Text style={styles.noImageText}>Sem imagem</Text>
             </View>
           )}
@@ -134,7 +139,7 @@ export default function ProductsScreen({ navigation }) {
     <View style={styles.titleSection}>
       <Text style={styles.sectionTitle}>Nossos Produtos</Text>
       <Text style={styles.sectionSubtitle}>
-        Encontre os melhores produtos para sua cozinha
+        Encontre os melhores produtos da barbearia
       </Text>
     </View>
   );
@@ -155,9 +160,21 @@ export default function ProductsScreen({ navigation }) {
 
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={theme.colors.primary} />
-        <Text style={styles.loadingText}>Carregando produtos...</Text>
+      <View style={styles.container}>
+        {renderHeader()}
+        <View style={styles.skeletonGrid}>
+          {[1, 2, 3, 4, 5, 6].map((key) => (
+            <View key={key} style={styles.productItem}>
+              <Skeleton width="100%" height={ITEM_WIDTH * 0.8} style={{ borderTopLeftRadius: 12, borderTopRightRadius: 12, borderRadius: 0 }} />
+              <View style={styles.productInfo}>
+                <Skeleton width="80%" height={16} style={{ marginBottom: 8 }} />
+                <Skeleton width="50%" height={16} style={{ marginBottom: 8 }} />
+                <Skeleton width="40%" height={20} style={{ marginBottom: 8 }} />
+                <Skeleton width="60%" height={14} />
+              </View>
+            </View>
+          ))}
+        </View>
       </View>
     );
   }
@@ -191,7 +208,7 @@ export default function ProductsScreen({ navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (theme) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.colors.background,
@@ -230,9 +247,15 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingHorizontal: 16,
   },
+  skeletonGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
+  },
   productItem: {
     width: ITEM_WIDTH,
-    backgroundColor: "#ffffff",
+    backgroundColor: theme.colors.card,
     borderRadius: 12,
     marginBottom: 16,
     // iOS Shadow
@@ -259,19 +282,19 @@ const styles = StyleSheet.create({
     height: "100%",
     borderTopLeftRadius: 12,
     borderTopRightRadius: 12,
-    backgroundColor: "#f0f0f0",
+    backgroundColor: theme.colors.backgroundSecondary,
   },
   noImageContainer: {
     width: "100%",
     height: "100%",
-    backgroundColor: "#f0f0f0",
+    backgroundColor: theme.colors.backgroundSecondary,
     justifyContent: "center",
     alignItems: "center",
   },
   noImageText: {
     marginTop: 8,
     fontSize: 12,
-    color: "#999",
+    color: theme.colors.textMuted,
   },
   categoryBadge: {
     position: "absolute",

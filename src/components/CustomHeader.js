@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from "react";
-import { View, Image, StyleSheet, TouchableOpacity, Text } from "react-native";
+import { View, Image, StyleSheet, TouchableOpacity, Text, Platform } from "react-native";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import { theme } from "../utils/theme";
-import Logo from "../../assets/sanslogo.png";
+import LogoDefault from "../../assets/sanslogo.png";
+import LogoAndroid from "../../assets/logosansnobg.png";
 import { CartService } from "../services/cartService";
 import CarrinhoComponent from "./CarrinhoComponent";
 import { useNavigation } from "@react-navigation/native";
 import { useAuth } from "./AuthProvider";
+
+const Logo = Platform.OS === "android" ? LogoAndroid : LogoDefault;
 
 const CustomHeader = () => {
   const [cartItemCount, setCartItemCount] = useState(0);

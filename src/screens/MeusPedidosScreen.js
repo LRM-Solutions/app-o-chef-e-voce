@@ -15,6 +15,7 @@ import { getUserPedidos } from "../api/pedidosApi";
 import { formatarStatusPagamento } from "../api/pedidoDetalhesApi";
 import { createTextStyle, createButtonStyle } from "../utils/theme";
 import { useTheme } from "../utils/ThemeContext";
+import Skeleton from "../components/ui/Skeleton";
 
 const MeusPedidosScreen = ({ navigation }) => {
   const { theme } = useTheme();
@@ -201,9 +202,44 @@ const MeusPedidosScreen = ({ navigation }) => {
   if (loading) {
     return (
       <SafeAreaView style={styles.container}>
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={theme.colors.primary} />
-          <Text style={styles.loadingText}>Carregando seus pedidos...</Text>
+        {/* Header */}
+        <View style={styles.header}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => navigation.goBack()}
+          >
+            <MaterialIcons
+              name="arrow-back"
+              size={24}
+              color={theme.colors.foreground}
+            />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Meus Pedidos</Text>
+          <View style={styles.headerSpacer} />
+        </View>
+        <View style={styles.listContainer}>
+          {[1, 2, 3].map((key) => (
+            <View key={key} style={styles.pedidoCard}>
+              <View style={styles.cardHeader}>
+                <View style={styles.pedidoInfo}>
+                  <Skeleton width={100} height={18} style={{ marginBottom: 4 }} />
+                  <Skeleton width={140} height={14} />
+                </View>
+                <Skeleton width={80} height={24} style={{ borderRadius: 12 }} />
+              </View>
+              <View style={styles.enderecoSection}>
+                <Skeleton width={20} height={20} style={{ marginRight: 8, borderRadius: 10 }} />
+                <Skeleton width="80%" height={14} />
+              </View>
+              <View style={styles.cardFooter}>
+                <View style={styles.totalSection}>
+                  <Skeleton width={60} height={14} style={{ marginBottom: 4 }} />
+                  <Skeleton width={80} height={20} />
+                </View>
+                <Skeleton width={80} height={16} />
+              </View>
+            </View>
+          ))}
         </View>
       </SafeAreaView>
     );
