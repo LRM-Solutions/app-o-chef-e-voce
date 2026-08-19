@@ -94,6 +94,20 @@ export const cancelMyAppointment = async (appointmentId) => {
   return data;
 };
 
+export const rescheduleMyAppointment = async ({
+  appointmentId,
+  professionalId,
+  serviceId,
+  scheduledAt,
+}) => {
+  const { data } = await api.patch(`/appointments/${appointmentId}/reschedule`, {
+    professional_id: professionalId,
+    service_id: serviceId,
+    scheduled_at: scheduledAt,
+  });
+  return data;
+};
+
 export const getPrizes = async () => {
   const { data } = await api.get("/prizes");
   return data;

@@ -95,9 +95,13 @@ const AppointmentSuccessScreen = ({ navigation }) => {
             },
           ]}
         >
-          <Text style={styles.title}>Agendamento Confirmado!</Text>
+          <Text style={styles.title}>
+            {route.params?.isReschedule ? "Horário Alterado com Sucesso!" : "Agendamento Confirmado!"}
+          </Text>
           <Text style={styles.subtitle}>
-            Seu horário foi reservado com sucesso.
+            {route.params?.isReschedule
+              ? "As alterações no seu agendamento foram salvas."
+              : "Seu horário foi reservado com sucesso."}
           </Text>
 
           {/* Appointment Details */}

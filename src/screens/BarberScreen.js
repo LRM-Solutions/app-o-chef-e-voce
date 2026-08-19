@@ -41,6 +41,7 @@ import {
   createAppointment,
   getNextAppointment,
   cancelMyAppointment,
+  rescheduleMyAppointment,
   getBanners,
 } from "../api/barberApi";
 import { useAuth } from "../components/AuthProvider";
@@ -75,6 +76,7 @@ const BarberScreen = ({ navigation }) => {
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedTime, setSelectedTime] = useState(null);
   const [providerMap, setProviderMap] = useState({});
+  const [isRescheduling, setIsRescheduling] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const scrollViewRef = useRef(null);
 
@@ -90,6 +92,7 @@ const BarberScreen = ({ navigation }) => {
       }
 
       // Resetar seleções ao voltar para a tela (limpa o fluxo após sucesso ou cancelamento)
+      setIsRescheduling(false);
       setSelectedBarber(null);
       setSelectedService(null);
       setSelectedDate(null);
@@ -288,11 +291,15 @@ const BarberScreen = ({ navigation }) => {
 
     return {
       id: appt.appointment_id,
+      professional_id: appt.professional?.professional_id || appt.professional_id,
+      service_id: appt.service?.service_id || appt.service_id,
       barber: {
+        id: appt.professional?.professional_id || appt.professional_id,
         name: appt.professional?.name || "",
         avatar: appt.professional?.avatar_url,
       },
       service: {
+        id: appt.service?.service_id || appt.service_id,
         name: appt.service?.name || "",
       },
       date: appt.scheduled_at,
@@ -409,19 +416,35 @@ const BarberScreen = ({ navigation }) => {
         finalProfessionalId = Number(finalProfessionalId);
       }
 
-      const appointment = await createAppointment({
-        professionalId: finalProfessionalId,
-        serviceId: Number(selectedService.service_id || selectedService.id),
-        scheduledAt: scheduled.toISOString(),
-      });
+      let appointment;
+      if (isRescheduling && nextAppointment) {
+        const appointmentId = nextAppointment.id || nextAppointment.appointment_id;
+        appointment = await rescheduleMyAppointment({
+          appointmentId: Number(appointmentId),
+          professionalId: finalProfessionalId,
+          serviceId: Number(selectedService.service_id || selectedService.id),
+          scheduledAt: scheduled.toISOString(),
+        });
+      } else {
+        appointment = await createAppointment({
+          professionalId: finalProfessionalId,
+          serviceId: Number(selectedService.service_id || selectedService.id),
+          scheduledAt: scheduled.toISOString(),
+        });
+      }
 
       setNextAppointmentState(formatAppointment(appointment));
+      const wasRescheduling = isRescheduling;
+      setIsRescheduling(false);
       await loadUserBalanceAndNext();
 
       // Aguarda um pequeno momento para garantir que a animação de carregamento seja percebida e que
       // a navegação para o modal aconteça sem o spinner sumir repentinamente na tela de baixo.
       setTimeout(() => {
-        navigation.navigate("AppointmentSuccess", { appointment });
+        navigation.navigate("AppointmentSuccess", {
+          appointment,
+          isReschedule: wasRescheduling,
+        });
         // Somente voltamos o estado de submissão para falso após a navegação ter sido iniciada
         setSubmitting(false);
         // Volta o scroll para o topo para que, ao fechar o modal, a tela esteja na posição correta
@@ -441,6 +464,49 @@ const BarberScreen = ({ navigation }) => {
         );
       }
     }
+  };
+
+  const handleStartReschedule = () => {
+    if (!nextAppointment) return;
+
+    // Tentar selecionar o profissional atual
+    const targetBarberId = nextAppointment.professional_id || nextAppointment.barber?.id;
+    const foundBarber = barbers.find(
+      (b) => String(b.id || b.professional_id) === String(targetBarberId)
+    );
+    if (foundBarber) {
+      setSelectedBarber(foundBarber);
+    } else if (barbers.length > 0) {
+      setSelectedBarber(barbers[0]);
+    }
+
+    // Tentar selecionar o serviço atual
+    const targetServiceId = nextAppointment.service_id || nextAppointment.service?.id;
+    const foundService = barberServices.find(
+      (s) => String(s.id || s.service_id) === String(targetServiceId)
+    );
+    if (foundService) {
+      setSelectedService(foundService);
+    } else if (barberServices.length > 0) {
+      setSelectedService(barberServices[0]);
+    }
+
+    setSelectedDate(null);
+    setSelectedTime(null);
+    setIsRescheduling(true);
+
+    setTimeout(() => {
+      scrollViewRef.current?.scrollTo({ y: 360, animated: true });
+    }, 200);
+  };
+
+  const handleCancelReschedule = () => {
+    setIsRescheduling(false);
+    setSelectedBarber(null);
+    setSelectedService(null);
+    setSelectedDate(null);
+    setSelectedTime(null);
+    scrollViewRef.current?.scrollTo({ y: 0, animated: true });
   };
 
   const handleCancelAppointment = async () => {
@@ -1146,23 +1212,55 @@ const BarberScreen = ({ navigation }) => {
                 </Text>
               </View>
             </Card>
-            <View style={{ paddingHorizontal: 24 }}>
+            <View style={{ paddingHorizontal: 24, gap: 10, marginTop: -8 }}>
               <Button
                 title="Cancelar Agendamento"
                 variant="outline"
                 size="sm"
                 onPress={handleCancelAppointment}
                 loading={submitting}
-                style={{ borderColor: theme.colors.destructive, marginTop: -8 }}
+                style={{ borderColor: theme.colors.destructive }}
                 textStyle={{ color: theme.colors.destructive }}
+              />
+              <Button
+                title="Trocar Horário ou Serviço"
+                variant="primary"
+                size="sm"
+                onPress={handleStartReschedule}
+                icon={<MaterialIcons name="event-repeat" size={18} color="#FFF" />}
               />
             </View>
           </View>
         ) : (
           <View style={styles.sectionContainer}>
+            {/* Banner de Alteração de Agendamento */}
+            {isRescheduling && (
+              <View style={[styles.rescheduleBanner, { backgroundColor: theme.colors.card, borderColor: theme.colors.primary }]}>
+                <View style={{ flex: 1 }}>
+                  <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 2 }}>
+                    <MaterialIcons name="edit-calendar" size={18} color={theme.colors.primary} />
+                    <Text style={[styles.rescheduleBannerTitle, { color: theme.colors.primary }]}>
+                      Alterando Agendamento
+                    </Text>
+                  </View>
+                  <Text style={[styles.rescheduleBannerSub, { color: theme.colors.textMuted }]}>
+                    Selecione o novo serviço, dia ou horário desejado
+                  </Text>
+                </View>
+                <TouchableOpacity
+                  onPress={handleCancelReschedule}
+                  style={styles.cancelRescheduleBtn}
+                  activeOpacity={0.7}
+                >
+                  <Text style={[styles.cancelRescheduleBtnText, { color: theme.colors.textMuted }]}>Cancelar</Text>
+                  <MaterialIcons name="close" size={16} color={theme.colors.textMuted} />
+                </TouchableOpacity>
+              </View>
+            )}
+
             {/* Escolha seu Barbeiro */}
             <SectionHeader
-              title="Agende seu horário"
+              title={isRescheduling ? "Trocar Barbeiro" : "Agende seu horário"}
               subtitle="Profissionais disponíveis"
               style={styles.sectionHeader}
             />
@@ -1283,7 +1381,11 @@ const BarberScreen = ({ navigation }) => {
         >
           <Button
             title={
-              isAuthenticated ? "Confirmar Agendamento" : "Entrar para agendar"
+              !isAuthenticated
+                ? "Entrar para agendar"
+                : isRescheduling
+                ? "Confirmar Alteração"
+                : "Confirmar Agendamento"
             }
             onPress={
               isAuthenticated
@@ -1295,7 +1397,13 @@ const BarberScreen = ({ navigation }) => {
             loading={submitting}
             icon={
               <MaterialIcons
-                name={isAuthenticated ? "check-circle" : "login"}
+                name={
+                  !isAuthenticated
+                    ? "login"
+                    : isRescheduling
+                    ? "event-available"
+                    : "check-circle"
+                }
                 size={20}
                 color="#FFF"
               />
@@ -1410,6 +1518,41 @@ const getStyles = (theme) => {
       fontWeight: "800",
       color: theme.colors.coins,
       marginLeft: 4,
+    },
+    // Reschedule Banner
+    rescheduleBanner: {
+      marginHorizontal: 24,
+      marginTop: 8,
+      marginBottom: 16,
+      padding: 16,
+      borderRadius: theme.borderRadius.lg,
+      borderWidth: 1.5,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      ...theme.shadows.sm,
+    },
+    rescheduleBannerTitle: {
+      fontSize: 15,
+      fontWeight: "700",
+    },
+    rescheduleBannerSub: {
+      fontSize: 12,
+      marginTop: 2,
+    },
+    cancelRescheduleBtn: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 4,
+      paddingVertical: 6,
+      paddingHorizontal: 10,
+      borderRadius: 12,
+      backgroundColor: theme.isDarkMode ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.05)",
+      marginLeft: 12,
+    },
+    cancelRescheduleBtnText: {
+      fontSize: 12,
+      fontWeight: "600",
     },
     // Appointment Card
     appointmentCard: {
