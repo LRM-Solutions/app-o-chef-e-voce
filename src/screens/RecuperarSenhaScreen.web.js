@@ -14,6 +14,8 @@ import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import { resetPassword } from "../api/resetPasswordApi";
 
 export default function RecuperarSenhaScreen({ navigation }) {
+  const { theme } = useTheme();
+
   const { width } = useWindowDimensions();
   const isMobile = width < 768;
 
@@ -63,7 +65,7 @@ export default function RecuperarSenhaScreen({ navigation }) {
           </TouchableOpacity>
 
           <Image
-            source={require("../../assets/sanslogo.png")}
+            source={(theme?.logos?.APP_LOGO_DEFAULT ? { uri: theme.logos.APP_LOGO_DEFAULT } : require("../../assets/sanslogo.png"))}
             style={styles.logo}
             resizeMode="contain"
           />

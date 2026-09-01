@@ -152,7 +152,7 @@ export default function NewUserEmailCodeScreen({ navigation, route }) {
             {/* Header */}
             <View style={styles.header}>
               <Image
-                source={Platform.OS === "android" ? require("../../assets/logosansnobg.png") : require("../../assets/sanslogo.png")}
+                source={Platform.OS === "android" ? (theme?.logos?.APP_LOGO_NOBG ? { uri: theme.logos.APP_LOGO_NOBG } : require("../../assets/logosansnobg.png")) : (theme?.logos?.APP_LOGO_DEFAULT ? { uri: theme.logos.APP_LOGO_DEFAULT } : require("../../assets/sanslogo.png"))}
                 style={styles.logo}
                 resizeMode="contain"
               />

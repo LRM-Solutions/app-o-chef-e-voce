@@ -1,7 +1,10 @@
 import React from 'react';
+import { useTheme } from '../utils/ThemeContext';
 import { View, Text, TouchableOpacity, StyleSheet, Image, useWindowDimensions, ImageBackground } from 'react-native';
 
 export default function IntroScreen({ navigation }) {
+  const { theme } = useTheme();
+
   const { width } = useWindowDimensions();
   const isMobile = width < 768;
 
@@ -14,7 +17,7 @@ export default function IntroScreen({ navigation }) {
       <View style={styles.overlay}>
         <View style={[styles.content, isMobile && styles.contentMobile]}>
           <Image 
-            source={require('../../assets/sanslogo.png')} 
+            source={(theme?.logos?.APP_LOGO_DEFAULT ? { uri: theme.logos.APP_LOGO_DEFAULT } : require("../../assets/sanslogo.png"))} 
             style={styles.logo} 
             resizeMode="contain" 
           />

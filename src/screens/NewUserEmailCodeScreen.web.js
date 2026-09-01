@@ -15,6 +15,8 @@ import { verifyEmail, resendVerificationCode } from "../api/authApi";
 import { useAuth } from "../components/AuthProvider";
 
 export default function NewUserEmailCodeScreen({ navigation, route }) {
+  const { theme } = useTheme();
+
   const { width } = useWindowDimensions();
   const isMobile = width < 768;
   const { login: authLogin } = useAuth();
@@ -126,7 +128,7 @@ export default function NewUserEmailCodeScreen({ navigation, route }) {
           </TouchableOpacity>
 
           <Image
-            source={require("../../assets/sanslogo.png")}
+            source={(theme?.logos?.APP_LOGO_DEFAULT ? { uri: theme.logos.APP_LOGO_DEFAULT } : require("../../assets/sanslogo.png"))}
             style={styles.logo}
             resizeMode="contain"
           />

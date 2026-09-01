@@ -17,6 +17,8 @@ import { config } from "../utils/config";
 import { Linking } from "react-native";
 
 export default function SignUpScreen({ navigation }) {
+  const { theme } = useTheme();
+
   const { width } = useWindowDimensions();
   const isMobile = width < 768;
 
@@ -82,7 +84,7 @@ export default function SignUpScreen({ navigation }) {
           </TouchableOpacity>
 
           <Image
-            source={require("../../assets/sanslogo.png")}
+            source={(theme?.logos?.APP_LOGO_DEFAULT ? { uri: theme.logos.APP_LOGO_DEFAULT } : require("../../assets/sanslogo.png"))}
             style={styles.logo}
             resizeMode="contain"
           />

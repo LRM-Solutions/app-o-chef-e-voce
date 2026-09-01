@@ -311,7 +311,7 @@ const PerfilScreen = ({ navigation }) => {
         <ScrollView style={styles.scrollView} contentContainerStyle={[styles.content, styles.contentNotLogged, { padding: 24, paddingBottom: 40 }]}>
           <View style={{ alignItems: 'center', marginTop: 20 }}>
             <Image
-              source={Platform.OS === "android" ? require("../../assets/logosansnobg.png") : require("../../assets/sanslogo.png")}
+              source={Platform.OS === "android" ? (theme?.logos?.APP_LOGO_NOBG ? { uri: theme.logos.APP_LOGO_NOBG } : require("../../assets/logosansnobg.png")) : (theme?.logos?.APP_LOGO_DEFAULT ? { uri: theme.logos.APP_LOGO_DEFAULT } : require("../../assets/sanslogo.png"))}
               style={{ width: 120, height: 120, marginBottom: 24 }}
               resizeMode="contain"
             />

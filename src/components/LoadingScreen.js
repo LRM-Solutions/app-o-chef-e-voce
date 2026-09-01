@@ -86,7 +86,7 @@ export default function LoadingScreen() {
         ]}
       >
         <Image 
-          source={Platform.OS === "android" ? require("../../assets/logosansnobg.png") : require("../../assets/splash-icon.png")}
+          source={Platform.OS === "android" ? (theme?.logos?.APP_LOGO_NOBG ? { uri: theme.logos.APP_LOGO_NOBG } : require("../../assets/logosansnobg.png")) : (theme?.logos?.APP_LOGO_DEFAULT ? { uri: theme.logos.APP_LOGO_DEFAULT } : require("../../assets/splash-icon.png"))}
           style={styles.logo}
           resizeMode="contain"
         />

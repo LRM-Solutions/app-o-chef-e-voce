@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Appearance, useColorScheme } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { theme as baseTheme } from './theme';
+import api from '../api/apiConfig';
 
 const ThemeContext = createContext();
 
@@ -54,6 +55,7 @@ export const darkColors = {
 export const ThemeProvider = ({ children }) => {
   const systemColorScheme = useColorScheme();
   const [themeMode, setThemeMode] = useState('system'); // 'light', 'dark', 'system'
+  const [dynamicLogos, setDynamicLogos] = useState({ APP_LOGO_DEFAULT: null, APP_LOGO_NOBG: null });
 
   useEffect(() => {
     const loadTheme = async () => {
@@ -66,7 +68,23 @@ export const ThemeProvider = ({ children }) => {
         console.log('Error loading theme:', error);
       }
     };
+
+    const loadDynamicLogos = async () => {
+      try {
+        const res = await api.get('/app/settings/public');
+        if (res.data) {
+          setDynamicLogos({
+            APP_LOGO_DEFAULT: res.data.APP_LOGO_DEFAULT || null,
+            APP_LOGO_NOBG: res.data.APP_LOGO_NOBG || null,
+          });
+        }
+      } catch (err) {
+        console.log('Error loading dynamic logos:', err.message);
+      }
+    };
+
     loadTheme();
+    loadDynamicLogos();
   }, []);
 
   const changeTheme = async (mode) => {
@@ -86,6 +104,7 @@ export const ThemeProvider = ({ children }) => {
     colors: isDarkMode ? darkColors : lightColors,
     isDarkMode,
     themeMode,
+    logos: dynamicLogos,
   };
 
   return (
