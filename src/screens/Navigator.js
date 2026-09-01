@@ -58,6 +58,10 @@ const MainTabs = () => {
   const { theme } = useTheme();
   const styles = getStyles(theme);
 
+  const bottomInset = insets.bottom || 0;
+  const paddingBottom = Platform.OS === "web" ? 25 : (bottomInset > 0 ? bottomInset + 4 : 10);
+  const tabHeight = Platform.OS === "web" ? 95 : (60 + (bottomInset > 0 ? bottomInset + 4 : 10));
+
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
@@ -69,8 +73,8 @@ const MainTabs = () => {
         tabBarStyle: [
           styles.tabBar,
           {
-            paddingBottom: Platform.OS === "ios" ? insets.bottom : (Platform.OS === "web" ? 25 : 10),
-            height: Platform.OS === "ios" ? 60 + insets.bottom : (Platform.OS === "web" ? 95 : 70),
+            paddingBottom: paddingBottom,
+            height: tabHeight,
           },
         ],
         tabBarLabelStyle: styles.tabBarLabel,
