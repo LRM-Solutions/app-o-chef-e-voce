@@ -22,6 +22,7 @@ import PrizeScannerScreen from "./PrizeScannerScreen";
 import RedemptionSuccessScreen from "./RedemptionSuccessScreen";
 import MinhaJornadaScreen from "./MinhaJornadaScreen";
 import ProductsStack from "./ProductsStack";
+import CarrinhoScreen from "./CarrinhoScreen";
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -130,6 +131,10 @@ const Navigator = () => {
           <Stack.Screen
             name="MeusPedidos"
             component={MeusPedidosStack}
+          />
+          <Stack.Screen
+            name="Carrinho"
+            component={CarrinhoScreen}
           />
           <Stack.Screen
             name="PrizeScanner"

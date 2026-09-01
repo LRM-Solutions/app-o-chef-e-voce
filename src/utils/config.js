@@ -9,7 +9,7 @@ import Constants from "expo-constants";
 
 // Endereço da API de produção fixado (hardcoded)
 // Importante: .env nem sempre é carregado corretamente em builds de produção da Apple
-const API_PRODUCTION_URL = "https://api-barber-nine.vercel.app";
+const API_PRODUCTION_URL = "https://api.sejasans.com.br";
 
 const apiBase = API_PRODUCTION_URL;
 

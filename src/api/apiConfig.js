@@ -15,6 +15,11 @@ const api = axios.create({
 api.interceptors.request.use(
   async (config) => {
     try {
+      // Se a baseURL for a de produção sem o /api, nós forçamos o /api no começo da rota
+      if (config.baseURL === "https://api.sejasans.com.br" && !config.url.startsWith("/api")) {
+        config.url = `/api${config.url.startsWith("/") ? "" : "/"}${config.url}`;
+      }
+
       // Log da requisição que está sendo feita
       console.log(`🚀 [DEBUG] ${config.method.toUpperCase()} ${config.baseURL}${config.url}`);
 

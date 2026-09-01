@@ -266,7 +266,7 @@ const MeusPedidosScreen = ({ navigation }) => {
       {/* Lista de Pedidos */}
       <FlatList
         data={pedidos}
-        keyExtractor={(item) => item.pedido_id.toString()}
+        keyExtractor={(item, index) => item.pedido_id ? item.pedido_id.toString() : index.toString()}
         renderItem={renderPedidoCard}
         contentContainerStyle={styles.listContainer}
         showsVerticalScrollIndicator={false}

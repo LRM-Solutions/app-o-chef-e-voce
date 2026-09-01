@@ -9,6 +9,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import { useTheme } from "../utils/ThemeContext";
+import { parseBackendDate } from "../utils/dateUtils";
 import Button from "../components/ui/Button";
 import Avatar from "../components/ui/Avatar";
 
@@ -28,17 +29,17 @@ const AppointmentSuccessScreen = ({ navigation }) => {
   const formatted = useMemo(() => {
     if (!appointment) return null;
     
-    // Forçar interpretação UTC
-    const dateStr = appointment.scheduled_at.replace(' ', 'T');
-    const when = new Date(dateStr.endsWith('Z') ? dateStr : dateStr + 'Z');
+    // Forçar interpretação UTC usando utilitário centralizado
+    const parsed = parseBackendDate(appointment.scheduled_at);
+    if (!parsed) return null;
     
-    // Obter partes UTC manuais
-    const h = String(when.getUTCHours()).padStart(2, '0');
-    const m = String(when.getUTCMinutes()).padStart(2, '0');
+    const when = parsed.dateObj;
+    const h = parsed.hour;
+    const m = parsed.minute;
     
     return {
       dateLabel: when.toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "long", timeZone: "UTC" }),
-      timeLabel: `${h}:${m}`,
+      timeLabel: parsed.time,
       service: appointment.service?.name || "Serviço",
       barber: appointment.professional?.name || "Barbeiro",
       user: appointment.user?.user_name || "Cliente",

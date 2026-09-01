@@ -22,6 +22,7 @@ import { useFocusEffect } from "@react-navigation/native";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import { theme } from "../utils/theme";
 import { useTheme } from "../utils/ThemeContext";
+import { parseBackendDate, formatDateForBackend } from "../utils/dateUtils";
 import Card from "../components/ui/Card";
 import Avatar from "../components/ui/Avatar";
 import Button from "../components/ui/Button";
@@ -281,13 +282,8 @@ const BarberScreen = ({ navigation }) => {
     )
       return null;
 
-    // Forçar interpretação como UTC para evitar o offset de 3h do fuso local
-    const dateStr = appt.scheduled_at.replace(" ", "T");
-    const when = new Date(dateStr.endsWith("Z") ? dateStr : dateStr + "Z");
-
-    // Obter partes UTC manuais
-    const h = String(when.getUTCHours()).padStart(2, "0");
-    const m = String(when.getUTCMinutes()).padStart(2, "0");
+    const parsed = parseBackendDate(appt.scheduled_at);
+    if (!parsed) return null;
 
     return {
       id: appt.appointment_id,
@@ -303,8 +299,8 @@ const BarberScreen = ({ navigation }) => {
         name: appt.service?.name || "",
       },
       date: appt.scheduled_at,
-      dateObj: when,
-      time: `${h}:${m}`,
+      dateObj: parsed.dateObj,
+      time: parsed.time,
       status: appt.status,
     };
   };
@@ -386,16 +382,7 @@ const BarberScreen = ({ navigation }) => {
 
     setSubmitting(true);
     try {
-      const [hour, minute] = selectedTime.time.split(":").map(Number);
-      const hourStr = String(hour).padStart(2, "0");
-      const minuteStr = String(minute).padStart(2, "0");
-
-      // Corrigindo a construção da data: precisamos do formato YYYY-MM-DD
-      const dateStr = formatDateParam(selectedDate.date);
-
-      // Força o timezone do Brasil (-03:00) na string ISO para garantir que a API receba a conversão UTC correta,
-      // independente se o celular/simulador estiver no fuso UTC ou outro.
-      const scheduled = new Date(`${dateStr}T${hourStr}:${minuteStr}:00-03:00`);
+      const scheduledIsoString = formatDateForBackend(selectedDate.date, selectedTime.time);
 
       let finalProfessionalId = Number(
         selectedBarber.professional_id || selectedBarber.id,
@@ -423,13 +410,13 @@ const BarberScreen = ({ navigation }) => {
           appointmentId: Number(appointmentId),
           professionalId: finalProfessionalId,
           serviceId: Number(selectedService.service_id || selectedService.id),
-          scheduledAt: scheduled.toISOString(),
+          scheduledAt: scheduledIsoString,
         });
       } else {
         appointment = await createAppointment({
           professionalId: finalProfessionalId,
           serviceId: Number(selectedService.service_id || selectedService.id),
-          scheduledAt: scheduled.toISOString(),
+          scheduledAt: scheduledIsoString,
         });
       }
 
@@ -1149,7 +1136,7 @@ const BarberScreen = ({ navigation }) => {
           </View>
         </View>
 
-        {nextAppointment ? (
+        {nextAppointment && !isRescheduling ? (
           <View style={styles.sectionContainer}>
             <SectionHeader
               title="Seu Próximo Horário"

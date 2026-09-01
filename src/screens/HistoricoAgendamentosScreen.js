@@ -13,6 +13,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import { useTheme } from "../utils/ThemeContext";
 import { listMyAppointments, cancelMyAppointment } from "../api/barberApi";
+import { parseBackendDate } from "../utils/dateUtils";
 import Avatar from "../components/ui/Avatar";
 import Skeleton from "../components/ui/Skeleton";
 
@@ -126,12 +127,12 @@ const HistoricoAgendamentosScreen = ({ navigation }) => {
   );
 
   const renderAppointment = ({ item }) => {
-    const dateStr = item.scheduled_at.replace(' ', 'T');
-    const when = new Date(dateStr.endsWith('Z') ? dateStr : dateStr + 'Z');
+    const parsed = parseBackendDate(item.scheduled_at);
+    if (!parsed) return null;
     
-    // Obter horas/minutos em UTC para evitar o offset do sistema
-    const h = String(when.getUTCHours()).padStart(2, '0');
-    const m = String(when.getUTCMinutes()).padStart(2, '0');
+    const when = parsed.dateObj;
+    const h = parsed.hour;
+    const m = parsed.minute;
 
     const config = statusConfig[item.status] || statusConfig.PENDING;
     const isPast = when < new Date();
@@ -159,25 +160,28 @@ const HistoricoAgendamentosScreen = ({ navigation }) => {
         </View>
 
         <View style={styles.cardFooter}>
-          <View style={styles.cardDetail}>
-            <MaterialIcons name="calendar-today" size={16} color={theme.colors.textMuted} />
-            <Text style={styles.cardDetailText}>
-              {when.toLocaleDateString("pt-BR", {
-                weekday: "short",
-                day: "numeric",
-                month: "short",
-                year: "numeric",
-                timeZone: "UTC",
-              })}
-            </Text>
-          </View>
-          <View style={styles.cardDetail}>
-            <MaterialIcons name="access-time" size={16} color={theme.colors.textMuted} />
-            <Text style={styles.cardDetailText}>{h}:{m}</Text>
+          <View style={styles.cardFooterLeft}>
+            <View style={styles.cardDetail}>
+              <MaterialIcons name="calendar-today" size={14} color={theme.colors.textMuted} />
+              <Text style={styles.cardDetailText}>
+                {when.toLocaleDateString("pt-BR", {
+                  day: "2-digit",
+                  month: "short",
+                  year: "numeric",
+                  timeZone: "UTC",
+                })}
+              </Text>
+            </View>
+            <View style={styles.cardDetail}>
+              <MaterialIcons name="access-time" size={14} color={theme.colors.textMuted} />
+              <Text style={styles.cardDetailText}>{h}:{m}</Text>
+            </View>
           </View>
           {item.service?.price !== undefined && (
-            <View style={styles.cardDetail}>
-              <Text style={styles.cardPrice}>{Number(item.service.price) === 0 ? "Grátis" : `R$ ${Number(item.service.price).toFixed(2)}`}</Text>
+            <View style={styles.cardPriceContainer}>
+              <Text style={styles.cardPrice}>
+                {Number(item.service.price) === 0 ? "Grátis" : `R$ ${Number(item.service.price).toFixed(2).replace('.', ',')}`}
+              </Text>
             </View>
           )}
         </View>
@@ -385,21 +389,35 @@ const getStyles = (theme, isDarkMode) => StyleSheet.create({
   cardFooter: {
     flexDirection: "row",
     alignItems: "center",
+    justifyContent: "space-between",
     backgroundColor: theme.colors.backgroundSecondary,
     borderRadius: 10,
     paddingHorizontal: 12,
     paddingVertical: 10,
-    gap: 16,
+    gap: 8,
+  },
+  cardFooterLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    flexShrink: 1,
+    flexWrap: "wrap",
   },
   cardDetail: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 5,
+    gap: 4,
   },
   cardDetailText: {
     fontSize: 12,
     color: theme.colors.textMuted,
     fontWeight: "500",
+  },
+  cardPriceContainer: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+    backgroundColor: isDarkMode ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.04)",
   },
   cardPrice: {
     fontSize: 13,

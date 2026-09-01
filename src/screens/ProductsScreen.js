@@ -178,7 +178,7 @@ export default function ProductsScreen({ navigation }) {
     <View style={styles.container}>
       <FlatList
         data={products}
-        keyExtractor={(item) => item.product_id.toString()}
+        keyExtractor={(item, index) => item.product_id ? item.product_id.toString() : index.toString()}
         renderItem={ProductItem}
         ListHeaderComponent={renderHeader}
         numColumns={numColumns}

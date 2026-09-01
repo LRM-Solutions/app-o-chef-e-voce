@@ -31,7 +31,7 @@ export const CartService = {
       );
 
       if (existingItemIndex !== -1) {
-        // Se o produto já existe, atualiza a quantidade
+        // Se o produto já existe com a mesma observação, atualiza a quantidade
         cartItems[existingItemIndex].quantity += quantity;
         cartItems[existingItemIndex].total_price =
           cartItems[existingItemIndex].quantity * product.product_price;

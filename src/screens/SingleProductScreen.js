@@ -9,6 +9,7 @@ import {
   Dimensions,
   ScrollView,
   Alert,
+  TextInput,
 } from "react-native";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import { useTheme } from "../utils/ThemeContext";

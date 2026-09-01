@@ -180,7 +180,7 @@ export default function VouchersScreen({ navigation }) {
     <View style={styles.container}>
       <FlatList
         data={vouchers}
-        keyExtractor={(item) => item.voucher_id.toString()}
+        keyExtractor={(item, index) => item.voucher_id ? item.voucher_id.toString() : index.toString()}
         renderItem={VoucherItem}
         ListHeaderComponent={renderHeader}
         numColumns={numColumns}

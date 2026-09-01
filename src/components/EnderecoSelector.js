@@ -47,8 +47,14 @@ export default function EnderecoSelector({
       setLoading(true);
       const response = await getUserEnderecos();
       if (response.success) {
-        setEnderecos(response.data || []);
-        setShowForm(response.data.length === 0);
+        const enderecosList = response.data || [];
+        setEnderecos(enderecosList);
+        setShowForm(enderecosList.length === 0);
+        
+        // Auto-selecionar o primeiro endereço caso não tenha nenhum selecionado
+        if (enderecosList.length > 0 && !selectedEnderecoId) {
+          onEnderecoSelect(enderecosList[0]);
+        }
       }
     } catch (error) {
       console.error("Erro ao carregar endereços:", error);
@@ -127,8 +133,17 @@ export default function EnderecoSelector({
           visibilityTime: 3000,
         });
 
-        // Recarregar endereços
-        await loadEnderecos();
+        // Buscar os endereços atualizados para selecionar o novo
+        const refreshResponse = await getUserEnderecos();
+        if (refreshResponse.success && refreshResponse.data.length > 0) {
+          const novosEnderecos = refreshResponse.data;
+          setEnderecos(novosEnderecos);
+          // Auto-selecionar o recém-criado (geralmente o último inserido ou primeiro da lista, então enviamos o recém criado ou o primeiro)
+          const newAddress = novosEnderecos.find(e => e.rua === enderecoData.rua && e.numero === enderecoData.numero) || novosEnderecos[0];
+          onEnderecoSelect(newAddress);
+        } else {
+          await loadEnderecos();
+        }
         setShowForm(false);
 
         // Resetar formulário

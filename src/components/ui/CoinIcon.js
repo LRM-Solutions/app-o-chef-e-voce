@@ -1,16 +1,16 @@
-import React from "react";
-import { View, Image, StyleSheet, Platform } from "react-native";
-import { theme } from "../../utils/theme";
+import React, { memo } from "react";
+import { View, Image, StyleSheet } from "react-native";
+
+const COIN_SOURCE = require("../../../assets/sanscoinsnobg.png");
 
 const CoinIcon = ({ size = 20, style }) => {
-  const coinSource = require("../../../assets/sanscoinsnobg.png");
-
   return (
     <View style={[styles.container, { width: size, height: size }, style]}>
       <Image
-        source={coinSource}
+        source={COIN_SOURCE}
         style={{ width: size, height: size }}
         resizeMode="contain"
+        fadeDuration={0}
       />
     </View>
   );
@@ -24,4 +24,5 @@ const styles = StyleSheet.create({
   },
 });
 
-export default CoinIcon;
+export default memo(CoinIcon);
+

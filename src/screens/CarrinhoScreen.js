@@ -24,6 +24,7 @@ import FinalizarCompraModal from "../components/FinalizarCompraModal";
 import { createPedido } from "../api/pedidosApi";
 import { createPayment, getNotificationUrl } from "../api/paymentsApi";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function CarrinhoScreen({ navigation }) {
   const [cartItems, setCartItems] = useState([]);
@@ -36,6 +37,7 @@ export default function CarrinhoScreen({ navigation }) {
   const [processing, setProcessing] = useState(false);
   const [showFinalizarModal, setShowFinalizarModal] = useState(false);
   const [pedidoConfirmado, setPedidoConfirmado] = useState(null);
+  const insets = useSafeAreaInsets();
 
   useEffect(() => {
     loadCartItems();
@@ -298,7 +300,7 @@ export default function CarrinhoScreen({ navigation }) {
   const openPaymentUrl = async (paymentData) => {
     try {
       // Log completo dos dados de pagamento recebidos
-        "💳 Dados completos do pagamento recebidos:",
+        console.log("💳 Dados completos do pagamento recebidos:",
         JSON.stringify(paymentData, null, 2)
       );
 
@@ -315,6 +317,7 @@ export default function CarrinhoScreen({ navigation }) {
         throw new Error("URL de pagamento não encontrada na resposta");
       }
 
+        console.log({
         payment_id: paymentData.payment_id,
         preference_id: paymentData.preference_id,
         transaction_amount: paymentData.transaction_amount,
@@ -445,7 +448,6 @@ export default function CarrinhoScreen({ navigation }) {
       const produtos = cartItems.map((item) => ({
         produto_id: item.product_id,
         quantidade: item.quantity,
-        observacao: "", // Pode ser expandido futuramente
       }));
 
       // Buscar vouchers do carrinho
@@ -460,7 +462,7 @@ export default function CarrinhoScreen({ navigation }) {
       const taxaEntrega = apenasVouchers ? 0 : selectedFrete?.preco || 0.0;
 
       const pedidoPayload = {
-        endereco_id: selectedEndereco.endereco_id,
+        ...(selectedEndereco?.endereco_id && { endereco_id: selectedEndereco.endereco_id }),
         status: "PENDENTE",
         statusEntrega: "PENDENTE",
         statusPagamento: "PENDING",
@@ -471,7 +473,7 @@ export default function CarrinhoScreen({ navigation }) {
       };
 
       // Debug dos dados de pagamento
-        "🔍 PaymentData recebido:",
+        console.log("🔍 PaymentData recebido:",
         JSON.stringify(paymentData, null, 2)
       );
 
@@ -521,7 +523,7 @@ export default function CarrinhoScreen({ navigation }) {
       });
 
       // 5. Preparar dados para o modal
-        "🛒 [DEBUG] CarrinhoScreen - selectedFrete antes do modal:",
+        console.log("🛒 [DEBUG] CarrinhoScreen - selectedFrete antes do modal:",
         selectedFrete
       );
 
@@ -546,7 +548,7 @@ export default function CarrinhoScreen({ navigation }) {
         paymentResponseData: paymentResponseData,
       };
 
-        "🛒 [DEBUG] CarrinhoScreen - dadosPedido criado:",
+        console.log("🛒 [DEBUG] CarrinhoScreen - dadosPedido criado:",
         dadosPedido
       );
 
@@ -710,6 +712,14 @@ export default function CarrinhoScreen({ navigation }) {
     );
   };
 
+  const isCheckoutValid = () => {
+    if (cartItems.length === 0 && voucherCartItems.length === 0) return false;
+    if (cartItems.length > 0) {
+      if (!selectedEndereco || !selectedFrete) return false;
+    }
+    return true;
+  };
+
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
@@ -740,7 +750,7 @@ export default function CarrinhoScreen({ navigation }) {
   return (
     <View style={styles.container}>
       {/* Header da tela */}
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: Platform.OS === "ios" ? insets.top || 44 : insets.top || 20 }]}>
         <TouchableOpacity
           style={styles.backButton}
           onPress={() => navigation.goBack()}
@@ -829,25 +839,32 @@ export default function CarrinhoScreen({ navigation }) {
 
         <TouchableOpacity
           style={[
-            styles.paymentButton,
-            processing && styles.paymentButtonDisabled,
+            styles.checkoutButton,
+            !isCheckoutValid() && styles.checkoutButtonDisabled,
           ]}
+          disabled={processing || !isCheckoutValid()}
           onPress={handleGoToPayment}
-          disabled={processing}
         >
           {processing ? (
             <ActivityIndicator size="small" color="white" />
           ) : (
-            <MaterialIcons
-              name="payment"
-              size={20}
-              color="white"
-              style={styles.paymentIcon}
-            />
+            <>
+              <MaterialIcons
+                name="shopping-cart"
+                size={20}
+                color={!isCheckoutValid() ? theme.colors.textMuted : "white"}
+                style={styles.checkoutIcon}
+              />
+              <Text
+                style={[
+                  styles.checkoutText,
+                  !isCheckoutValid() && styles.checkoutTextDisabled,
+                ]}
+              >
+                Finalizar Compra
+              </Text>
+            </>
           )}
-          <Text style={styles.paymentText}>
-            {processing ? "Processando..." : "Finalizar Pedido"}
-          </Text>
         </TouchableOpacity>
       </View>
 
@@ -872,11 +889,13 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: "row",
     alignItems: "center",
+    justifyContent: "space-between",
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingBottom: 16,
     borderBottomWidth: 1,
     borderBottomColor: theme.colors.border,
-    backgroundColor: "white",
+    backgroundColor: theme.colors.background,
+    zIndex: 10,
   },
   backButton: {
     padding: 8,
@@ -985,13 +1004,11 @@ const styles = StyleSheet.create({
   itemCategory: {
     fontSize: 12,
     color: theme.colors.textMuted,
-    marginBottom: 8,
   },
   itemPrice: {
     fontSize: 14,
     color: theme.colors.primary,
     fontWeight: "500",
-    marginBottom: 8,
   },
   quantityContainer: {
     flexDirection: "row",
@@ -1075,7 +1092,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: theme.colors.primary,
   },
-  paymentButton: {
+  checkoutButton: {
     backgroundColor: theme.colors.primary,
     flexDirection: "row",
     justifyContent: "center",
@@ -1083,17 +1100,23 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     borderRadius: 12,
   },
-  paymentButtonDisabled: {
-    opacity: 0.7,
+  checkoutButtonDisabled: {
+    backgroundColor: "#e0e0e0",
   },
-  paymentIcon: {
+  checkoutIcon: {
     marginRight: 8,
   },
-  paymentText: {
+  checkoutText: {
     color: "white",
     fontSize: 16,
     fontWeight: "600",
-    marginLeft: 8,
+  },
+  checkoutTextDisabled: {
+    color: theme.colors.textMuted,
+  },
+  captionText: {
+    fontSize: 12,
+    color: theme.colors.textMuted,
   },
   sectionHeader: {
     fontSize: 16,

@@ -1,11 +1,4 @@
-import axios from "axios";
-import { config } from "../utils/config";
-
-// Configuração do axios para produtos
-const api = axios.create({
-  baseURL: config.API_BASE_URL,
-  timeout: 10000,
-});
+import api from "./apiConfig";
 
 /**
  * Busca todos os produtos
