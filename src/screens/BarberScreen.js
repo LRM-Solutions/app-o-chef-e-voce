@@ -52,7 +52,7 @@ const { width } = Dimensions.get("window");
 
 const BarberScreen = ({ navigation }) => {
   const insets = useSafeAreaInsets();
-  const { theme, isDarkMode } = useTheme();
+  const { theme, isDarkMode, reloadLogos } = useTheme();
   const BANNER_WIDTH = theme.isTablet ? width - 80 : width - 48;
   const styles = getStyles(theme);
   const scrollX = useRef(new Animated.Value(0)).current;
@@ -158,6 +158,7 @@ const BarberScreen = ({ navigation }) => {
       isAuthenticated ? loadUserBalanceAndNext() : Promise.resolve(),
       loadCatalog(),
       loadBanners(),
+      reloadLogos ? reloadLogos() : Promise.resolve(),
     ]);
   };
 
@@ -339,7 +340,7 @@ const BarberScreen = ({ navigation }) => {
           available: true,
         }));
 
-      setAvailableSlots([...available, ...occupied]);
+      setAvailableSlots(available);
       setOccupiedSlots(Array.from(occupiedTimes));
       setProviderMap(response?.provider_map || {});
     } catch (err) {
@@ -986,10 +987,12 @@ const BarberScreen = ({ navigation }) => {
         {/* Header */}
         <View style={styles.header}>
           <View style={styles.headerLeft}>
-            <Text style={styles.greeting}>
+            <Text style={styles.greeting} numberOfLines={1} ellipsizeMode="tail">
               Olá, {isAuthenticated ? currentUser.name || "Sans Company" : "Visitante"} 👋
             </Text>
-            <Text style={styles.subGreeting}>Pronto para um novo visual?</Text>
+            <Text style={styles.subGreeting} numberOfLines={1} ellipsizeMode="tail">
+              Pronto para um novo visual?
+            </Text>
           </View>
           <View style={styles.headerRight}>
             {isAuthenticated ? (
@@ -1424,7 +1427,7 @@ const getStyles = (theme) => {
       marginRight: 10,
     },
     greeting: {
-      fontSize: theme.fontSizes["3xl"],
+      fontSize: theme.fontSizes["2xl"],
       fontWeight: "700",
       color: theme.colors.textPrimary,
     },

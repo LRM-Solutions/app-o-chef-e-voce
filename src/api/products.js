@@ -24,6 +24,22 @@ export const getProducts = async () => {
 };
 
 /**
+ * Busca as categorias dinâmicas dos produtos
+ */
+export const getCategories = async () => {
+  try {
+    const response = await api.get("/app/settings/public");
+    if (response.data && response.data.PRODUCT_CATEGORIES) {
+      return JSON.parse(response.data.PRODUCT_CATEGORIES);
+    }
+    return ["Signature", "Essential", "Experience", "Outros"];
+  } catch (error) {
+    console.error("Erro ao carregar categorias:", error);
+    return ["Signature", "Essential", "Experience", "Outros"];
+  }
+};
+
+/**
  * Busca um produto específico por ID
  */
 export const getProductById = async (productId) => {

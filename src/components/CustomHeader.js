@@ -56,7 +56,7 @@ const CustomHeader = () => {
     <>
       <View style={styles.header}>
         <View style={styles.logoContainer}>
-          <Image source={Logo} style={styles.logo} resizeMode="contain" />
+          <Image source={Platform.OS === "android" ? (theme?.logos?.APP_LOGO_NOBG ? { uri: theme.logos.APP_LOGO_NOBG } : LogoAndroid) : (theme?.logos?.APP_LOGO_DEFAULT ? { uri: theme.logos.APP_LOGO_DEFAULT } : LogoDefault)} style={styles.logo} resizeMode="contain" />
         </View>
 
         {isAuthenticated ? (

@@ -1,5 +1,5 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { Appearance, useColorScheme } from 'react-native';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { Appearance, useColorScheme, AppState } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { theme as baseTheme } from './theme';
 import api from '../api/apiConfig';
@@ -15,36 +15,28 @@ export const lightColors = {
   textSecondary: "#424242",
   textMuted: "#757575",
   borderLight: "#F0F0F0",
-  // adicione outras cores claras se precisar
 };
 
 export const darkColors = {
   ...baseTheme.colors,
-  // Backgrounds — escuros profundos, sem "azul de sistema"
   background: "#0F0F0F",
   backgroundSecondary: "#181818",
   card: "#1E1E1E",
-  // Textos — alto contraste
   foreground: "#F0F0F0",
   textPrimary: "#F0F0F0",
   textSecondary: "#C4C4C4",
   textMuted: "#8A8A8A",
   textLight: "#5E5E5E",
-  // Bordas
   border: "#2E2E2E",
   borderLight: "#272727",
   input: "#2E2E2E",
-  // Roxo primário — ligeiramente mais brilhante para contrastar no fundo escuro
   primary: "#7C4DFF",
   primaryLight: "#9E6BFF",
   primaryDark: "#6200EA",
-  // Fundo dos coins — tom dourado escuro
   coinsBackground: "#2A2310",
-  // Estados semânticos — mais saturados no escuro
   successLight: "#0D2E1A",
   warningLight: "#2E2200",
   errorLight: "#2E0A10",
-  // Superfícies auxiliares
   muted: "#242424",
   secondary: "#1E1E1E",
   accent: "#252525",
@@ -56,6 +48,27 @@ export const ThemeProvider = ({ children }) => {
   const systemColorScheme = useColorScheme();
   const [themeMode, setThemeMode] = useState('system'); // 'light', 'dark', 'system'
   const [dynamicLogos, setDynamicLogos] = useState({ APP_LOGO_DEFAULT: null, APP_LOGO_NOBG: null });
+
+  const loadDynamicLogos = useCallback(async () => {
+    try {
+      const res = await api.get(`/app/settings/public?_t=${Date.now()}`);
+      if (res.data) {
+        setDynamicLogos(prev => {
+          const newDefault = res.data.APP_LOGO_DEFAULT || null;
+          const newNoBg = res.data.APP_LOGO_NOBG || null;
+          if (prev.APP_LOGO_DEFAULT !== newDefault || prev.APP_LOGO_NOBG !== newNoBg) {
+            return {
+              APP_LOGO_DEFAULT: newDefault,
+              APP_LOGO_NOBG: newNoBg,
+            };
+          }
+          return prev;
+        });
+      }
+    } catch (err) {
+      // silent catch for background polling
+    }
+  }, []);
 
   useEffect(() => {
     const loadTheme = async () => {
@@ -69,29 +82,31 @@ export const ThemeProvider = ({ children }) => {
       }
     };
 
-    const loadDynamicLogos = async () => {
-      try {
-        const res = await api.get('/app/settings/public');
-        if (res.data) {
-          setDynamicLogos({
-            APP_LOGO_DEFAULT: res.data.APP_LOGO_DEFAULT || null,
-            APP_LOGO_NOBG: res.data.APP_LOGO_NOBG || null,
-          });
-        }
-      } catch (err) {
-        console.log('Error loading dynamic logos:', err.message);
-      }
-    };
-
     loadTheme();
     loadDynamicLogos();
-  }, []);
+
+    // 1. Atualiza imediatamente ao voltar para o app (foreground)
+    const subscription = AppState.addEventListener('change', (nextAppState) => {
+      if (nextAppState === 'active') {
+        loadDynamicLogos();
+      }
+    });
+
+    // 2. Polling leve a cada 10 segundos em tempo real
+    const interval = setInterval(() => {
+      loadDynamicLogos();
+    }, 10000);
+
+    return () => {
+      subscription.remove();
+      clearInterval(interval);
+    };
+  }, [loadDynamicLogos]);
 
   const changeTheme = async (mode) => {
     setThemeMode(mode);
     try {
       await AsyncStorage.setItem('themeMode', mode);
-      // Optional: Appearance.setColorScheme(mode === 'system' ? null : mode) // Only RN 0.73+
     } catch (error) {
       console.log('Error saving theme:', error);
     }
@@ -108,7 +123,7 @@ export const ThemeProvider = ({ children }) => {
   };
 
   return (
-    <ThemeContext.Provider value={{ theme: currentTheme, changeTheme, themeMode }}>
+    <ThemeContext.Provider value={{ theme: currentTheme, changeTheme, themeMode, reloadLogos: loadDynamicLogos }}>
       {children}
     </ThemeContext.Provider>
   );

@@ -12,6 +12,9 @@ import {
   ActivityIndicator,
   Animated,
   Easing,
+  Modal,
+  Platform,
+  RefreshControl,
 } from "react-native";
 import { BlurView } from "expo-blur";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -58,7 +61,7 @@ const Watermark = ({ styles }) => {
 
 const PerfilScreen = ({ navigation }) => {
   const { logout: authLogout, isAuthenticated } = useAuth();
-  const { theme, themeMode, changeTheme } = useTheme();
+  const { theme, themeMode, changeTheme, reloadLogos } = useTheme();
   const styles = getStyles(theme);
   const [profile, setProfile] = useState(null);
   const [loadingProfile, setLoadingProfile] = useState(false);
@@ -67,6 +70,9 @@ const PerfilScreen = ({ navigation }) => {
   const [rankingList, setRankingList] = useState([]);
   const [loadingRanking, setLoadingRanking] = useState(false);
   const [myRankingPosition, setMyRankingPosition] = useState(null);
+  const [logoutModalVisible, setLogoutModalVisible] = useState(false);
+  const [deleteAccountModalVisible, setDeleteAccountModalVisible] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
@@ -77,6 +83,25 @@ const PerfilScreen = ({ navigation }) => {
       }
     }, [isAuthenticated])
   );
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    try {
+      if (isAuthenticated) {
+        await Promise.all([
+          loadProfile(),
+          loadRedemptions(),
+          loadRanking(),
+          reloadLogos ? reloadLogos() : Promise.resolve(),
+        ]);
+      } else {
+        if (reloadLogos) await reloadLogos();
+      }
+    } catch (e) {
+    } finally {
+      setRefreshing(false);
+    }
+  };
 
   const loadProfile = async () => {
     setLoadingProfile(true);
@@ -175,51 +200,30 @@ const PerfilScreen = ({ navigation }) => {
   };
 
   const handleDeleteAccount = () => {
-    const doDelete = async () => {
-      try {
-        const userEmail = await getUserEmail();
-        const response = await requestDeleteAccount();
-        if (response && userEmail) {
-          navigation.navigate("ConfirmarExclusaoCode", { userEmail });
-        } else {
-          if (Platform.OS === "web") {
-            window.alert("Não foi possível processar a solicitação.");
-          } else {
-            Alert.alert("Erro", "Não foi possível processar a solicitação.");
-          }
-        }
-      } catch (error) {
+    setDeleteAccountModalVisible(true);
+  };
+
+  const confirmDeleteAccount = async () => {
+    setDeleteAccountModalVisible(false);
+    try {
+      const userEmail = await getUserEmail();
+      const response = await requestDeleteAccount();
+      if (response && userEmail) {
+        navigation.navigate("ConfirmarExclusaoCode", { userEmail });
+      } else {
         if (Platform.OS === "web") {
-          window.alert("Erro ao processar a exclusão da conta.");
+          window.alert("Não foi possível processar a solicitação.");
         } else {
-          Alert.alert("Erro", "Erro ao processar a exclusão da conta.");
+          Alert.alert("Erro", "Não foi possível processar a solicitação.");
         }
       }
-    };
-
-    if (Platform.OS === "web") {
-      const confirmDelete = window.confirm(
-        "Esta ação é irreversível. Ao confirmar, todos os seus dados pessoais, histórico de agendamentos e saldo de Sans Coins serão apagados permanentemente de nossos servidores.\n\nDeseja prosseguir com a exclusão?"
-      );
-      if (confirmDelete) {
-        doDelete();
+    } catch (error) {
+      if (Platform.OS === "web") {
+        window.alert("Erro ao processar a exclusão da conta.");
+      } else {
+        Alert.alert("Erro", "Erro ao processar a exclusão da conta.");
       }
-      return;
     }
-
-    Alert.alert(
-      "Excluir Minha Conta",
-      "Esta ação é irreversível. Ao confirmar, todos os seus dados pessoais, histórico de agendamentos e saldo de Sans Coins serão apagados permanentemente de nossos servidores.\n\nDeseja prosseguir com a exclusão?",
-      [
-        { text: "Cancelar", style: "cancel" },
-        {
-          text: "Excluir Definitivamente",
-          style: "destructive",
-          onPress: doDelete,
-        },
-      ],
-      { cancelable: true }
-    );
   };
 
   const openExternalLink = async (url) => {
@@ -235,45 +239,31 @@ const PerfilScreen = ({ navigation }) => {
     }
   };
 
-  const handleLogout = async () => {
-    if (Platform.OS === 'web') {
-      const confirmLogout = window.confirm("Tem certeza que deseja sair?");
-      if (confirmLogout) {
-        try {
-          await logout();
-          if (typeof CartService !== 'undefined') await CartService.clearAllCart();
-          authLogout();
-          navigation.reset({
-            index: 0,
-            routes: [{ name: 'Intro' }],
-          });
-        } catch (error) {
-          alert("Erro ao fazer logout");
-        }
-      }
-      return;
-    }
+  const handleLogout = () => {
+    setLogoutModalVisible(true);
+  };
 
-    Alert.alert("Confirmar Logout", "Tem certeza que deseja sair?", [
-      { text: "Cancelar", style: "cancel" },
-      {
-        text: "Sair",
-        style: "destructive",
-        onPress: async () => {
-          try {
-            await logout();
-            if (typeof CartService !== 'undefined') await CartService.clearAllCart();
-            authLogout();
-            navigation.reset({
-              index: 0,
-              routes: [{ name: 'Login' }],
-            });
-          } catch (error) {
-            Alert.alert("Erro", "Erro ao fazer logout");
-          }
-        },
-      },
-    ]);
+  const confirmLogout = async () => {
+    setLogoutModalVisible(false);
+    try {
+      await logout();
+      if (typeof CartService !== 'undefined') await CartService.clearAllCart();
+      authLogout();
+      if (Platform.OS === 'web') {
+        navigation.reset({
+          index: 0,
+          routes: [{ name: 'Intro' }],
+        });
+      } else {
+        navigation.navigate("Barber");
+      }
+    } catch (error) {
+      if (Platform.OS === "web") {
+        alert("Erro ao fazer logout");
+      } else {
+        Alert.alert("Erro", "Erro ao fazer logout");
+      }
+    }
   };
 
   const getInitials = (name) => {
@@ -308,7 +298,18 @@ const PerfilScreen = ({ navigation }) => {
   if (!isAuthenticated) {
     return (
       <SafeAreaView style={styles.container} edges={["top"]}>
-        <ScrollView style={styles.scrollView} contentContainerStyle={[styles.content, styles.contentNotLogged, { padding: 24, paddingBottom: 40 }]}>
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={[styles.content, styles.contentNotLogged, { padding: 24, paddingBottom: 40 }]}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={[theme.colors.primary]}
+            tintColor={theme.colors.primary}
+          />
+        }
+      >
           <View style={{ alignItems: 'center', marginTop: 20 }}>
             <Image
               source={Platform.OS === "android" ? (theme?.logos?.APP_LOGO_NOBG ? { uri: theme.logos.APP_LOGO_NOBG } : require("../../assets/logosansnobg.png")) : (theme?.logos?.APP_LOGO_DEFAULT ? { uri: theme.logos.APP_LOGO_DEFAULT } : require("../../assets/sanslogo.png"))}
@@ -387,6 +388,14 @@ const PerfilScreen = ({ navigation }) => {
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={[theme.colors.primary]}
+            tintColor={theme.colors.primary}
+          />
+        }
       >
         {/* Profile Header Card */}
         <View style={styles.profileCard}>
@@ -499,42 +508,47 @@ const PerfilScreen = ({ navigation }) => {
               </View>
             ) : (
               <>
-                {rankingList.slice(0, 10).map((user, index) => (
-                  <View key={user.id || index} style={[styles.rankingItem, user.isMe && styles.rankingItemMe]}>
-                    <View style={styles.rankingPosition}>
-                      {index === 0 ? (
-                        <MaterialIcons name="emoji-events" size={24} color="#FFD700" />
-                      ) : index === 1 ? (
-                        <MaterialIcons name="emoji-events" size={24} color="#C0C0C0" />
-                      ) : index === 2 ? (
-                        <MaterialIcons name="emoji-events" size={24} color="#CD7F32" />
-                      ) : (
-                        <Text style={styles.rankingPositionText}>{user.position || index + 1}º</Text>
-                      )}
+                {rankingList.slice(0, 10).map((user, index) => {
+                  const isThisUserMe = user.isMe || (profile?.user_name && user.name === profile.user_name) || (profile?.user_id && String(user.id) === String(profile.user_id));
+                  return (
+                    <View key={user.id || index} style={[styles.rankingItem, isThisUserMe && styles.rankingItemMe]}>
+                      <View style={styles.rankingPosition}>
+                        {index === 0 ? (
+                          <MaterialIcons name="emoji-events" size={24} color="#FFD700" />
+                        ) : index === 1 ? (
+                          <MaterialIcons name="emoji-events" size={24} color="#C0C0C0" />
+                        ) : index === 2 ? (
+                          <MaterialIcons name="emoji-events" size={24} color="#CD7F32" />
+                        ) : (
+                          <Text style={styles.rankingPositionText}>{user.position || index + 1}º</Text>
+                        )}
+                      </View>
+                      <View style={styles.rankingAvatar}>
+                        {user.avatar ? (
+                          <Image source={{ uri: user.avatar }} style={styles.rankingAvatarImg} />
+                        ) : (
+                          <View style={styles.rankingAvatarPlaceholder}>
+                            <Text style={styles.rankingAvatarInitials}>{getInitials(user.name)}</Text>
+                          </View>
+                        )}
+                      </View>
+                      <View style={styles.rankingContent}>
+                        <Text style={[styles.rankingName, isThisUserMe && styles.rankingNameMe]} numberOfLines={1}>
+                          {user.name}
+                        </Text>
+                      </View>
+                      <View style={styles.rankingPoints}>
+                        <CoinIcon size={14} />
+                        <Text style={styles.rankingPointsText}>
+                          {typeof user.coins === "number" ? user.coins.toLocaleString("pt-BR") : user.coins}
+                        </Text>
+                      </View>
                     </View>
-                    <View style={styles.rankingAvatar}>
-                      {user.avatar ? (
-                        <Image source={{ uri: user.avatar }} style={styles.rankingAvatarImg} />
-                      ) : (
-                        <View style={styles.rankingAvatarPlaceholder}>
-                          <Text style={styles.rankingAvatarInitials}>{getInitials(user.name)}</Text>
-                        </View>
-                      )}
-                    </View>
-                    <View style={styles.rankingContent}>
-                      <Text style={[styles.rankingName, user.isMe && styles.rankingNameMe]} numberOfLines={1}>
-                        {user.name} {user.isMe ? " (Você)" : ""}
-                      </Text>
-                    </View>
-                    <View style={styles.rankingPoints}>
-                      <CoinIcon size={14} />
-                      <Text style={styles.rankingPointsText}>{user.coins}</Text>
-                    </View>
-                  </View>
-                ))}
+                  );
+                })}
 
                 {/* Se o usuário não estiver no top 10, mostrar a posição dele no rodapé do card */}
-                {myRankingPosition && myRankingPosition > 10 && !rankingList.slice(0, 10).some(u => u.isMe) && (
+                {myRankingPosition && myRankingPosition > 10 && !rankingList.slice(0, 10).some(u => u.isMe || (profile?.user_id && String(u.id) === String(profile.user_id))) && (
                   <View style={[styles.rankingItem, styles.rankingItemMe, { borderTopWidth: 1, borderTopColor: theme.colors.border }]}>
                     <View style={styles.rankingPosition}>
                       <Text style={styles.rankingPositionText}>{myRankingPosition}º</Text>
@@ -550,12 +564,14 @@ const PerfilScreen = ({ navigation }) => {
                     </View>
                     <View style={styles.rankingContent}>
                       <Text style={[styles.rankingName, styles.rankingNameMe]} numberOfLines={1}>
-                        {profile?.user_name || "Você"} (Você)
+                        {profile?.user_name || "Você"}
                       </Text>
                     </View>
                     <View style={styles.rankingPoints}>
                       <CoinIcon size={14} />
-                      <Text style={styles.rankingPointsText}>{profile?.user_coins_balance || 0}</Text>
+                      <Text style={styles.rankingPointsText}>
+                        {typeof profile?.user_coins_balance === "number" ? profile.user_coins_balance.toLocaleString("pt-BR") : (profile?.user_coins_balance || 0)}
+                      </Text>
                     </View>
                   </View>
                 )}
@@ -642,6 +658,74 @@ const PerfilScreen = ({ navigation }) => {
 
         <View style={{ height: 30 }} />
       </ScrollView>
+
+      {/* Logout Modal */}
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={logoutModalVisible}
+        onRequestClose={() => setLogoutModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <MaterialIcons name="logout" size={32} color={theme.colors.primary} />
+              <Text style={styles.modalTitle}>Sair da Conta</Text>
+            </View>
+            <Text style={styles.modalMessage}>
+              Tem certeza que deseja sair? Você precisará fazer login novamente.
+            </Text>
+            <View style={styles.modalActions}>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.modalButtonCancel]}
+                onPress={() => setLogoutModalVisible(false)}
+              >
+                <Text style={styles.modalButtonCancelText}>Cancelar</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.modalButtonConfirm]}
+                onPress={confirmLogout}
+              >
+                <Text style={styles.modalButtonConfirmText}>Sair</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Delete Account Modal */}
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={deleteAccountModalVisible}
+        onRequestClose={() => setDeleteAccountModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <MaterialIcons name="warning" size={32} color={theme.colors.error} />
+              <Text style={styles.modalTitle}>Excluir Minha Conta</Text>
+            </View>
+            <Text style={styles.modalMessage}>
+              Esta ação é irreversível. Ao confirmar, todos os seus dados pessoais, histórico de agendamentos e saldo de Sans Coins serão apagados permanentemente de nossos servidores.{"\n\n"}Deseja prosseguir com a exclusão?
+            </Text>
+            <View style={styles.modalActions}>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.modalButtonCancel]}
+                onPress={() => setDeleteAccountModalVisible(false)}
+              >
+                <Text style={styles.modalButtonCancelText}>Cancelar</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.modalButtonDestructive]}
+                onPress={confirmDeleteAccount}
+              >
+                <Text style={styles.modalButtonDestructiveText}>Excluir Definitivamente</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 };
@@ -879,6 +963,76 @@ const getStyles = (theme) => StyleSheet.create({
   },
   deleteAccountText: {
     color: theme.colors.error,
+    fontWeight: "700",
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  modalContent: {
+    backgroundColor: theme.colors.card,
+    borderRadius: theme.borderRadius.xl,
+    padding: 24,
+    width: '100%',
+    maxWidth: 400,
+    ...theme.shadows.lg,
+  },
+  modalHeader: {
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: theme.colors.textPrimary,
+    marginTop: 12,
+  },
+  modalMessage: {
+    fontSize: 15,
+    color: theme.colors.textMuted,
+    textAlign: 'center',
+    marginBottom: 24,
+    lineHeight: 22,
+  },
+  modalActions: {
+    flexDirection: 'column-reverse',
+    gap: 12,
+  },
+  modalButton: {
+    width: '100%',
+    paddingVertical: 14,
+    borderRadius: theme.borderRadius.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modalButtonCancel: {
+    backgroundColor: theme.colors.background,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+  },
+  modalButtonConfirm: {
+    backgroundColor: theme.colors.primary,
+  },
+  modalButtonDestructive: {
+    backgroundColor: theme.colors.error,
+  },
+  modalButtonCancelText: {
+    color: theme.colors.textPrimary,
+    fontWeight: '600',
+    fontSize: 15,
+  },
+  modalButtonConfirmText: {
+    color: '#FFF',
+    fontWeight: 'bold',
+    fontSize: 15,
+  },
+  modalButtonDestructiveText: {
+    color: '#FFF',
+    fontWeight: 'bold',
+    fontSize: 14,
   },
   logoutContainer: {
     marginTop: 4,
