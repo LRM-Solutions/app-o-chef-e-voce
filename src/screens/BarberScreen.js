@@ -226,15 +226,17 @@ const BarberScreen = ({ navigation }) => {
           status: "online",
         }));
 
-      mappedBarbers.unshift({
-        id: "any",
-        professional_id: "any",
-        name: "Qualquer Profissional",
-        avatar: null,
-        specialty: "",
-        rating: null,
-        status: "online",
-      });
+      if (mappedBarbers.length > 0) {
+        mappedBarbers.unshift({
+          id: "any",
+          professional_id: "any",
+          name: "Qualquer Profissional",
+          avatar: null,
+          specialty: "",
+          rating: null,
+          status: "online",
+        });
+      }
 
       const mappedServices = (services || []).map((s) => ({
         id: String(s.service_id),
