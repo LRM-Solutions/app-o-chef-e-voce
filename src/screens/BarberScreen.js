@@ -214,15 +214,17 @@ const BarberScreen = ({ navigation }) => {
         getPrizes().catch(() => []),
       ]);
 
-      const mappedBarbers = (pros || []).map((p) => ({
-        id: String(p.professional_id),
-        professional_id: p.professional_id,
-        name: p.name,
-        avatar: p.avatar_url,
-        specialty: p.bio || "Barbeiro",
-        rating: p.rating || 5,
-        status: "online",
-      }));
+      const mappedBarbers = (pros || [])
+        .filter((p) => p.active !== false)
+        .map((p) => ({
+          id: String(p.professional_id),
+          professional_id: p.professional_id,
+          name: p.name,
+          avatar: p.avatar_url,
+          specialty: p.bio || "Barbeiro",
+          rating: p.rating || 5,
+          status: "online",
+        }));
 
       mappedBarbers.unshift({
         id: "any",
