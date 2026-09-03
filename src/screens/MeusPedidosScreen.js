@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
+import { getUserPedidos } from "../api/pedidosApi";
 import { formatarStatusPagamento, formatarStatusPedido, cancelarPedido } from "../api/pedidoDetalhesApi";
 import { createTextStyle, createButtonStyle } from "../utils/theme";
 import { useTheme } from "../utils/ThemeContext";
