@@ -373,27 +373,30 @@ export default function CarrinhoScreen({ navigation }) {
   };
 
   const handleGoToPayment = async () => {
-    // Validações
-    if (!selectedEndereco) {
-      Alert.alert(
-        "Endereço Obrigatório",
-        "Selecione um endereço de entrega para continuar.",
-        [{ text: "OK" }]
-      );
-      return;
-    }
-
     // Verificar se há apenas vouchers no carrinho (não precisa de frete físico)
-    const apenasVouchers =
-      cartItems.length === 0 && voucherCartItems.length > 0;
+    const apenasVouchers = cartItems.length === 0 && voucherCartItems.length > 0;
+    const isPickup = deliveryMethod === "PICKUP" && !apenasVouchers;
+    const requiresAddressAndShipping = !apenasVouchers && !isPickup;
 
-    if (!apenasVouchers && !selectedFrete) {
-      Alert.alert(
-        "Frete Obrigatório",
-        "Selecione uma opção de frete para continuar.",
-        [{ text: "OK" }]
-      );
-      return;
+    // Validações
+    if (requiresAddressAndShipping) {
+      if (!selectedEndereco) {
+        Alert.alert(
+          "Endereço Obrigatório",
+          "Selecione um endereço de entrega para continuar.",
+          [{ text: "OK" }]
+        );
+        return;
+      }
+
+      if (!selectedFrete) {
+        Alert.alert(
+          "Frete Obrigatório",
+          "Selecione uma opção de frete para continuar.",
+          [{ text: "OK" }]
+        );
+        return;
+      }
     }
 
     if (
