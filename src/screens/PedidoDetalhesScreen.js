@@ -312,53 +312,41 @@ export default function PedidoDetalhesScreen({ route, navigation }) {
         </View>
 
         <View style={styles.statusContainer}>
-          {isRetirada ? (
-            <View style={styles.statusCard}>
-              <MaterialIcons
-                name="storefront"
-                size={24}
-                color={
-                  isCancelado
-                    ? "#ef4444"
-                    : isPago
-                    ? theme.colors.primary
-                    : "#f59e0b"
-                }
-              />
-              <Text style={styles.statusCardTitle}>Retirada</Text>
-              <Text
-                style={[
-                  styles.statusCardValue,
-                  {
-                    color: isCancelado
-                      ? "#ef4444"
-                      : isPago
-                      ? theme.colors.primary
-                      : "#d97706",
-                    textAlign: "center",
-                  },
-                ]}
-              >
-                {isCancelado
-                  ? "Cancelado"
-                  : isPago
-                  ? "Pronto para Retirar"
-                  : "Aguardando Pagamento"}
-              </Text>
-            </View>
-          ) : (
-            <View style={styles.statusCard}>
-              <MaterialIcons name={statusEntrega.icon} size={24} color={statusEntrega.color} />
-              <Text style={styles.statusCardTitle}>Entrega</Text>
-              <Text style={[styles.statusCardValue, { color: statusEntrega.color }]}>{statusEntrega.text}</Text>
-            </View>
-          )}
-
           <View style={styles.statusCard}>
             <MaterialIcons name={statusPagamento.icon} size={24} color={statusPagamento.color} />
             <Text style={styles.statusCardTitle}>Pagamento</Text>
             <Text style={[styles.statusCardValue, { color: statusPagamento.color }]}>{statusPagamento.text}</Text>
           </View>
+
+          {isPago && (
+            isRetirada ? (
+              <View style={styles.statusCard}>
+                <MaterialIcons
+                  name="storefront"
+                  size={24}
+                  color={theme.colors.primary}
+                />
+                <Text style={styles.statusCardTitle}>Retirada</Text>
+                <Text
+                  style={[
+                    styles.statusCardValue,
+                    {
+                      color: theme.colors.primary,
+                      textAlign: "center",
+                    },
+                  ]}
+                >
+                  Pronto para Retirar
+                </Text>
+              </View>
+            ) : (
+              <View style={styles.statusCard}>
+                <MaterialIcons name={statusEntrega.icon} size={24} color={statusEntrega.color} />
+                <Text style={styles.statusCardTitle}>Entrega</Text>
+                <Text style={[styles.statusCardValue, { color: statusEntrega.color }]}>{statusEntrega.text}</Text>
+              </View>
+            )
+          )}
         </View>
 
         {isRetirada && !isCancelado && (
