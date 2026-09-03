@@ -92,14 +92,8 @@ export const ThemeProvider = ({ children }) => {
       }
     });
 
-    // 2. Polling leve a cada 10 segundos em tempo real
-    const interval = setInterval(() => {
-      loadDynamicLogos();
-    }, 10000);
-
     return () => {
       subscription.remove();
-      clearInterval(interval);
     };
   }, [loadDynamicLogos]);
 

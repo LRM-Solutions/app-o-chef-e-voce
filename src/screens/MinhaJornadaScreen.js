@@ -32,15 +32,13 @@ const MinhaJornadaScreen = ({ navigation }) => {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
-  useFocusEffect(
-    useCallback(() => {
-      if (isAuthenticated) {
-        carregarDados();
-      } else {
-        setLoading(false);
-      }
-    }, [isAuthenticated])
-  );
+  useEffect(() => {
+    if (isAuthenticated) {
+      carregarDados();
+    } else {
+      setLoading(false);
+    }
+  }, [isAuthenticated]);
 
   const carregarDados = async () => {
     try {

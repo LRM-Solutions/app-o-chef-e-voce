@@ -85,27 +85,7 @@ const BarberScreen = ({ navigation }) => {
     loadInitialData();
   }, [isAuthenticated]);
 
-  // Recarregar agendamento ao voltar para a tela
-  useFocusEffect(
-    useCallback(() => {
-      if (isAuthenticated) {
-        loadUserBalanceAndNext();
-      }
-
-      // Resetar seleções ao voltar para a tela (limpa o fluxo após sucesso ou cancelamento)
-      setIsRescheduling(false);
-      setSelectedBarber(null);
-      setSelectedService(null);
-      setSelectedDate(null);
-      setSelectedTime(null);
-      setAvailableSlots([]);
-
-      // Resetar scroll
-      if (scrollViewRef.current) {
-        scrollViewRef.current.scrollTo({ y: 0, animated: false });
-      }
-    }, [isAuthenticated]),
-  );
+  // O recarregamento ao voltar para a tela foi removido para otimizar requisições e não apagar a seleção do usuário
 
   useEffect(() => {
     if (selectedBarber && selectedDate && selectedService) {
@@ -428,6 +408,11 @@ const BarberScreen = ({ navigation }) => {
       setNextAppointmentState(formatAppointment(appointment));
       const wasRescheduling = isRescheduling;
       setIsRescheduling(false);
+      setSelectedBarber(null);
+      setSelectedService(null);
+      setSelectedDate(null);
+      setSelectedTime(null);
+      setAvailableSlots([]);
       await loadUserBalanceAndNext();
 
       // Aguarda um pequeno momento para garantir que a animação de carregamento seja percebida e que

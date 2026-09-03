@@ -74,15 +74,13 @@ const PerfilScreen = ({ navigation }) => {
   const [deleteAccountModalVisible, setDeleteAccountModalVisible] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
-  useFocusEffect(
-    useCallback(() => {
-      if (isAuthenticated) {
-        loadProfile();
-        loadRedemptions();
-        loadRanking();
-      }
-    }, [isAuthenticated])
-  );
+  useEffect(() => {
+    if (isAuthenticated) {
+      loadProfile();
+      loadRedemptions();
+      loadRanking();
+    }
+  }, [isAuthenticated]);
 
   const onRefresh = async () => {
     setRefreshing(true);
