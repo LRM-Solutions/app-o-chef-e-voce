@@ -98,3 +98,19 @@ export const calcularTotalPedido = (pedido) => {
   const taxaEntrega = Number(pedido.taxa_entrega) || 0;
   return totalProdutos + totalVouchers + taxaEntrega;
 };
+
+/**
+ * Cancela um pedido pelo próprio usuário
+ */
+export const cancelarPedido = async (pedidoId) => {
+  try {
+    const response = await api.put(`/pedidos/${pedidoId}/cancel`);
+    return response.data;
+  } catch (error) {
+    const msg =
+      error.response?.data?.error ||
+      error.response?.data?.message ||
+      "Erro ao cancelar pedido";
+    throw new Error(msg);
+  }
+};

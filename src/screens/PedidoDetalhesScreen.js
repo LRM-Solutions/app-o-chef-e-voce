@@ -20,6 +20,7 @@ import {
   formatarStatusEntrega,
   formatarStatusPagamento,
   calcularTotalPedido,
+  cancelarPedido,
 } from "../api/pedidoDetalhesApi";
 import { createPayment } from "../api/paymentsApi";
 import Toast from "react-native-toast-message";
@@ -33,10 +34,44 @@ export default function PedidoDetalhesScreen({ route, navigation }) {
   const [pedido, setPedido] = useState(null);
   const [loading, setLoading] = useState(true);
   const [pagamentoLoading, setPagamentoLoading] = useState(false);
+  const [cancelarLoading, setCancelarLoading] = useState(false);
 
   useEffect(() => {
     carregarDetalhes();
   }, [pedidoId]);
+
+  const handleCancelarPedido = () => {
+    Alert.alert(
+      "Cancelar Pedido",
+      "Tem certeza que deseja cancelar este pedido? Os itens reservados voltarão ao estoque.",
+      [
+        { text: "Não, manter", style: "cancel" },
+        {
+          text: "Sim, cancelar",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              setCancelarLoading(true);
+              await cancelarPedido(pedido.pedido_id);
+              Toast.show({
+                type: "success",
+                text1: "Pedido Cancelado",
+                text2: "Seu pedido foi cancelado com sucesso.",
+              });
+              await carregarDetalhes();
+            } catch (err) {
+              Alert.alert(
+                "Erro ao cancelar",
+                err.message || "Não foi possível cancelar o pedido."
+              );
+            } finally {
+              setCancelarLoading(false);
+            }
+          },
+        },
+      ]
+    );
+  };
 
   const carregarDetalhes = async () => {
     try {
@@ -244,6 +279,13 @@ export default function PedidoDetalhesScreen({ route, navigation }) {
     pedido.endereco_id === null ||
     (pedido.observacoes && pedido.observacoes.toLowerCase().includes("retirar"))
   );
+  const isPago = Boolean(
+    pedido.statusPagamento === "APPROVED" ||
+    pedido.statusPagamento === "PAID" ||
+    pedido.statusPagamento === "APROVADO"
+  );
+  const isCancelado = pedido.status === "CANCELADO" || pedido.statusPagamento === "CANCELLED";
+  const podeCancelar = pedido.status === "PENDENTE" && pedido.statusEntrega !== "ENVIADO" && pedido.statusEntrega !== "ENTREGUE";
 
   return (
     <SafeAreaView style={styles.container} edges={["top"]}>
@@ -272,10 +314,36 @@ export default function PedidoDetalhesScreen({ route, navigation }) {
         <View style={styles.statusContainer}>
           {isRetirada ? (
             <View style={styles.statusCard}>
-              <MaterialIcons name="storefront" size={24} color={theme.colors.primary} />
+              <MaterialIcons
+                name="storefront"
+                size={24}
+                color={
+                  isCancelado
+                    ? "#ef4444"
+                    : isPago
+                    ? theme.colors.primary
+                    : "#f59e0b"
+                }
+              />
               <Text style={styles.statusCardTitle}>Retirada</Text>
-              <Text style={[styles.statusCardValue, { color: theme.colors.primary, textAlign: "center" }]}>
-                Pronto para Retirar
+              <Text
+                style={[
+                  styles.statusCardValue,
+                  {
+                    color: isCancelado
+                      ? "#ef4444"
+                      : isPago
+                      ? theme.colors.primary
+                      : "#d97706",
+                    textAlign: "center",
+                  },
+                ]}
+              >
+                {isCancelado
+                  ? "Cancelado"
+                  : isPago
+                  ? "Pronto para Retirar"
+                  : "Aguardando Pagamento"}
               </Text>
             </View>
           ) : (
@@ -293,12 +361,44 @@ export default function PedidoDetalhesScreen({ route, navigation }) {
           </View>
         </View>
 
-        {isRetirada && (
-          <View style={styles.retiradaBanner}>
-            <MaterialIcons name="check-circle" size={22} color={theme.colors.primary} />
-            <Text style={styles.retiradaBannerText}>
-              Seu produto está pronto para retirar na loja!
-            </Text>
+        {isRetirada && !isCancelado && (
+          <View
+            style={[
+              styles.retiradaBanner,
+              !isPago && {
+                backgroundColor: isDarkMode ? "#2d2417" : "#fffbeb",
+                borderColor: isDarkMode ? "#574424" : "#fde68a",
+              },
+            ]}
+          >
+            <MaterialIcons
+              name={isPago ? "check-circle" : "schedule"}
+              size={22}
+              color={isPago ? theme.colors.primary : "#d97706"}
+            />
+            <View style={{ flex: 1 }}>
+              <Text
+                style={[
+                  styles.retiradaBannerText,
+                  !isPago && { color: isDarkMode ? "#fde68a" : "#b45309" },
+                ]}
+              >
+                {isPago
+                  ? "Seu produto está pronto para retirar na loja!"
+                  : "Aguardando Pagamento"}
+              </Text>
+              <Text
+                style={{
+                  fontSize: 12,
+                  color: isDarkMode ? "#a1a1aa" : "#6b7280",
+                  marginTop: 2,
+                }}
+              >
+                {isPago
+                  ? `Apresente o número deste pedido (#${pedido.pedido_id}) na recepção da barbearia.`
+                  : "O pedido será liberado para retirada assim que o pagamento for confirmado."}
+              </Text>
+            </View>
           </View>
         )}
 
@@ -393,22 +493,41 @@ export default function PedidoDetalhesScreen({ route, navigation }) {
         </View>
       </ScrollView>
 
-      {statusPagamento.needsPayment && (
+      {(statusPagamento.needsPayment || podeCancelar) && !isCancelado && (
         <View style={styles.footer}>
-          <TouchableOpacity
-            style={[styles.paymentButton, pagamentoLoading && styles.paymentButtonDisabled]}
-            onPress={irParaPagamento}
-            disabled={pagamentoLoading}
-          >
-            {pagamentoLoading ? (
-              <ActivityIndicator size="small" color="white" />
-            ) : (
-              <>
-                <MaterialIcons name="payment" size={20} color="white" />
-                <Text style={styles.paymentButtonText}>Ir para Pagamento</Text>
-              </>
-            )}
-          </TouchableOpacity>
+          {statusPagamento.needsPayment && (
+            <TouchableOpacity
+              style={[styles.paymentButton, pagamentoLoading && styles.paymentButtonDisabled]}
+              onPress={irParaPagamento}
+              disabled={pagamentoLoading || cancelarLoading}
+            >
+              {pagamentoLoading ? (
+                <ActivityIndicator size="small" color="white" />
+              ) : (
+                <>
+                  <MaterialIcons name="payment" size={20} color="white" />
+                  <Text style={styles.paymentButtonText}>Ir para Pagamento</Text>
+                </>
+              )}
+            </TouchableOpacity>
+          )}
+
+          {podeCancelar && (
+            <TouchableOpacity
+              style={[styles.cancelButton, cancelarLoading && styles.paymentButtonDisabled]}
+              onPress={handleCancelarPedido}
+              disabled={cancelarLoading || pagamentoLoading}
+            >
+              {cancelarLoading ? (
+                <ActivityIndicator size="small" color="#ef4444" />
+              ) : (
+                <>
+                  <MaterialIcons name="close" size={18} color="#ef4444" />
+                  <Text style={styles.cancelButtonText}>Cancelar Pedido</Text>
+                </>
+              )}
+            </TouchableOpacity>
+          )}
         </View>
       )}
     </SafeAreaView>
@@ -497,8 +616,30 @@ const getStyles = (theme, isDarkMode) => StyleSheet.create({
   totalRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingTop: 12, borderTopWidth: 1, borderTopColor: theme.colors.borderLight },
   totalLabel: { fontSize: 16, fontWeight: "600", color: theme.colors.foreground },
   totalValue: { fontSize: 18, fontWeight: "700", color: theme.colors.primary },
-  footer: { backgroundColor: theme.colors.card, padding: 16, borderTopWidth: 1, borderTopColor: theme.colors.borderLight },
-  paymentButton: { backgroundColor: theme.colors.primary, flexDirection: "row", justifyContent: "center", alignItems: "center", paddingVertical: 16, borderRadius: 12 },
+  footer: {
+    backgroundColor: theme.colors.card,
+    padding: 16,
+    borderTopWidth: 1,
+    borderTopColor: theme.colors.borderLight,
+    gap: 10,
+  },
+  paymentButton: { backgroundColor: theme.colors.primary, flexDirection: "row", justifyContent: "center", alignItems: "center", paddingVertical: 15, borderRadius: 12 },
   paymentButtonDisabled: { opacity: 0.7 },
   paymentButtonText: { color: "white", fontSize: 16, fontWeight: "600", marginLeft: 8 },
+  cancelButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 13,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: isDarkMode ? "#451a1a" : "#fecaca",
+    backgroundColor: isDarkMode ? "#2d1212" : "#fff5f5",
+    gap: 6,
+  },
+  cancelButtonText: {
+    color: "#ef4444",
+    fontSize: 14,
+    fontWeight: "600",
+  },
 });

@@ -12,7 +12,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import { getUserPedidos } from "../api/pedidosApi";
-import { formatarStatusPagamento } from "../api/pedidoDetalhesApi";
+import { formatarStatusPagamento, cancelarPedido } from "../api/pedidoDetalhesApi";
 import { createTextStyle, createButtonStyle } from "../utils/theme";
 import { useTheme } from "../utils/ThemeContext";
 import Skeleton from "../components/ui/Skeleton";
@@ -76,6 +76,32 @@ const MeusPedidosScreen = ({ navigation }) => {
     });
   };
 
+  const confirmarCancelamento = (pedidoId) => {
+    Alert.alert(
+      "Cancelar Pedido",
+      "Tem certeza que deseja cancelar este pedido? Se houver produtos reservados, eles voltarão para o estoque.",
+      [
+        { text: "Não, manter", style: "cancel" },
+        {
+          text: "Sim, cancelar",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              setLoading(true);
+              await cancelarPedido(pedidoId);
+              Alert.alert("Sucesso", "Seu pedido foi cancelado com sucesso.");
+              await carregarPedidos();
+            } catch (err) {
+              Alert.alert("Erro ao cancelar", err.message || "Não foi possível cancelar o pedido.");
+            } finally {
+              setLoading(false);
+            }
+          },
+        },
+      ]
+    );
+  };
+
   const getProductItemPrice = (product) => {
     if (!product) return 0;
     const promo = Number(product.promotional_price);
@@ -113,6 +139,13 @@ const MeusPedidosScreen = ({ navigation }) => {
 
     // Usar o status de pagamento com as cores padrão do sistema
     const statusPagamento = formatarStatusPagamento(item.statusPagamento);
+    const isPago = Boolean(
+      item.statusPagamento === "APPROVED" ||
+      item.statusPagamento === "PAID" ||
+      item.statusPagamento === "APROVADO"
+    );
+    const isCancelado = item.status === "CANCELADO" || item.statusPagamento === "CANCELLED";
+    const podeCancelar = item.status === "PENDENTE" && item.statusEntrega !== "ENVIADO" && item.statusEntrega !== "ENTREGUE";
 
     return (
       <TouchableOpacity
@@ -148,17 +181,36 @@ const MeusPedidosScreen = ({ navigation }) => {
           <MaterialIcons
             name={item.endereco ? "location-on" : "storefront"}
             size={16}
-            color={item.endereco ? theme.colors.textMuted : theme.colors.primary}
+            color={
+              item.endereco
+                ? theme.colors.textMuted
+                : isCancelado
+                ? "#ef4444"
+                : isPago
+                ? theme.colors.primary
+                : "#f59e0b"
+            }
           />
           <Text
             style={[
               styles.enderecoText,
-              !item.endereco && { color: theme.colors.primary, fontWeight: "600" },
+              !item.endereco && {
+                color: isCancelado
+                  ? "#ef4444"
+                  : isPago
+                  ? theme.colors.primary
+                  : "#d97706",
+                fontWeight: "600",
+              },
             ]}
           >
             {item.endereco
               ? `${item.endereco.rua}, ${item.endereco.numero} - ${item.endereco.bairro}${item.endereco.complemento ? `, ${item.endereco.complemento}` : ""}`
-              : "Seu produto está pronto para retirar na loja"}
+              : isCancelado
+              ? "Retirada na Barbearia (Cancelado)"
+              : isPago
+              ? "Seu produto está pronto para retirar na loja!"
+              : "Retirar na Barbearia (Aguardando Pagamento)"}
           </Text>
         </View>
 
@@ -211,18 +263,28 @@ const MeusPedidosScreen = ({ navigation }) => {
           </View>
         )}
 
-        {/* Footer com Total */}
+        {/* Footer com Total e Ações */}
         <View style={styles.cardFooter}>
           <View style={styles.totalSection}>
             <Text style={styles.totalLabel}>Total:</Text>
             <Text style={styles.totalValue}>R$ {total.toFixed(2)}</Text>
           </View>
-          <TouchableOpacity
-            style={styles.detalhesButton}
-            onPress={() => navegarParaDetalhes(item.pedido_id)}
-          >
-            <Text style={styles.detalhesButtonText}>Ver Detalhes</Text>
-          </TouchableOpacity>
+          <View style={{ flexDirection: "row", gap: 8, alignItems: "center" }}>
+            {podeCancelar && !isCancelado && (
+              <TouchableOpacity
+                style={styles.cancelarCardButton}
+                onPress={() => confirmarCancelamento(item.pedido_id)}
+              >
+                <Text style={styles.cancelarCardButtonText}>Cancelar</Text>
+              </TouchableOpacity>
+            )}
+            <TouchableOpacity
+              style={styles.detalhesButton}
+              onPress={() => navegarParaDetalhes(item.pedido_id)}
+            >
+              <Text style={styles.detalhesButtonText}>Ver Detalhes</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </TouchableOpacity>
     );
@@ -453,6 +515,19 @@ const getStyles = (theme, isDarkMode) => StyleSheet.create({
     ...createTextStyle("caption", "primary", theme),
     fontWeight: "600",
     textDecorationLine: "underline",
+  },
+  cancelarCardButton: {
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: isDarkMode ? "#451a1a" : "#fecaca",
+    backgroundColor: isDarkMode ? "#2d1212" : "#fff5f5",
+  },
+  cancelarCardButtonText: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: "#ef4444",
   },
   loadingContainer: {
     flex: 1,
