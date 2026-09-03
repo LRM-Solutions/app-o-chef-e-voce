@@ -32,6 +32,7 @@ const gap = 16;
 export default function ProductsScreen({ navigation }) {
   const { theme, themeMode } = useTheme();
   const isDarkMode = theme?.isDarkMode ?? (themeMode === "dark");
+  const isDark = isDarkMode;
   const { width: screenWidth } = useWindowDimensions();
   const ITEM_WIDTH = (screenWidth - padding - (gap * (numColumns - 1))) / numColumns;
   const styles = getStyles(theme, ITEM_WIDTH, isDarkMode);
