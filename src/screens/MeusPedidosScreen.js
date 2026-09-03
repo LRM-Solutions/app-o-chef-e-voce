@@ -12,7 +12,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import { getUserPedidos } from "../api/pedidosApi";
-import { formatarStatusPagamento, formatarStatusPedido, cancelarPedido } from "../api/pedidoDetalhesApi";
+import { formatarStatusPagamento, formatarStatusPedido } from "../api/pedidoDetalhesApi";
 import { createTextStyle, createButtonStyle } from "../utils/theme";
 import { useTheme } from "../utils/ThemeContext";
 import Skeleton from "../components/ui/Skeleton";
@@ -74,32 +74,6 @@ const MeusPedidosScreen = ({ navigation }) => {
       hour: "2-digit",
       minute: "2-digit",
     });
-  };
-
-  const confirmarCancelamento = (pedidoId) => {
-    Alert.alert(
-      "Cancelar Pedido",
-      "Tem certeza que deseja cancelar este pedido? Se houver produtos reservados, eles voltarão para o estoque.",
-      [
-        { text: "Não, manter", style: "cancel" },
-        {
-          text: "Sim, cancelar",
-          style: "destructive",
-          onPress: async () => {
-            try {
-              setLoading(true);
-              await cancelarPedido(pedidoId);
-              Alert.alert("Sucesso", "Seu pedido foi cancelado com sucesso.");
-              await carregarPedidos();
-            } catch (err) {
-              Alert.alert("Erro ao cancelar", err.message || "Não foi possível cancelar o pedido.");
-            } finally {
-              setLoading(false);
-            }
-          },
-        },
-      ]
-    );
   };
 
   const getProductItemPrice = (product) => {
@@ -300,28 +274,18 @@ const MeusPedidosScreen = ({ navigation }) => {
           </View>
         )}
 
-        {/* Footer com Total e Ações */}
+        {/* Footer com Total */}
         <View style={styles.cardFooter}>
           <View style={styles.totalSection}>
             <Text style={styles.totalLabel}>Total:</Text>
             <Text style={styles.totalValue}>R$ {total.toFixed(2)}</Text>
           </View>
-          <View style={{ flexDirection: "row", gap: 8, alignItems: "center" }}>
-            {podeCancelar && !isCancelado && (
-              <TouchableOpacity
-                style={styles.cancelarCardButton}
-                onPress={() => confirmarCancelamento(item.pedido_id)}
-              >
-                <Text style={styles.cancelarCardButtonText}>Cancelar</Text>
-              </TouchableOpacity>
-            )}
-            <TouchableOpacity
-              style={styles.detalhesButton}
-              onPress={() => navegarParaDetalhes(item.pedido_id)}
-            >
-              <Text style={styles.detalhesButtonText}>Ver Detalhes</Text>
-            </TouchableOpacity>
-          </View>
+          <TouchableOpacity
+            style={styles.detalhesButton}
+            onPress={() => navegarParaDetalhes(item.pedido_id)}
+          >
+            <Text style={styles.detalhesButtonText}>Ver Detalhes</Text>
+          </TouchableOpacity>
         </View>
       </TouchableOpacity>
     );
@@ -552,19 +516,6 @@ const getStyles = (theme, isDarkMode) => StyleSheet.create({
     ...createTextStyle("caption", "primary", theme),
     fontWeight: "600",
     textDecorationLine: "underline",
-  },
-  cancelarCardButton: {
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: isDarkMode ? "#451a1a" : "#fecaca",
-    backgroundColor: isDarkMode ? "#2d1212" : "#fff5f5",
-  },
-  cancelarCardButtonText: {
-    fontSize: 13,
-    fontWeight: "600",
-    color: "#ef4444",
   },
   loadingContainer: {
     flex: 1,
