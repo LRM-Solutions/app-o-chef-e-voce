@@ -74,11 +74,21 @@ export default function ProductsScreen({ navigation }) {
     }
   };
 
-  const onRefresh = useCallback(async () => {
+  const onRefresh = async () => {
     setRefreshing(true);
-    await loadData(true);
-    setRefreshing(false);
-  }, []);
+    try {
+      const [productsData, categoriesData] = await Promise.all([
+        getProducts(),
+        getCategories(),
+      ]);
+      if (productsData) setProducts(productsData);
+      if (categoriesData) setCategories(["Todos", ...categoriesData]);
+    } catch (error) {
+      console.error("Erro ao carregar dados da loja:", error);
+    } finally {
+      setRefreshing(false);
+    }
+  };
 
   const navigateToProduct = (productId) => {
     navigation.navigate("SingleProduct", { productId });
@@ -225,14 +235,15 @@ export default function ProductsScreen({ navigation }) {
     return (
       <View style={styles.emptyContainer}>
         <View style={styles.emptyIconCircle}>
-          <MaterialIcons name="inventory-2" size={40} color={theme.colors.primary} />
+          <MaterialIcons
+            name="inventory-2"
+            size={36}
+            color={theme.colors.primary || "#7C4DFF"}
+          />
         </View>
         <Text style={styles.emptyText}>
           Nenhum produto {selectedCategory !== "Todos" ? `em ${selectedCategory}` : "encontrado"}
         </Text>
-        <TouchableOpacity style={styles.retryButton} onPress={loadData}>
-          <Text style={styles.retryButtonText}>Recarregar</Text>
-        </TouchableOpacity>
       </View>
     );
   };
@@ -258,21 +269,20 @@ export default function ProductsScreen({ navigation }) {
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['bottom']}>
+      {renderHeader()}
       <FlatList
         data={filteredProducts}
         keyExtractor={(item, index) => item.product_id ? item.product_id.toString() : index.toString()}
         renderItem={ProductItem}
-        ListHeaderComponent={renderHeader}
         numColumns={numColumns}
         key={numColumns} // Força re-render se mudar o número de colunas
-        columnWrapperStyle={styles.row}
+        columnWrapperStyle={filteredProducts.length > 0 ? styles.row : undefined}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
             colors={[theme.colors.primary || "#7C4DFF"]}
             tintColor={theme.colors.primary || "#7C4DFF"}
-            progressViewOffset={10}
           />
         }
         alwaysBounceVertical={true}
@@ -280,11 +290,11 @@ export default function ProductsScreen({ navigation }) {
         overScrollMode="always"
         ListEmptyComponent={renderEmpty}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={
-          filteredProducts.length === 0
-            ? styles.emptyListContainer
-            : styles.listContainer
-        }
+        contentContainerStyle={[
+          styles.listContainer,
+          filteredProducts.length === 0 && styles.emptyListContainer,
+          { flexGrow: 1 },
+        ]}
       />
     </SafeAreaView>
   );
@@ -336,7 +346,8 @@ const getStyles = (theme, itemWidth, isDark) => StyleSheet.create({
     fontWeight: "700",
   },
   listContainer: {
-    paddingBottom: 32,
+    paddingBottom: 40,
+    flexGrow: 1,
   },
   row: {
     justifyContent: "space-between",
@@ -519,26 +530,11 @@ const getStyles = (theme, itemWidth, isDark) => StyleSheet.create({
     flexGrow: 1,
   },
   emptyText: {
-    fontSize: 16,
-    fontWeight: "500",
-    color: isDark ? "#F0F0F0" : theme.colors.foreground,
-    marginBottom: 24,
-    textAlign: "center",
-  },
-  retryButton: {
-    backgroundColor: theme.colors.primary || "#7C4DFF",
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 24,
-    shadowColor: theme.colors.primary || "#7C4DFF",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  retryButtonText: {
-    color: "white",
     fontSize: 15,
-    fontWeight: "700",
+    fontWeight: "500",
+    color: isDark ? "#A0A0A5" : theme.colors.muted || "#6B7280",
+    textAlign: "center",
+    maxWidth: 260,
+    lineHeight: 22,
   },
 });

@@ -241,25 +241,6 @@ export default function SingleProductScreen({ route, navigation }) {
             </Text>
           )}
 
-          {/* Status do estoque */}
-          <View style={styles.stockContainer}>
-            <MaterialIcons
-              name="inventory"
-              size={18}
-              color={inStock ? "#4CAF50" : "#f44336"}
-            />
-            <Text
-              style={[
-                styles.stockText,
-                { color: inStock ? (isDark ? "#81C784" : "#4CAF50") : "#f44336" },
-              ]}
-            >
-              {inStock
-                ? `${product.product_quantity} unidades em estoque`
-                : "Produto esgotado"}
-            </Text>
-          </View>
-
           {/* Descrição do produto */}
           {Boolean(product.description) && (
             <View style={styles.descriptionSection}>
@@ -531,16 +512,6 @@ const getStyles = (theme, isDark) => StyleSheet.create({
     fontSize: 14,
     color: isDark ? "#A0A0A5" : theme.colors.textMuted,
     lineHeight: 22,
-  },
-  stockContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 20,
-  },
-  stockText: {
-    fontSize: 14,
-    fontWeight: "600",
-    marginLeft: 8,
   },
   quantitySection: {
     marginBottom: 28,
