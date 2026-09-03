@@ -130,12 +130,6 @@ export default function ProductsScreen({ navigation }) {
             </View>
           )}
 
-          {/* Category Badge Inside Image */}
-          {item.product_category && item.product_category !== "Outros" && (
-            <View style={styles.categoryBadge}>
-              <Text style={styles.categoryText}>{item.product_category}</Text>
-            </View>
-          )}
 
           {/* Promo Badge Inside Image */}
           {hasPromo && (
@@ -381,22 +375,6 @@ const getStyles = (theme, itemWidth, isDark) => StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: isDark ? "#16161A" : "#F0F0F4",
-  },
-  categoryBadge: {
-    position: "absolute",
-    bottom: 8,
-    left: 8,
-    backgroundColor: "rgba(0,0,0,0.7)",
-    borderRadius: 6,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-  },
-  categoryText: {
-    color: "#FFFFFF",
-    fontSize: 10,
-    fontWeight: "700",
-    letterSpacing: 0.5,
-    textTransform: "uppercase",
   },
   promoBadge: {
     position: "absolute",
