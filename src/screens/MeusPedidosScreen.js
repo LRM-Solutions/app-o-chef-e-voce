@@ -11,8 +11,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
-import { getUserPedidos } from "../api/pedidosApi";
-import { formatarStatusPagamento, cancelarPedido } from "../api/pedidoDetalhesApi";
+import { formatarStatusPagamento, formatarStatusPedido, cancelarPedido } from "../api/pedidoDetalhesApi";
 import { createTextStyle, createButtonStyle } from "../utils/theme";
 import { useTheme } from "../utils/ThemeContext";
 import Skeleton from "../components/ui/Skeleton";
@@ -134,11 +133,48 @@ const MeusPedidosScreen = ({ navigation }) => {
     return totalProducts + totalVouchers + taxaEntrega;
   };
 
+  const obterBadgeStatusCard = (item) => {
+    // 1. Cancelado
+    if (item.status === "CANCELADO" || item.statusPagamento === "CANCELLED") {
+      return { text: "Cancelado", color: "#ef4444", icon: "cancel" };
+    }
+
+    // 2. Concluído
+    if (item.status === "CONCLUIDO" || item.status === "CONCLUÍDO") {
+      return { text: "Concluído", color: "#10b981", icon: "check-circle" };
+    }
+
+    // 3. Status de Entrega (se for delivery e estiver enviado ou entregue)
+    if (item.statusEntrega === "ENTREGUE") {
+      return { text: "Entregue", color: "#10b981", icon: "done-all" };
+    }
+    if (item.statusEntrega === "ENVIADO") {
+      return { text: "Enviado", color: "#3b82f6", icon: "local-shipping" };
+    }
+
+    // 4. Pagamento Pendente
+    if (item.statusPagamento === "PENDING" || item.statusPagamento === "PENDENTE") {
+      return { text: "Pagamento Pendente", color: "#f59e0b", icon: "schedule" };
+    }
+
+    // 5. Se já foi pago
+    if (
+      item.statusPagamento === "APPROVED" ||
+      item.statusPagamento === "PAID" ||
+      item.statusPagamento === "APROVADO"
+    ) {
+      if (!item.endereco || (item.observacoes && item.observacoes.toLowerCase().includes("retirar"))) {
+        return { text: "Pronto p/ Retirar", color: "#10b981", icon: "storefront" };
+      }
+      return { text: "Confirmado", color: "#3b82f6", icon: "check-circle" };
+    }
+
+    return formatarStatusPedido(item.status);
+  };
+
   const renderPedidoCard = ({ item }) => {
     const total = calcularTotalPedido(item);
-
-    // Usar o status de pagamento com as cores padrão do sistema
-    const statusPagamento = formatarStatusPagamento(item.statusPagamento);
+    const badgeStatus = obterBadgeStatusCard(item);
     const isPago = Boolean(
       item.statusPagamento === "APPROVED" ||
       item.statusPagamento === "PAID" ||
@@ -164,15 +200,15 @@ const MeusPedidosScreen = ({ navigation }) => {
           <View
             style={[
               styles.statusBadge,
-              { backgroundColor: statusPagamento.color },
+              { backgroundColor: badgeStatus.color },
             ]}
           >
             <MaterialIcons
-              name={statusPagamento.icon}
+              name={badgeStatus.icon}
               size={16}
               color="white"
             />
-            <Text style={styles.statusText}>{statusPagamento.text}</Text>
+            <Text style={styles.statusText}>{badgeStatus.text}</Text>
           </View>
         </View>
 

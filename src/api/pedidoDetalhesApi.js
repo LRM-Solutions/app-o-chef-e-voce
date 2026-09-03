@@ -36,12 +36,15 @@ export const formatarStatusPedido = (status) => {
   const statusMap = {
     PENDENTE: { text: "Pendente", color: "#f59e0b", icon: "schedule" },
     CONFIRMADO: { text: "Confirmado", color: "#3b82f6", icon: "check-circle" },
-    PREPARANDO: { text: "Preparando", color: "#8b5cf6", icon: "restaurant" },
-    SAIU_ENTREGA: { text: "Saiu para Entrega", color: "#06b6d4", icon: "local-shipping" },
+    PREPARANDO: { text: "Preparando", color: "#8b5cf6", icon: "inventory" },
+    CONCLUIDO: { text: "Concluído", color: "#10b981", icon: "check-circle" },
+    CONCLUÍDO: { text: "Concluído", color: "#10b981", icon: "check-circle" },
+    SAIU_ENTREGA: { text: "Em Rota", color: "#06b6d4", icon: "local-shipping" },
+    ENVIADO: { text: "Enviado", color: "#3b82f6", icon: "local-shipping" },
     ENTREGUE: { text: "Entregue", color: "#10b981", icon: "done-all" },
     CANCELADO: { text: "Cancelado", color: "#ef4444", icon: "cancel" },
   };
-  return statusMap[status] || { text: status, color: "#6b7280", icon: "help" };
+  return statusMap[status] || { text: status || "Pendente", color: "#6b7280", icon: "info" };
 };
 
 /**
@@ -50,12 +53,13 @@ export const formatarStatusPedido = (status) => {
 export const formatarStatusEntrega = (statusEntrega) => {
   const statusMap = {
     PENDENTE: { text: "Pendente", color: "#f59e0b", icon: "schedule" },
-    PREPARANDO: { text: "Preparando", color: "#8b5cf6", icon: "restaurant" },
-    SAIU_ENTREGA: { text: "Saiu para Entrega", color: "#06b6d4", icon: "local-shipping" },
+    PREPARANDO: { text: "Preparando Envio", color: "#8b5cf6", icon: "inventory" },
+    ENVIADO: { text: "Enviado", color: "#3b82f6", icon: "local-shipping" },
+    SAIU_ENTREGA: { text: "Em Rota de Entrega", color: "#3b82f6", icon: "local-shipping" },
     ENTREGUE: { text: "Entregue", color: "#10b981", icon: "done-all" },
     CANCELADO: { text: "Cancelado", color: "#ef4444", icon: "cancel" },
   };
-  return statusMap[statusEntrega] || { text: statusEntrega, color: "#6b7280", icon: "help" };
+  return statusMap[statusEntrega] || { text: statusEntrega || "Pendente", color: "#3b82f6", icon: "local-shipping" };
 };
 
 /**
@@ -64,14 +68,18 @@ export const formatarStatusEntrega = (statusEntrega) => {
 export const formatarStatusPagamento = (statusPagamento) => {
   const statusMap = {
     PENDING: { text: "Pendente", color: "#f59e0b", icon: "schedule", needsPayment: true },
+    PENDENTE: { text: "Pendente", color: "#f59e0b", icon: "schedule", needsPayment: true },
     APPROVED: { text: "Aprovado", color: "#10b981", icon: "check-circle", needsPayment: false },
+    APROVADO: { text: "Aprovado", color: "#10b981", icon: "check-circle", needsPayment: false },
+    PAID: { text: "Aprovado", color: "#10b981", icon: "check-circle", needsPayment: false },
     AUTHORIZED: { text: "Autorizado", color: "#3b82f6", icon: "verified", needsPayment: false },
     IN_PROCESS: { text: "Em Processamento", color: "#8b5cf6", icon: "autorenew", needsPayment: false },
-    REJECTED: { text: "Rejeitado", color: "#ef4444", icon: "cancel", needsPayment: true },
-    CANCELLED: { text: "Cancelado", color: "#6b7280", icon: "cancel", needsPayment: true },
+    REJECTED: { text: "Recusado", color: "#ef4444", icon: "cancel", needsPayment: true },
+    CANCELLED: { text: "Cancelado", color: "#ef4444", icon: "cancel", needsPayment: false },
+    CANCELADO: { text: "Cancelado", color: "#ef4444", icon: "cancel", needsPayment: false },
     REFUNDED: { text: "Reembolsado", color: "#06b6d4", icon: "replay", needsPayment: false },
   };
-  return statusMap[statusPagamento] || { text: statusPagamento, color: "#6b7280", icon: "help", needsPayment: false };
+  return statusMap[statusPagamento] || { text: statusPagamento || "Pendente", color: "#6b7280", icon: "info", needsPayment: false };
 };
 
 /**
