@@ -76,25 +76,40 @@ const MeusPedidosScreen = ({ navigation }) => {
     });
   };
 
-  const calcularTotalPedido = (pedidoProducts, pedidoVouchers) => {
-    const totalProducts = pedidoProducts.reduce((total, item) => {
-      return total + item.product.product_price * item.pedido_product_quantity;
+  const getProductItemPrice = (product) => {
+    if (!product) return 0;
+    const promo = Number(product.promotional_price);
+    const normal = Number(product.product_price) || 0;
+    if (promo && promo > 0 && promo < normal) {
+      return promo;
+    }
+    return normal;
+  };
+
+  const calcularTotalPedido = (pedido) => {
+    if (!pedido) return 0;
+    const pedidoProducts = pedido.pedido_product || [];
+    const pedidoVouchers = pedido.pedido_voucher || [];
+
+    const totalProducts = pedidoProducts.reduce((total, pItem) => {
+      const price = getProductItemPrice(pItem.product);
+      const qty = Number(pItem.pedido_product_quantity) || 1;
+      return total + price * qty;
     }, 0);
 
-    const totalVouchers = pedidoVouchers.reduce((total, voucher) => {
-      return (
-        total + voucher.voucher.voucher_price * voucher.pedido_voucher_quantity
-      );
+    const totalVouchers = pedidoVouchers.reduce((total, vItem) => {
+      const price = Number(vItem.voucher?.voucher_price) || 0;
+      const qty = Number(vItem.pedido_voucher_quantity) || 1;
+      return total + price * qty;
     }, 0);
 
-    return totalProducts + totalVouchers;
+    const taxaEntrega = Number(pedido.taxa_entrega) || 0;
+
+    return totalProducts + totalVouchers + taxaEntrega;
   };
 
   const renderPedidoCard = ({ item }) => {
-    const total = calcularTotalPedido(
-      item.pedido_product,
-      item.pedido_voucher || []
-    );
+    const total = calcularTotalPedido(item);
 
     // Usar o status de pagamento com as cores padrão do sistema
     const statusPagamento = formatarStatusPagamento(item.statusPagamento);
@@ -150,12 +165,30 @@ const MeusPedidosScreen = ({ navigation }) => {
         {/* Lista de Produtos */}
         <View style={styles.produtosSection}>
           <Text style={styles.sectionTitle}>Itens:</Text>
-          {item.pedido_product.map((produtoItem, index) => (
-            <View key={index} style={styles.produtoItem}>
-              <Text style={styles.produtoNome}>{produtoItem.pedido_product_quantity}x {produtoItem.product.product_name}</Text>
-              <Text style={styles.produtoPreco}>R$ {(produtoItem.product.product_price * produtoItem.pedido_product_quantity).toFixed(2)}</Text>
+          {item.pedido_product.map((produtoItem, index) => {
+            const price = getProductItemPrice(produtoItem.product);
+            const qty = Number(produtoItem.pedido_product_quantity) || 1;
+            return (
+              <View key={index} style={styles.produtoItem}>
+                <Text style={styles.produtoNome}>
+                  {qty}x {produtoItem.product?.product_name}
+                </Text>
+                <Text style={styles.produtoPreco}>
+                  R$ {(price * qty).toFixed(2)}
+                </Text>
+              </View>
+            );
+          })}
+          {Number(item.taxa_entrega) > 0 && (
+            <View style={styles.produtoItem}>
+              <Text style={[styles.produtoNome, { color: theme.colors.textMuted }]}>
+                Taxa de Entrega
+              </Text>
+              <Text style={styles.produtoPreco}>
+                R$ {Number(item.taxa_entrega).toFixed(2)}
+              </Text>
             </View>
-          ))}
+          )}
         </View>
 
         {/* Vouchers (se houver) */}

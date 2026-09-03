@@ -79,8 +79,22 @@ export const formatarStatusPagamento = (statusPagamento) => {
  */
 export const calcularTotalPedido = (pedido) => {
   if (!pedido) return 0;
-  const totalProdutos = pedido.pedido_product?.reduce((total, item) => total + (item.product.product_price * item.pedido_product_quantity), 0) || 0;
-  const totalVouchers = pedido.pedido_voucher?.reduce((total, item) => total + item.voucher.voucher_price, 0) || 0;
-  const taxaEntrega = pedido.taxa_entrega || 0;
+  const totalProdutos =
+    pedido.pedido_product?.reduce((total, item) => {
+      const promo = Number(item.product?.promotional_price);
+      const normal = Number(item.product?.product_price) || 0;
+      const price = promo && promo > 0 && promo < normal ? promo : normal;
+      const qty = Number(item.pedido_product_quantity) || 1;
+      return total + price * qty;
+    }, 0) || 0;
+
+  const totalVouchers =
+    pedido.pedido_voucher?.reduce((total, item) => {
+      const price = Number(item.voucher?.voucher_price) || 0;
+      const qty = Number(item.pedido_voucher_quantity) || 1;
+      return total + price * qty;
+    }, 0) || 0;
+
+  const taxaEntrega = Number(pedido.taxa_entrega) || 0;
   return totalProdutos + totalVouchers + taxaEntrega;
 };

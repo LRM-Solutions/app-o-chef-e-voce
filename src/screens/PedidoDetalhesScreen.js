@@ -331,18 +331,23 @@ export default function PedidoDetalhesScreen({ route, navigation }) {
               <MaterialIcons name="shopping-cart" size={20} color={theme.colors.primary} />
               <Text style={styles.sectionTitle}>Produtos</Text>
             </View>
-            {pedido.pedido_product.map((item, index) => (
-              <View key={index} style={styles.itemCard}>
-                <View style={styles.itemInfo}>
-                  <Text style={styles.itemName}>{item.product.product_name}</Text>
-                  <Text style={styles.itemDescription} numberOfLines={2}>{item.product.product_description}</Text>
+            {pedido.pedido_product.map((item, index) => {
+              const promo = Number(item.product?.promotional_price);
+              const normal = Number(item.product?.product_price) || 0;
+              const unitPrice = promo && promo > 0 && promo < normal ? promo : normal;
+              return (
+                <View key={index} style={styles.itemCard}>
+                  <View style={styles.itemInfo}>
+                    <Text style={styles.itemName}>{item.product?.product_name}</Text>
+                    <Text style={styles.itemDescription} numberOfLines={2}>{item.product?.product_description}</Text>
+                  </View>
+                  <View style={styles.itemPricing}>
+                    <Text style={styles.itemQuantity}>Qtd: {item.pedido_product_quantity}</Text>
+                    <Text style={styles.itemPrice}>{formatPrice(unitPrice)}</Text>
+                  </View>
                 </View>
-                <View style={styles.itemPricing}>
-                  <Text style={styles.itemQuantity}>Qtd: {item.pedido_product_quantity}</Text>
-                  <Text style={styles.itemPrice}>{formatPrice(item.product.product_price)}</Text>
-                </View>
-              </View>
-            ))}
+              );
+            })}
           </View>
         )}
 

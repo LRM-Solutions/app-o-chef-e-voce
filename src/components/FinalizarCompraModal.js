@@ -6,6 +6,7 @@ import {
   StyleSheet,
   Modal,
   ScrollView,
+  ActivityIndicator,
 } from "react-native";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import { useTheme } from "../utils/ThemeContext";
@@ -179,28 +180,35 @@ export default function FinalizarCompraModal({
         {/* Footer com Botões */}
         <View style={styles.footer}>
           <TouchableOpacity
-            style={[styles.button, styles.secondaryButton]}
-            onPress={onPagarDepois}
-            disabled={loading}
-          >
-            <Text style={styles.secondaryButtonText}>Pagar Depois</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[styles.button, styles.primaryButton]}
+            style={[styles.button, styles.primaryButton, loading && styles.buttonDisabled]}
             onPress={onFinalizarPagamento}
             disabled={loading}
+            activeOpacity={0.85}
           >
+            {loading ? (
+              <ActivityIndicator size="small" color="white" />
+            ) : (
+              <MaterialIcons name="payment" size={20} color="white" />
+            )}
             <Text style={styles.primaryButtonText}>
               {loading ? "Processando..." : "Finalizar Pagamento"}
             </Text>
           </TouchableOpacity>
-        </View>
-        {/* Aviso discreto sobre redirecionamento ao Mercado Pago */}
-        <View style={styles.captionContainer}>
-          <Text style={styles.captionText}>
-            Ao finalizar, você será redirecionado ao Mercado Pago para concluir o pagamento.
-          </Text>
+
+          <TouchableOpacity
+            style={[styles.button, styles.secondaryButton]}
+            onPress={onPagarDepois}
+            disabled={loading}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.secondaryButtonText}>Pagar Depois</Text>
+          </TouchableOpacity>
+
+          <View style={styles.captionContainer}>
+            <Text style={styles.captionText}>
+              Ao finalizar, você será redirecionado ao Mercado Pago para concluir o pagamento.
+            </Text>
+          </View>
         </View>
       </SafeAreaView>
     </Modal>
@@ -388,37 +396,42 @@ const getStyles = (theme, isDark) => StyleSheet.create({
     lineHeight: 16,
   },
   footer: {
-    flexDirection: "row",
+    flexDirection: "column",
     backgroundColor: isDark ? "#141416" : "white",
-    padding: 16,
+    paddingHorizontal: 20,
+    paddingTop: 16,
+    paddingBottom: 20,
     borderTopWidth: 1,
     borderTopColor: isDark ? "#242428" : "#F0F0F0",
-    gap: 12,
+    gap: 10,
   },
   button: {
-    flex: 1,
+    width: "100%",
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
-    paddingVertical: 16,
+    paddingVertical: 15,
     borderRadius: 14,
+    gap: 8,
   },
   primaryButton: {
     backgroundColor: theme.colors.primary || "#7C4DFF",
   },
+  buttonDisabled: {
+    opacity: 0.7,
+  },
   secondaryButton: {
     backgroundColor: isDark ? "#1A1A1E" : "transparent",
     borderWidth: 1,
-    borderColor: isDark ? "#2E2E36" : theme.colors.border,
+    borderColor: isDark ? "#2E2E36" : theme.colors.borderLight || "#E5E7EB",
   },
   primaryButtonText: {
     color: "white",
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: "700",
-    marginLeft: 8,
   },
   secondaryButtonText: {
-    color: isDark ? "#FFFFFF" : theme.colors.foreground,
+    color: isDark ? "#A1A1AA" : theme.colors.textMuted || "#6B7280",
     fontSize: 15,
     fontWeight: "600",
   },
@@ -426,11 +439,8 @@ const getStyles = (theme, isDark) => StyleSheet.create({
     marginRight: 4,
   },
   captionContainer: {
-    backgroundColor: isDark ? "#141416" : "white",
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderTopWidth: 1,
-    borderTopColor: isDark ? "#242428" : "#F0F0F0",
+    paddingTop: 4,
+    paddingHorizontal: 8,
   },
   captionText: {
     fontSize: 12,
