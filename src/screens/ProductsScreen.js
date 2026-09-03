@@ -88,12 +88,23 @@ export default function ProductsScreen({ navigation }) {
   const ProductItem = ({ item }) => {
     const mainImage = getProductMainImage(item);
     const inStock = isInStock(item.product_quantity);
+    const hasPromo =
+      item.promotional_price &&
+      Number(item.promotional_price) > 0 &&
+      Number(item.promotional_price) < Number(item.product_price);
+    const discountPercent = hasPromo
+      ? Math.round(
+          ((Number(item.product_price) - Number(item.promotional_price)) /
+            Number(item.product_price)) *
+            100
+        )
+      : 0;
 
     return (
       <TouchableOpacity
         style={styles.productItem}
         onPress={() => navigateToProduct(item.product_id)}
-        activeOpacity={0.8}
+        activeOpacity={0.85}
       >
         <View style={styles.imageContainer}>
           {mainImage ? (
@@ -111,6 +122,14 @@ export default function ProductsScreen({ navigation }) {
             </View>
           )}
 
+          {/* Promo Badge Inside Image */}
+          {hasPromo && (
+            <View style={styles.promoBadge}>
+              <MaterialIcons name="local-fire-department" size={12} color="#FFFFFF" />
+              <Text style={styles.promoBadgeText}>{discountPercent}% OFF</Text>
+            </View>
+          )}
+
           {/* Badge de estoque */}
           {!inStock && (
             <View style={styles.outOfStockBadge}>
@@ -124,14 +143,43 @@ export default function ProductsScreen({ navigation }) {
             {item.product_name || "Produto sem nome"}
           </Text>
 
-          <View style={styles.priceRow}>
-            <Text style={styles.productPrice}>
-              {formatPrice(item.product_price)}
-            </Text>
-            <View style={styles.stockStatus}>
-               <View style={[styles.stockIndicator, { backgroundColor: inStock ? "#4CAF50" : "#f44336" }]} />
+          {hasPromo ? (
+            <View style={styles.promoPriceSection}>
+              <Text style={styles.dePriceText}>
+                De {formatPrice(item.product_price)}
+              </Text>
+              <View style={styles.priceRow}>
+                <View style={styles.porRow}>
+                  <Text style={styles.porLabel}>Por </Text>
+                  <Text style={styles.productPricePromo}>
+                    {formatPrice(item.promotional_price)}
+                  </Text>
+                </View>
+                <View style={styles.stockStatus}>
+                  <View
+                    style={[
+                      styles.stockIndicator,
+                      { backgroundColor: inStock ? "#4CAF50" : "#f44336" },
+                    ]}
+                  />
+                </View>
+              </View>
             </View>
-          </View>
+          ) : (
+            <View style={styles.priceRow}>
+              <Text style={styles.productPrice}>
+                {formatPrice(item.product_price)}
+              </Text>
+              <View style={styles.stockStatus}>
+                <View
+                  style={[
+                    styles.stockIndicator,
+                    { backgroundColor: inStock ? "#4CAF50" : "#f44336" },
+                  ]}
+                />
+              </View>
+            </View>
+          )}
         </View>
       </TouchableOpacity>
     );
@@ -193,7 +241,7 @@ export default function ProductsScreen({ navigation }) {
 
   if (loading && products.length === 0) {
     return (
-      <SafeAreaView style={styles.safeArea} edges={['top']}>
+      <SafeAreaView style={styles.safeArea} edges={['bottom']}>
         {renderHeader()}
         <View style={styles.skeletonGrid}>
           {[1, 2, 3, 4, 5, 6].map((key) => (
@@ -211,7 +259,7 @@ export default function ProductsScreen({ navigation }) {
   }
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={['top']}>
+    <SafeAreaView style={styles.safeArea} edges={['bottom']}>
       <FlatList
         data={filteredProducts}
         keyExtractor={(item, index) => item.product_id ? item.product_id.toString() : index.toString()}
@@ -247,11 +295,12 @@ const getStyles = (theme, itemWidth, isDark) => StyleSheet.create({
   },
   headerContainer: {
     backgroundColor: theme.colors.background || (isDark ? "#0F0F0F" : "#FFFFFF"),
-    paddingBottom: 4,
+    paddingBottom: 2,
   },
   categoriesWrapper: {
-    marginTop: 6,
-    marginBottom: 16,
+    marginTop: 0,
+    paddingTop: 4,
+    marginBottom: 10,
   },
   categoriesContainer: {
     paddingHorizontal: 16,
@@ -348,6 +397,29 @@ const getStyles = (theme, itemWidth, isDark) => StyleSheet.create({
     letterSpacing: 0.5,
     textTransform: "uppercase",
   },
+  promoBadge: {
+    position: "absolute",
+    top: 8,
+    left: 8,
+    backgroundColor: "#E53935",
+    borderRadius: 8,
+    paddingHorizontal: 7,
+    paddingVertical: 3,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 3,
+    shadowColor: "#E53935",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.4,
+    shadowRadius: 4,
+    elevation: 4,
+  },
+  promoBadgeText: {
+    color: "#FFFFFF",
+    fontSize: 10,
+    fontWeight: "800",
+    letterSpacing: 0.2,
+  },
   outOfStockBadge: {
     position: "absolute",
     top: 8,
@@ -372,6 +444,31 @@ const getStyles = (theme, itemWidth, isDark) => StyleSheet.create({
     color: isDark ? "#F2F2F5" : "#1A1A1A",
     marginBottom: 8,
     lineHeight: 18,
+  },
+  promoPriceSection: {
+    marginTop: 0,
+  },
+  dePriceText: {
+    fontSize: 11,
+    fontWeight: "600",
+    color: isDark ? "#8E8E93" : "#8E8E93",
+    textDecorationLine: "line-through",
+    marginBottom: 1,
+  },
+  porRow: {
+    flexDirection: "row",
+    alignItems: "baseline",
+  },
+  porLabel: {
+    fontSize: 11,
+    fontWeight: "700",
+    color: isDark ? "#A0A0A5" : "#666666",
+    marginRight: 2,
+  },
+  productPricePromo: {
+    fontSize: 16,
+    fontWeight: "900",
+    color: isDark ? "#FF5252" : "#D32F2F",
   },
   priceRow: {
     flexDirection: "row",

@@ -188,6 +188,17 @@ export default function SingleProductScreen({ route, navigation }) {
   }
 
   const inStock = isInStock(product.product_quantity);
+  const hasPromo =
+    product.promotional_price &&
+    Number(product.promotional_price) > 0 &&
+    Number(product.promotional_price) < Number(product.product_price);
+  const discountPercent = hasPromo
+    ? Math.round(
+        ((Number(product.product_price) - Number(product.promotional_price)) /
+          Number(product.product_price)) *
+          100
+      )
+    : 0;
 
   return (
     <View style={styles.container}>
@@ -208,9 +219,27 @@ export default function SingleProductScreen({ route, navigation }) {
           </Text>
 
           {/* Preço */}
-          <Text style={styles.productPrice}>
-            {formatPrice(product.product_price)}
-          </Text>
+          {hasPromo ? (
+            <View style={styles.promoPriceContainer}>
+              <View style={styles.promoBadgeInline}>
+                <MaterialIcons name="local-fire-department" size={14} color="#FFFFFF" />
+                <Text style={styles.promoBadgeInlineText}>{discountPercent}% OFF</Text>
+              </View>
+              <Text style={styles.dePriceDetail}>
+                De {formatPrice(product.product_price)}
+              </Text>
+              <View style={styles.porRowDetail}>
+                <Text style={styles.porLabelDetail}>Por </Text>
+                <Text style={styles.productPricePromoDetail}>
+                  {formatPrice(product.promotional_price)}
+                </Text>
+              </View>
+            </View>
+          ) : (
+            <Text style={styles.productPrice}>
+              {formatPrice(product.product_price)}
+            </Text>
+          )}
 
           {/* Status do estoque */}
           <View style={styles.stockContainer}>
@@ -436,6 +465,47 @@ const getStyles = (theme, isDark) => StyleSheet.create({
     color: isDark ? "#FFFFFF" : theme.colors.foreground,
     marginBottom: 8,
     lineHeight: 28,
+  },
+  promoPriceContainer: {
+    marginBottom: 16,
+  },
+  promoBadgeInline: {
+    flexDirection: "row",
+    alignItems: "center",
+    alignSelf: "flex-start",
+    backgroundColor: "#E53935",
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+    gap: 4,
+    marginBottom: 6,
+  },
+  promoBadgeInlineText: {
+    color: "#FFFFFF",
+    fontSize: 12,
+    fontWeight: "800",
+  },
+  dePriceDetail: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: isDark ? "#8E8E93" : "#8E8E93",
+    textDecorationLine: "line-through",
+    marginBottom: 2,
+  },
+  porRowDetail: {
+    flexDirection: "row",
+    alignItems: "baseline",
+  },
+  porLabelDetail: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: isDark ? "#A0A0A5" : "#666666",
+    marginRight: 4,
+  },
+  productPricePromoDetail: {
+    fontSize: 28,
+    fontWeight: "900",
+    color: isDark ? "#FF5252" : "#D32F2F",
   },
   productPrice: {
     fontSize: 26,

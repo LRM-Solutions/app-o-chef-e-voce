@@ -3,6 +3,17 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 const CART_STORAGE_KEY = "@cart_items";
 const VOUCHER_CART_STORAGE_KEY = "@voucher_cart_items";
 
+const getEffectiveUnitPrice = (item) => {
+  if (
+    item.promotional_price &&
+    Number(item.promotional_price) > 0 &&
+    Number(item.promotional_price) < Number(item.product_price)
+  ) {
+    return Number(item.promotional_price);
+  }
+  return Number(item.product_price);
+};
+
 /**
  * Serviço para gerenciar o carrinho de compras
  */
@@ -30,17 +41,21 @@ export const CartService = {
         (item) => item.product_id === product.product_id
       );
 
+      const unitPrice = getEffectiveUnitPrice(product);
+
       if (existingItemIndex !== -1) {
         // Se o produto já existe com a mesma observação, atualiza a quantidade
         cartItems[existingItemIndex].quantity += quantity;
         cartItems[existingItemIndex].total_price =
-          cartItems[existingItemIndex].quantity * product.product_price;
+          cartItems[existingItemIndex].quantity * unitPrice;
+        cartItems[existingItemIndex].promotional_price = product.promotional_price;
+        cartItems[existingItemIndex].product_price = product.product_price;
       } else {
         // Se é um produto novo, adiciona ao carrinho
         const cartItem = {
           ...product,
           quantity: quantity,
-          total_price: quantity * product.product_price,
+          total_price: quantity * unitPrice,
           added_at: new Date().toISOString(),
         };
         cartItems.push(cartItem);
@@ -89,9 +104,9 @@ export const CartService = {
       );
 
       if (itemIndex !== -1) {
+        const unitPrice = getEffectiveUnitPrice(cartItems[itemIndex]);
         cartItems[itemIndex].quantity = newQuantity;
-        cartItems[itemIndex].total_price =
-          newQuantity * cartItems[itemIndex].product_price;
+        cartItems[itemIndex].total_price = newQuantity * unitPrice;
         await AsyncStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cartItems));
       }
 

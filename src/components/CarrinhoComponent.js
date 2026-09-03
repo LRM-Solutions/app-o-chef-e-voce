@@ -149,9 +149,22 @@ export default function CarrinhoComponent({ visible, onClose, onGoToCart }) {
           <Text style={styles.itemName} numberOfLines={2}>
             {item.product_name}
           </Text>
-          <Text style={styles.itemPrice}>
-            {formatPrice(item.product_price)}
-          </Text>
+          {item.promotional_price &&
+          Number(item.promotional_price) > 0 &&
+          Number(item.promotional_price) < Number(item.product_price) ? (
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+              <Text style={[styles.itemPrice, { color: isDark ? "#FF5252" : "#D32F2F" }]}>
+                {formatPrice(item.promotional_price)}
+              </Text>
+              <Text style={{ fontSize: 12, color: "#8E8E93", textDecorationLine: "line-through" }}>
+                {formatPrice(item.product_price)}
+              </Text>
+            </View>
+          ) : (
+            <Text style={styles.itemPrice}>
+              {formatPrice(item.product_price)}
+            </Text>
+          )}
 
           <View style={styles.quantityContainer}>
             <TouchableOpacity
