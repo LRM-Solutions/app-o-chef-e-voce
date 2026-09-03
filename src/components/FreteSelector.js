@@ -8,7 +8,7 @@ import {
   Alert,
 } from "react-native";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
-import { theme } from "../utils/theme";
+import { useTheme } from "../utils/ThemeContext";
 import {
   calcularFrete,
   formatFretePrice,
@@ -23,6 +23,10 @@ export default function FreteSelector({
   onFreteSelect,
   selectedFrete,
 }) {
+  const { theme, themeMode } = useTheme();
+  const isDark = theme?.isDarkMode ?? (themeMode === "dark");
+  const styles = getStyles(theme, isDark);
+
   const [opcoesFrete, setOpcoesFrete] = useState([]);
   const [loading, setLoading] = useState(false);
   const [expandido, setExpandido] = useState(false);
@@ -320,28 +324,27 @@ export default function FreteSelector({
   );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (theme, isDark) => StyleSheet.create({
   container: {
-    backgroundColor: "white",
-    borderRadius: 12,
-    marginHorizontal: 16,
-    marginVertical: 8,
+    backgroundColor: isDark ? "#1A1A1E" : "white",
+    borderRadius: 14,
+    marginHorizontal: 12,
+    marginVertical: 6,
     overflow: "hidden",
     elevation: 2,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
-    shadowOpacity: 0.22,
-    shadowRadius: 2.22,
+    borderWidth: 1,
+    borderColor: isDark ? "#282830" : "rgba(0,0,0,0.06)",
+    shadowColor: isDark ? "#000" : "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: isDark ? 0.3 : 0.06,
+    shadowRadius: 6,
   },
   header: {
     flexDirection: "row",
     alignItems: "center",
     padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: "#f0f0f0",
+    borderBottomColor: isDark ? "#282830" : "#f0f0f0",
   },
   headerContent: {
     flex: 1,
@@ -349,17 +352,17 @@ const styles = StyleSheet.create({
   },
   headerText: {
     fontSize: 16,
-    fontWeight: "600",
-    color: theme.colors.foreground,
+    fontWeight: "700",
+    color: isDark ? "#FFFFFF" : theme.colors.foreground,
   },
   headerTextDisabled: {
     fontSize: 16,
-    color: theme.colors.muted,
+    color: isDark ? "#777" : theme.colors.muted,
     marginLeft: 12,
   },
   freteInfo: {
     fontSize: 14,
-    color: theme.colors.muted,
+    color: isDark ? "#8A8A90" : theme.colors.muted,
     marginTop: 2,
   },
   headerActions: {
@@ -367,19 +370,19 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   opcoesContainer: {
-    paddingBottom: 8,
+    paddingBottom: 4,
   },
   opcaoFrete: {
     flexDirection: "row",
     alignItems: "center",
     padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: "#f5f5f5",
+    borderBottomColor: isDark ? "#24242A" : "#f5f5f5",
   },
   opcaoFreteSelecionada: {
-    backgroundColor: "#f8f9ff",
+    backgroundColor: isDark ? "rgba(124, 77, 255, 0.12)" : "#f8f9ff",
     borderLeftWidth: 3,
-    borderLeftColor: theme.colors.primary,
+    borderLeftColor: theme.colors.primary || "#7C4DFF",
   },
   opcaoInfo: {
     flex: 1,
@@ -391,33 +394,33 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   opcaoNome: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: "600",
-    color: theme.colors.foreground,
+    color: isDark ? "#F2F2F5" : theme.colors.foreground,
   },
   opcaoValor: {
     fontSize: 16,
     fontWeight: "bold",
-    color: theme.colors.primary,
+    color: theme.colors.primary || "#7C4DFF",
   },
   opcaoCarrier: {
     fontSize: 12,
-    color: theme.colors.muted,
+    color: isDark ? "#8A8A90" : theme.colors.muted,
     marginBottom: 2,
   },
   opcaoPrazo: {
     fontSize: 12,
-    color: theme.colors.muted,
+    color: isDark ? "#8A8A90" : theme.colors.muted,
   },
   enderecoInfo: {
     flexDirection: "row",
     alignItems: "center",
     padding: 12,
-    backgroundColor: "#f8f9fa",
+    backgroundColor: isDark ? "#121214" : "#f8f9fa",
   },
   enderecoTexto: {
     fontSize: 12,
-    color: theme.colors.muted,
+    color: isDark ? "#8A8A90" : theme.colors.muted,
     marginLeft: 8,
     flex: 1,
   },

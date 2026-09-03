@@ -1,10 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { View, Text, StyleSheet, TextInput } from "react-native";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
-import { theme } from "../utils/theme";
+import { useTheme } from "../utils/ThemeContext";
 import { getUserEmail } from "../api/authApi";
 
 export default function PaymentDataSelector({ onPaymentDataChange }) {
+  const { theme, themeMode } = useTheme();
+  const isDark = theme?.isDarkMode ?? (themeMode === "dark");
+  const styles = getStyles(theme, isDark);
+
   const [installments, setInstallments] = useState("1");
   const [payerEmail, setPayerEmail] = useState("");
   const [payerCPF, setPayerCPF] = useState("");
@@ -64,7 +68,7 @@ export default function PaymentDataSelector({ onPaymentDataChange }) {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <MaterialIcons name="payment" size={20} color={theme.colors.primary} />
+        <MaterialIcons name="payment" size={20} color={theme.colors.primary || "#7C4DFF"} />
         <Text style={styles.headerTitle}>Dados para Pagamento</Text>
       </View>
 
@@ -79,7 +83,7 @@ export default function PaymentDataSelector({ onPaymentDataChange }) {
           <TextInput
             style={styles.input}
             placeholder="seu.email@exemplo.com"
-            placeholderTextColor="#999"
+            placeholderTextColor={isDark ? "#777" : "#999"}
             value={payerEmail}
             onChangeText={handleEmailChange}
             keyboardType="email-address"
@@ -94,7 +98,7 @@ export default function PaymentDataSelector({ onPaymentDataChange }) {
           <TextInput
             style={styles.input}
             placeholder="000.000.000-00"
-            placeholderTextColor="#999"
+            placeholderTextColor={isDark ? "#777" : "#999"}
             value={formatCPF(payerCPF)}
             onChangeText={handleCPFChange}
             keyboardType="numeric"
@@ -103,7 +107,7 @@ export default function PaymentDataSelector({ onPaymentDataChange }) {
         </View>
 
         <View style={styles.paymentInfo}>
-          <MaterialIcons name="info" size={16} color={theme.colors.primary} />
+          <MaterialIcons name="info" size={16} color={theme.colors.primary || "#7C4DFF"} />
           <Text style={styles.paymentInfoText}>
             Você escolherá o método de pagamento na próxima etapa
           </Text>
@@ -113,20 +117,20 @@ export default function PaymentDataSelector({ onPaymentDataChange }) {
   );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (theme, isDark) => StyleSheet.create({
   container: {
-    backgroundColor: "white",
-    margin: 16,
-    borderRadius: 12,
+    backgroundColor: isDark ? "#1A1A1E" : "white",
+    marginHorizontal: 12,
+    marginVertical: 6,
+    borderRadius: 14,
     padding: 16,
-    shadowColor: "#000000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.08,
-    shadowRadius: 4,
-    elevation: 3,
+    borderWidth: 1,
+    borderColor: isDark ? "#282830" : "rgba(0,0,0,0.06)",
+    shadowColor: isDark ? "#000" : "#000000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: isDark ? 0.3 : 0.06,
+    shadowRadius: 6,
+    elevation: 2,
   },
   header: {
     flexDirection: "row",
@@ -135,48 +139,50 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 16,
-    fontWeight: "600",
-    color: theme.colors.foreground,
+    fontWeight: "700",
+    color: isDark ? "#FFFFFF" : theme.colors.foreground,
     marginLeft: 8,
   },
   paymentDetails: {
-    gap: 16,
+    gap: 14,
   },
   detailsTitle: {
     fontSize: 14,
     fontWeight: "500",
-    color: theme.colors.foreground,
-    marginBottom: 8,
+    color: isDark ? "#A0A0A5" : theme.colors.muted,
+    marginBottom: 4,
   },
   inputGroup: {
-    gap: 8,
+    gap: 6,
   },
   inputLabel: {
     fontSize: 14,
-    fontWeight: "500",
-    color: theme.colors.foreground,
+    fontWeight: "600",
+    color: isDark ? "#D0D0D5" : theme.colors.foreground,
   },
   input: {
     borderWidth: 1,
-    borderColor: "#e0e0e0",
-    borderRadius: 8,
+    borderColor: isDark ? "#2A2A32" : "#e0e0e0",
+    borderRadius: 10,
     paddingHorizontal: 12,
     paddingVertical: 10,
     fontSize: 14,
-    backgroundColor: "white",
+    backgroundColor: isDark ? "#121214" : "white",
+    color: isDark ? "#FFFFFF" : "#1A1A1A",
   },
   paymentInfo: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: `${theme.colors.primary}15`,
+    backgroundColor: isDark ? "rgba(124, 77, 255, 0.15)" : "rgba(124, 77, 255, 0.08)",
     padding: 12,
-    borderRadius: 8,
-    marginTop: 8,
+    borderRadius: 10,
+    marginTop: 4,
   },
   paymentInfoText: {
     fontSize: 12,
-    color: theme.colors.primary,
+    color: theme.colors.primary || "#7C4DFF",
     marginLeft: 8,
     flex: 1,
+    fontWeight: "500",
   },
 });

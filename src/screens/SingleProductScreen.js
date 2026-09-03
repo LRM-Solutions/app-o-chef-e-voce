@@ -34,7 +34,8 @@ export default function SingleProductScreen({ route, navigation }) {
   const [quantity, setQuantity] = useState(1);
   const { isAuthenticated } = useAuth();
   const { theme, themeMode } = useTheme();
-  const styles = getStyles(theme);
+  const isDark = theme?.isDarkMode ?? (themeMode === "dark");
+  const styles = getStyles(theme, isDark);
 
   useEffect(() => {
     loadProduct();
@@ -190,25 +191,22 @@ export default function SingleProductScreen({ route, navigation }) {
 
   return (
     <View style={styles.container}>
-      {/* Seção do nome do produto com seta de voltar */}
-
-      <ScrollView style={styles.scrollContainer}>
-        <View style={styles.productTitleSection}>
-          <TouchableOpacity
-            style={styles.backButton}
-            onPress={() => navigation.goBack()}
-          >
-            <MaterialIcons name="arrow-back" size={24} color={theme.colors.foreground} />
-          </TouchableOpacity>
-          <Text style={styles.productName} numberOfLines={1}>
-            {product?.product_name || "Carregando..."}
-          </Text>
-        </View>
+      <ScrollView style={styles.scrollContainer} showsVerticalScrollIndicator={false}>
         {/* Carrossel de imagens */}
         <ImageCarousel />
 
         {/* Informações do produto */}
         <View style={styles.productInfo}>
+          {product.product_category && product.product_category !== "Outros" && (
+            <View style={styles.categoryContainer}>
+              <Text style={styles.categoryLabel}>{product.product_category}</Text>
+            </View>
+          )}
+
+          <Text style={styles.productName}>
+            {product?.product_name || "Produto"}
+          </Text>
+
           {/* Preço */}
           <Text style={styles.productPrice}>
             {formatPrice(product.product_price)}
@@ -224,7 +222,7 @@ export default function SingleProductScreen({ route, navigation }) {
             <Text
               style={[
                 styles.stockText,
-                { color: inStock ? "#4CAF50" : "#f44336" },
+                { color: inStock ? (isDark ? "#81C784" : "#4CAF50") : "#f44336" },
               ]}
             >
               {inStock
@@ -254,7 +252,11 @@ export default function SingleProductScreen({ route, navigation }) {
                   onPress={() => handleQuantityChange(false)}
                   disabled={quantity === 1}
                 >
-                  <MaterialIcons name="remove" size={20} color="#000" />
+                  <MaterialIcons
+                    name="remove"
+                    size={20}
+                    color={quantity === 1 ? (isDark ? "#555" : "#AAA") : (isDark ? "#FFF" : "#000")}
+                  />
                 </TouchableOpacity>
 
                 <Text style={styles.quantityText}>{quantity}</Text>
@@ -268,7 +270,11 @@ export default function SingleProductScreen({ route, navigation }) {
                   onPress={() => handleQuantityChange(true)}
                   disabled={quantity === product.product_quantity}
                 >
-                  <MaterialIcons name="add" size={20} color="#000" />
+                  <MaterialIcons
+                    name="add"
+                    size={20}
+                    color={quantity === product.product_quantity ? (isDark ? "#555" : "#AAA") : (isDark ? "#FFF" : "#000")}
+                  />
                 </TouchableOpacity>
               </View>
             </View>
@@ -279,6 +285,7 @@ export default function SingleProductScreen({ route, navigation }) {
             <TouchableOpacity
               style={styles.loginPromptButton}
               onPress={handleLoginPress}
+              activeOpacity={0.8}
             >
               <MaterialIcons
                 name="login"
@@ -298,6 +305,7 @@ export default function SingleProductScreen({ route, navigation }) {
               ]}
               onPress={handleAddToCart}
               disabled={!inStock}
+              activeOpacity={0.8}
             >
               <MaterialIcons
                 name="shopping-cart"
@@ -316,59 +324,40 @@ export default function SingleProductScreen({ route, navigation }) {
   );
 }
 
-const getStyles = (theme) => StyleSheet.create({
+const getStyles = (theme, isDark) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: theme.colors.background,
-  },
-  productTitleSection: {
-    flexDirection: "row",
-    display: "flex",
-    alignItems: "center",
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: theme.colors.border,
-    backgroundColor: theme.colors.card,
-  },
-  backButton: {
-    padding: 8,
-    marginRight: 8,
-  },
-  productTitleText: {
-    flex: 1,
-    fontSize: 18,
-    fontWeight: "600",
-    color: theme.colors.foreground,
+    backgroundColor: theme.colors.background || (isDark ? "#0F0F0F" : "#FFFFFF"),
   },
   loadingContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: theme.colors.background,
+    backgroundColor: theme.colors.background || (isDark ? "#0F0F0F" : "#FFFFFF"),
   },
   loadingText: {
     marginTop: 12,
     fontSize: 16,
-    color: theme.colors.textMuted,
+    color: isDark ? "#8A8A90" : theme.colors.textMuted,
   },
   errorContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
     padding: 32,
+    backgroundColor: theme.colors.background || (isDark ? "#0F0F0F" : "#FFFFFF"),
   },
   errorText: {
     fontSize: 16,
-    color: theme.colors.textMuted,
+    color: isDark ? "#8A8A90" : theme.colors.textMuted,
     marginTop: 16,
     marginBottom: 24,
   },
   retryButton: {
-    backgroundColor: theme.colors.primary,
+    backgroundColor: theme.colors.primary || "#7C4DFF",
     paddingHorizontal: 24,
     paddingVertical: 12,
-    borderRadius: 8,
+    borderRadius: 12,
   },
   retryButtonText: {
     color: "white",
@@ -381,6 +370,7 @@ const getStyles = (theme) => StyleSheet.create({
   carouselContainer: {
     height: screenHeight * 0.4,
     position: "relative",
+    backgroundColor: isDark ? "#121214" : "#F5F5F7",
   },
   carouselImage: {
     width: screenWidth,
@@ -389,14 +379,14 @@ const getStyles = (theme) => StyleSheet.create({
   noImageContainer: {
     width: screenWidth,
     height: screenHeight * 0.4,
-    backgroundColor: theme.colors.backgroundSecondary,
+    backgroundColor: isDark ? "#16161A" : theme.colors.backgroundSecondary,
     justifyContent: "center",
     alignItems: "center",
   },
   noImageText: {
     marginTop: 16,
     fontSize: 16,
-    color: theme.colors.textMuted,
+    color: isDark ? "#8A8A90" : theme.colors.textMuted,
   },
   paginationContainer: {
     position: "absolute",
@@ -417,7 +407,7 @@ const getStyles = (theme) => StyleSheet.create({
     position: "absolute",
     top: 20,
     right: 20,
-    backgroundColor: "rgba(0, 0, 0, 0.6)",
+    backgroundColor: "rgba(0, 0, 0, 0.65)",
     borderRadius: 12,
     paddingHorizontal: 12,
     paddingVertical: 6,
@@ -431,44 +421,45 @@ const getStyles = (theme) => StyleSheet.create({
     padding: 20,
   },
   categoryContainer: {
-    marginBottom: 12,
+    marginBottom: 8,
   },
   categoryLabel: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: theme.colors.primary,
+    fontSize: 12,
+    fontWeight: "700",
+    color: theme.colors.primary || "#7C4DFF",
     textTransform: "uppercase",
+    letterSpacing: 0.8,
   },
   productName: {
-    fontSize: 20,
-    fontWeight: 500,
-    color: theme.colors.foreground,
-    marginBottom: 0,
-    lineHeight: 32,
+    fontSize: 22,
+    fontWeight: "700",
+    color: isDark ? "#FFFFFF" : theme.colors.foreground,
+    marginBottom: 8,
+    lineHeight: 28,
   },
   productPrice: {
-    fontSize: 28,
-    fontWeight: "bold",
-    color: theme.colors.primary,
+    fontSize: 26,
+    fontWeight: "800",
+    color: theme.colors.primary || "#7C4DFF",
     marginBottom: 16,
   },
   descriptionSection: {
     marginBottom: 24,
     padding: 16,
-    backgroundColor: theme.colors.card,
-    borderRadius: 12,
+    backgroundColor: isDark ? "#1A1A1E" : theme.colors.card,
+    borderRadius: 14,
     borderWidth: 1,
-    borderColor: theme.colors.border,
+    borderColor: isDark ? "#282830" : theme.colors.border,
   },
   descriptionTitle: {
     fontSize: 16,
     fontWeight: "700",
-    color: theme.colors.foreground,
+    color: isDark ? "#FFFFFF" : theme.colors.foreground,
     marginBottom: 8,
   },
   descriptionText: {
     fontSize: 14,
-    color: theme.colors.textMuted,
+    color: isDark ? "#A0A0A5" : theme.colors.textMuted,
     lineHeight: 22,
   },
   stockContainer: {
@@ -477,65 +468,72 @@ const getStyles = (theme) => StyleSheet.create({
     marginBottom: 20,
   },
   stockText: {
-    fontSize: 16,
-    fontWeight: "500",
+    fontSize: 14,
+    fontWeight: "600",
     marginLeft: 8,
   },
   quantitySection: {
-    marginBottom: 32,
+    marginBottom: 28,
   },
   quantityLabel: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: "600",
-    color: theme.colors.foreground,
-    marginBottom: 12,
+    color: isDark ? "#FFFFFF" : theme.colors.foreground,
+    marginBottom: 10,
   },
   quantityContainer: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: theme.colors.backgroundSecondary,
-    borderRadius: 8,
-    padding: 4,
+    backgroundColor: isDark ? "#121214" : theme.colors.backgroundSecondary,
+    borderRadius: 10,
+    padding: 3,
     alignSelf: "flex-start",
   },
   quantityButton: {
-    width: 40,
-    height: 40,
+    width: 36,
+    height: 36,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: theme.colors.card,
-    borderRadius: 6,
+    backgroundColor: isDark ? "#25252B" : theme.colors.card,
+    borderRadius: 8,
   },
   quantityButtonDisabled: {
-    backgroundColor: theme.colors.backgroundSecondary,
+    backgroundColor: isDark ? "#18181C" : theme.colors.backgroundSecondary,
   },
   quantityText: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: theme.colors.foreground,
-    marginHorizontal: 20,
-    minWidth: 30,
+    fontSize: 16,
+    fontWeight: "700",
+    color: isDark ? "#FFFFFF" : theme.colors.foreground,
+    marginHorizontal: 16,
+    minWidth: 28,
     textAlign: "center",
   },
   addToCartButton: {
-    backgroundColor: theme.colors.primary,
+    backgroundColor: theme.colors.primary || "#7C4DFF",
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
     paddingVertical: 16,
-    borderRadius: 12,
-    marginTop: 16,
+    borderRadius: 14,
+    marginTop: 8,
+    shadowColor: theme.colors.primary || "#7C4DFF",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
   },
   addToCartButtonDisabled: {
-    backgroundColor: "#ccc",
+    backgroundColor: isDark ? "#2A2A30" : "#ccc",
+    shadowOpacity: 0,
+    elevation: 0,
   },
   cartIcon: {
     marginRight: 8,
   },
   addToCartText: {
     color: "white",
-    fontSize: 18,
-    fontWeight: "600",
+    fontSize: 16,
+    fontWeight: "700",
   },
   loginPromptButton: {
     backgroundColor: "#4CAF50",
@@ -543,12 +541,12 @@ const getStyles = (theme) => StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     paddingVertical: 16,
-    borderRadius: 12,
-    marginTop: 16,
+    borderRadius: 14,
+    marginTop: 8,
   },
   loginPromptText: {
     color: "white",
-    fontSize: 18,
-    fontWeight: "600",
+    fontSize: 16,
+    fontWeight: "700",
   },
 });

@@ -8,7 +8,7 @@ import {
   ScrollView,
 } from "react-native";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
-import { theme } from "../utils/theme";
+import { useTheme } from "../utils/ThemeContext";
 import { formatPrice } from "../api/products";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -20,6 +20,10 @@ export default function FinalizarCompraModal({
   pedidoData,
   loading = false,
 }) {
+  const { theme, themeMode } = useTheme();
+  const isDark = theme?.isDarkMode ?? (themeMode === "dark");
+  const styles = getStyles(theme, isDark);
+
   if (!pedidoData) return null;
 
   const { pedidoId, endereco, total, frete, installments } = pedidoData;
@@ -197,17 +201,17 @@ export default function FinalizarCompraModal({
   );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (theme, isDark) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: theme.colors.background,
+    backgroundColor: theme.colors.background || (isDark ? "#0F0F0F" : "#FFFFFF"),
   },
   header: {
-    backgroundColor: "white",
+    backgroundColor: isDark ? "#141416" : "white",
     paddingHorizontal: 20,
-    paddingVertical: 20,
+    paddingVertical: 18,
     borderBottomWidth: 1,
-    borderBottomColor: theme.colors.border,
+    borderBottomColor: isDark ? "#242428" : "#F0F0F0",
   },
   headerContent: {
     flexDirection: "row",
@@ -215,47 +219,53 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   headerTitle: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: "700",
-    color: theme.colors.foreground,
+    color: isDark ? "#FFFFFF" : theme.colors.foreground,
     marginLeft: 12,
   },
   content: {
     flex: 1,
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
   },
   section: {
-    marginTop: 24,
+    marginTop: 20,
   },
   sectionHeader: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 12,
+    marginBottom: 10,
   },
   sectionTitle: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: theme.colors.foreground,
+    fontSize: 15,
+    fontWeight: "700",
+    color: isDark ? "#FFFFFF" : theme.colors.foreground,
     marginLeft: 8,
   },
   pedidoHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    backgroundColor: "white",
+    backgroundColor: isDark ? "#1A1A1E" : "white",
     padding: 16,
-    borderRadius: 12,
-    ...theme.shadows.sm,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: isDark ? "#282830" : "rgba(0,0,0,0.06)",
+    shadowColor: isDark ? "#000" : "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: isDark ? 0.3 : 0.05,
+    shadowRadius: 6,
+    elevation: 2,
   },
   pedidoTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: theme.colors.foreground,
+    fontSize: 17,
+    fontWeight: "700",
+    color: isDark ? "#FFFFFF" : theme.colors.foreground,
   },
   statusBadge: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: theme.colors.muted,
+    backgroundColor: isDark ? "#2E2E36" : theme.colors.muted,
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 16,
@@ -267,21 +277,33 @@ const styles = StyleSheet.create({
     marginLeft: 4,
   },
   enderecoCard: {
-    backgroundColor: "white",
+    backgroundColor: isDark ? "#1A1A1E" : "white",
     padding: 16,
-    borderRadius: 12,
-    ...theme.shadows.sm,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: isDark ? "#282830" : "rgba(0,0,0,0.06)",
+    shadowColor: isDark ? "#000" : "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: isDark ? 0.3 : 0.05,
+    shadowRadius: 6,
+    elevation: 2,
   },
   enderecoText: {
     fontSize: 14,
-    color: theme.colors.foreground,
+    color: isDark ? "#E0E0E5" : theme.colors.foreground,
     lineHeight: 20,
   },
   freteCard: {
-    backgroundColor: "white",
+    backgroundColor: isDark ? "#1A1A1E" : "white",
     padding: 16,
-    borderRadius: 12,
-    ...theme.shadows.sm,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: isDark ? "#282830" : "rgba(0,0,0,0.06)",
+    shadowColor: isDark ? "#000" : "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: isDark ? 0.3 : 0.05,
+    shadowRadius: 6,
+    elevation: 2,
   },
   freteRow: {
     flexDirection: "row",
@@ -291,18 +313,24 @@ const styles = StyleSheet.create({
   },
   freteLabel: {
     fontSize: 14,
-    color: theme.colors.muted,
+    color: isDark ? "#8A8A90" : theme.colors.muted,
   },
   freteValue: {
     fontSize: 14,
-    fontWeight: "500",
-    color: theme.colors.foreground,
+    fontWeight: "600",
+    color: isDark ? "#F2F2F5" : theme.colors.foreground,
   },
   pagamentoCard: {
-    backgroundColor: "white",
+    backgroundColor: isDark ? "#1A1A1E" : "white",
     padding: 16,
-    borderRadius: 12,
-    ...theme.shadows.sm,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: isDark ? "#282830" : "rgba(0,0,0,0.06)",
+    shadowColor: isDark ? "#000" : "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: isDark ? 0.3 : 0.05,
+    shadowRadius: 6,
+    elevation: 2,
   },
   pagamentoRow: {
     flexDirection: "row",
@@ -312,12 +340,12 @@ const styles = StyleSheet.create({
   },
   pagamentoLabel: {
     fontSize: 14,
-    color: theme.colors.muted,
+    color: isDark ? "#8A8A90" : theme.colors.muted,
   },
   pagamentoValue: {
     fontSize: 14,
-    fontWeight: "500",
-    color: theme.colors.foreground,
+    fontWeight: "600",
+    color: isDark ? "#F2F2F5" : theme.colors.foreground,
   },
   totalRow: {
     flexDirection: "row",
@@ -325,21 +353,21 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingTop: 12,
     borderTopWidth: 1,
-    borderTopColor: theme.colors.border,
+    borderTopColor: isDark ? "#282830" : "#F0F0F0",
   },
   totalLabel: {
     fontSize: 16,
-    fontWeight: "600",
-    color: theme.colors.foreground,
+    fontWeight: "700",
+    color: isDark ? "#FFFFFF" : theme.colors.foreground,
   },
   totalValue: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: theme.colors.primary,
+    fontSize: 20,
+    fontWeight: "800",
+    color: theme.colors.primary || "#7C4DFF",
   },
   infoSection: {
-    marginTop: 24,
-    marginBottom: 32,
+    marginTop: 20,
+    marginBottom: 28,
   },
   infoItem: {
     flexDirection: "row",
@@ -348,17 +376,17 @@ const styles = StyleSheet.create({
   },
   infoText: {
     fontSize: 12,
-    color: theme.colors.muted,
+    color: isDark ? "#8A8A90" : theme.colors.muted,
     marginLeft: 8,
     flex: 1,
     lineHeight: 16,
   },
   footer: {
     flexDirection: "row",
-    backgroundColor: "white",
-    padding: 20,
+    backgroundColor: isDark ? "#141416" : "white",
+    padding: 16,
     borderTopWidth: 1,
-    borderTopColor: theme.colors.border,
+    borderTopColor: isDark ? "#242428" : "#F0F0F0",
     gap: 12,
   },
   button: {
@@ -367,40 +395,40 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     paddingVertical: 16,
-    borderRadius: 12,
+    borderRadius: 14,
   },
   primaryButton: {
-    backgroundColor: theme.colors.primary,
+    backgroundColor: theme.colors.primary || "#7C4DFF",
   },
   secondaryButton: {
-    backgroundColor: "transparent",
+    backgroundColor: isDark ? "#1A1A1E" : "transparent",
     borderWidth: 1,
-    borderColor: theme.colors.border,
+    borderColor: isDark ? "#2E2E36" : theme.colors.border,
   },
   primaryButtonText: {
     color: "white",
-    fontSize: 16,
-    fontWeight: "600",
+    fontSize: 15,
+    fontWeight: "700",
     marginLeft: 8,
   },
   secondaryButtonText: {
-    color: theme.colors.foreground,
-    fontSize: 16,
+    color: isDark ? "#FFFFFF" : theme.colors.foreground,
+    fontSize: 15,
     fontWeight: "600",
   },
   buttonIcon: {
     marginRight: 4,
   },
   captionContainer: {
-    backgroundColor: "white",
+    backgroundColor: isDark ? "#141416" : "white",
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderTopWidth: 1,
-    borderTopColor: theme.colors.border,
+    borderTopColor: isDark ? "#242428" : "#F0F0F0",
   },
   captionText: {
     fontSize: 12,
-    color: theme.colors.muted,
+    color: isDark ? "#8A8A90" : theme.colors.muted,
     textAlign: "center",
     lineHeight: 16,
   },

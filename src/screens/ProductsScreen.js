@@ -31,9 +31,10 @@ const gap = 16;
 
 export default function ProductsScreen({ navigation }) {
   const { theme, themeMode } = useTheme();
+  const isDarkMode = theme?.isDarkMode ?? (themeMode === "dark");
   const { width: screenWidth } = useWindowDimensions();
   const ITEM_WIDTH = (screenWidth - padding - (gap * (numColumns - 1))) / numColumns;
-  const styles = getStyles(theme, ITEM_WIDTH, themeMode);
+  const styles = getStyles(theme, ITEM_WIDTH, isDarkMode);
 
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState(["Todos"]);
@@ -138,21 +139,6 @@ export default function ProductsScreen({ navigation }) {
 
   const renderHeader = () => (
     <View style={styles.headerContainer}>
-      <View style={styles.logoSection}>
-        {theme.logoUrl ? (
-          <Image
-            source={{ uri: theme.logoUrl }}
-            style={styles.headerLogo}
-            resizeMode="contain"
-          />
-        ) : (
-          <Text style={styles.headerTitle}>Loja</Text>
-        )}
-        <Text style={styles.sectionSubtitle}>
-          Encontre os melhores produtos da barbearia
-        </Text>
-      </View>
-
       <View style={styles.categoriesWrapper}>
         <ScrollView
           horizontal
@@ -254,38 +240,17 @@ export default function ProductsScreen({ navigation }) {
   );
 }
 
-const getStyles = (theme, itemWidth, themeMode) => StyleSheet.create({
+const getStyles = (theme, itemWidth, isDark) => StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: theme.colors.background,
+    backgroundColor: theme.colors.background || (isDark ? "#0F0F0F" : "#FFFFFF"),
   },
   headerContainer: {
-    backgroundColor: theme.colors.background,
-    paddingBottom: 8,
-  },
-  logoSection: {
-    alignItems: "center",
-    paddingVertical: 16,
-    paddingHorizontal: 16,
-  },
-  headerLogo: {
-    width: 140,
-    height: 45,
-    marginBottom: 8,
-  },
-  headerTitle: {
-    fontSize: theme.fontSizes["2xl"],
-    fontWeight: "bold",
-    color: theme.colors.foreground,
-    marginBottom: 8,
-  },
-  sectionSubtitle: {
-    fontSize: theme.fontSizes.sm,
-    color: theme.colors.textMuted,
-    textAlign: "center",
+    backgroundColor: theme.colors.background || (isDark ? "#0F0F0F" : "#FFFFFF"),
+    paddingBottom: 4,
   },
   categoriesWrapper: {
-    marginTop: 8,
+    marginTop: 6,
     marginBottom: 16,
   },
   categoriesContainer: {
@@ -297,24 +262,30 @@ const getStyles = (theme, itemWidth, themeMode) => StyleSheet.create({
     paddingHorizontal: 18,
     paddingVertical: 8,
     borderRadius: 20,
-    backgroundColor: themeMode === "dark" ? "rgba(255,255,255,0.05)" : theme.colors.backgroundSecondary,
+    backgroundColor: isDark ? "rgba(255,255,255,0.06)" : theme.colors.backgroundSecondary || "#F2F2F7",
     borderWidth: 1,
-    borderColor: themeMode === "dark" ? "rgba(255,255,255,0.1)" : theme.colors.border,
+    borderColor: isDark ? "rgba(255,255,255,0.12)" : theme.colors.border || "#E5E5EA",
   },
   categoryChipSelected: {
-    backgroundColor: theme.colors.primary,
-    borderColor: theme.colors.primary,
+    backgroundColor: theme.colors.primary || "#7C4DFF",
+    borderColor: theme.colors.primary || "#7C4DFF",
+    shadowColor: theme.colors.primary || "#7C4DFF",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: isDark ? 0.4 : 0.25,
+    shadowRadius: 8,
+    elevation: 4,
   },
   categoryChipText: {
-    fontSize: theme.fontSizes.sm,
+    fontSize: theme.fontSizes?.sm || 13,
     fontWeight: "600",
-    color: theme.colors.foreground,
+    color: isDark ? "#D0D0D5" : "#4A4A4A",
   },
   categoryChipTextSelected: {
     color: "#FFFFFF",
+    fontWeight: "700",
   },
   listContainer: {
-    paddingBottom: 24,
+    paddingBottom: 32,
   },
   row: {
     justifyContent: "space-between",
@@ -329,22 +300,22 @@ const getStyles = (theme, itemWidth, themeMode) => StyleSheet.create({
   },
   productItem: {
     width: itemWidth,
-    backgroundColor: themeMode === "dark" ? "#1A1A1A" : "#FFFFFF",
+    backgroundColor: isDark ? "#1A1A1E" : "#FFFFFF",
     borderRadius: 16,
-    // Modern Drop Shadow
-    shadowColor: themeMode === "dark" ? "#000" : "rgba(0,0,0,0.4)",
+    shadowColor: isDark ? "#000" : "rgba(0,0,0,0.1)",
     shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: themeMode === "dark" ? 0.3 : 0.08,
+    shadowOpacity: isDark ? 0.35 : 0.08,
     shadowRadius: 12,
     elevation: 4,
     borderWidth: 1,
-    borderColor: themeMode === "dark" ? "rgba(255,255,255,0.05)" : "transparent",
+    borderColor: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)",
+    overflow: "hidden",
   },
   imageContainer: {
     position: "relative",
     width: "100%",
     height: itemWidth,
-    backgroundColor: themeMode === "dark" ? "#222" : "#F8F9FA",
+    backgroundColor: isDark ? "#121214" : "#F7F7F9",
     borderTopLeftRadius: 16,
     borderTopRightRadius: 16,
     overflow: "hidden",
@@ -359,16 +330,16 @@ const getStyles = (theme, itemWidth, themeMode) => StyleSheet.create({
     height: "100%",
     justifyContent: "center",
     alignItems: "center",
+    backgroundColor: isDark ? "#16161A" : "#F0F0F4",
   },
   categoryBadge: {
     position: "absolute",
     bottom: 8,
     left: 8,
-    backgroundColor: "rgba(0,0,0,0.65)",
+    backgroundColor: "rgba(0,0,0,0.7)",
     borderRadius: 6,
     paddingHorizontal: 8,
     paddingVertical: 4,
-    backdropFilter: "blur(4px)",
   },
   categoryText: {
     color: "#FFFFFF",
@@ -398,7 +369,7 @@ const getStyles = (theme, itemWidth, themeMode) => StyleSheet.create({
   productName: {
     fontSize: 13,
     fontWeight: "600",
-    color: theme.colors.foreground,
+    color: isDark ? "#F2F2F5" : "#1A1A1A",
     marginBottom: 8,
     lineHeight: 18,
   },
@@ -410,13 +381,13 @@ const getStyles = (theme, itemWidth, themeMode) => StyleSheet.create({
   productPrice: {
     fontSize: 16,
     fontWeight: "800",
-    color: theme.colors.primary,
+    color: theme.colors.primary || "#7C4DFF",
   },
   stockStatus: {
     width: 24,
     height: 24,
     borderRadius: 12,
-    backgroundColor: themeMode === "dark" ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.03)",
+    backgroundColor: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.04)",
     justifyContent: "center",
     alignItems: "center",
   },
@@ -434,7 +405,7 @@ const getStyles = (theme, itemWidth, themeMode) => StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: themeMode === "dark" ? "rgba(255,255,255,0.05)" : theme.colors.backgroundSecondary,
+    backgroundColor: isDark ? "rgba(255,255,255,0.06)" : theme.colors.backgroundSecondary || "#F5F7FA",
     justifyContent: "center",
     alignItems: "center",
     marginBottom: 20,
@@ -445,16 +416,16 @@ const getStyles = (theme, itemWidth, themeMode) => StyleSheet.create({
   emptyText: {
     fontSize: 16,
     fontWeight: "500",
-    color: theme.colors.foreground,
+    color: isDark ? "#F0F0F0" : theme.colors.foreground,
     marginBottom: 24,
     textAlign: "center",
   },
   retryButton: {
-    backgroundColor: theme.colors.primary,
+    backgroundColor: theme.colors.primary || "#7C4DFF",
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 24,
-    shadowColor: theme.colors.primary,
+    shadowColor: theme.colors.primary || "#7C4DFF",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,

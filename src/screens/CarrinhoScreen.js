@@ -12,7 +12,7 @@ import {
   Linking,
 } from "react-native";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
-import { theme } from "../utils/theme";
+import { useTheme } from "../utils/ThemeContext";
 import { CartService } from "../services/cartService";
 import { formatPrice, getProductMainImage } from "../api/products";
 import { formatVoucherPrice, getVoucherMainImage } from "../api/vouchers";
@@ -27,6 +27,11 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function CarrinhoScreen({ navigation }) {
+  const { theme, themeMode } = useTheme();
+  const isDark = theme?.isDarkMode ?? (themeMode === "dark");
+  const insets = useSafeAreaInsets();
+  const styles = getStyles(theme, isDark, insets);
+
   const [cartItems, setCartItems] = useState([]);
   const [voucherCartItems, setVoucherCartItems] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -37,7 +42,6 @@ export default function CarrinhoScreen({ navigation }) {
   const [processing, setProcessing] = useState(false);
   const [showFinalizarModal, setShowFinalizarModal] = useState(false);
   const [pedidoConfirmado, setPedidoConfirmado] = useState(null);
-  const insets = useSafeAreaInsets();
 
   useEffect(() => {
     loadCartItems();
@@ -613,7 +617,11 @@ export default function CarrinhoScreen({ navigation }) {
               }
               disabled={item.quantity === 1}
             >
-              <MaterialIcons name="remove" size={18} color="#000" />
+              <MaterialIcons
+                name="remove"
+                size={18}
+                color={item.quantity === 1 ? (isDark ? "#555" : "#AAA") : (isDark ? "#FFF" : "#000")}
+              />
             </TouchableOpacity>
 
             <Text style={styles.quantityText}>{item.quantity}</Text>
@@ -624,7 +632,7 @@ export default function CarrinhoScreen({ navigation }) {
                 handleUpdateVoucherQuantity(item.voucher_id, item.quantity + 1)
               }
             >
-              <MaterialIcons name="add" size={18} color="#000" />
+              <MaterialIcons name="add" size={18} color={isDark ? "#FFF" : "#000"} />
             </TouchableOpacity>
           </View>
         </View>
@@ -656,7 +664,7 @@ export default function CarrinhoScreen({ navigation }) {
             <Image source={{ uri: mainImage }} style={styles.itemImage} />
           ) : (
             <View style={styles.noImageContainer}>
-              <MaterialIcons name="image" size={32} color="#ccc" />
+              <MaterialIcons name="image" size={32} color={isDark ? "#555" : "#ccc"} />
             </View>
           )}
         </View>
@@ -683,7 +691,11 @@ export default function CarrinhoScreen({ navigation }) {
               }
               disabled={item.quantity === 1}
             >
-              <MaterialIcons name="remove" size={18} color="#000" />
+              <MaterialIcons
+                name="remove"
+                size={18}
+                color={item.quantity === 1 ? (isDark ? "#555" : "#AAA") : (isDark ? "#FFF" : "#000")}
+              />
             </TouchableOpacity>
 
             <Text style={styles.quantityText}>{item.quantity}</Text>
@@ -694,7 +706,7 @@ export default function CarrinhoScreen({ navigation }) {
                 handleUpdateQuantity(item.product_id, item.quantity + 1)
               }
             >
-              <MaterialIcons name="add" size={18} color="#000" />
+              <MaterialIcons name="add" size={18} color={isDark ? "#FFF" : "#000"} />
             </TouchableOpacity>
           </View>
         </View>
@@ -723,7 +735,7 @@ export default function CarrinhoScreen({ navigation }) {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={theme.colors.primary} />
+        <ActivityIndicator size="large" color={theme.colors.primary || "#7C4DFF"} />
         <Text style={styles.loadingText}>Carregando carrinho...</Text>
       </View>
     );
@@ -732,14 +744,20 @@ export default function CarrinhoScreen({ navigation }) {
   if (cartItems.length === 0 && voucherCartItems.length === 0) {
     return (
       <View style={styles.emptyContainer}>
-        <MaterialIcons name="shopping-cart" size={80} color="#ccc" />
+        <View style={styles.emptyIconCircle}>
+          <MaterialIcons
+            name="remove-shopping-cart"
+            size={48}
+            color={isDark ? "rgba(255,255,255,0.3)" : "rgba(0,0,0,0.3)"}
+          />
+        </View>
         <Text style={styles.emptyText}>Seu carrinho está vazio</Text>
         <Text style={styles.emptySubtext}>
           Adicione produtos ou vouchers para finalizar sua compra
         </Text>
         <TouchableOpacity
           style={styles.continueShoppingButton}
-          onPress={() => navigation.navigate("produtos")}
+          onPress={() => navigation.navigate("Loja")}
         >
           <Text style={styles.continueShoppingText}>Continuar Comprando</Text>
         </TouchableOpacity>
@@ -750,20 +768,25 @@ export default function CarrinhoScreen({ navigation }) {
   return (
     <View style={styles.container}>
       {/* Header da tela */}
-      <View style={[styles.header, { paddingTop: Platform.OS === "ios" ? insets.top || 44 : insets.top || 20 }]}>
+      <View style={[styles.header, { paddingTop: (Platform.OS === "ios" ? insets.top || 44 : insets.top || 20) + 4 }]}>
         <TouchableOpacity
           style={styles.backButton}
           onPress={() => navigation.goBack()}
+          activeOpacity={0.7}
         >
-          <MaterialIcons name="arrow-back" size={24} color="#000" />
+          <MaterialIcons name="arrow-back" size={22} color={isDark ? "#FFFFFF" : "#1A1A1A"} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Meu Carrinho</Text>
-        <TouchableOpacity style={styles.clearButton} onPress={handleClearCart}>
-          <MaterialIcons name="delete-sweep" size={24} color="#f44336" />
+        <TouchableOpacity
+          style={styles.clearButton}
+          onPress={handleClearCart}
+          activeOpacity={0.7}
+        >
+          <MaterialIcons name="delete-sweep" size={22} color="#f44336" />
         </TouchableOpacity>
       </View>
 
-      <ScrollView style={styles.scrollContainer}>
+      <ScrollView style={styles.scrollContainer} showsVerticalScrollIndicator={false}>
         <View style={styles.itemsHeader}>
           <Text style={styles.itemsCount}>
             {cartItems.length + voucherCartItems.length}{" "}
@@ -844,6 +867,7 @@ export default function CarrinhoScreen({ navigation }) {
           ]}
           disabled={processing || !isCheckoutValid()}
           onPress={handleGoToPayment}
+          activeOpacity={0.8}
         >
           {processing ? (
             <ActivityIndicator size="small" color="white" />
@@ -852,7 +876,7 @@ export default function CarrinhoScreen({ navigation }) {
               <MaterialIcons
                 name="shopping-cart"
                 size={20}
-                color={!isCheckoutValid() ? theme.colors.textMuted : "white"}
+                color={!isCheckoutValid() ? (isDark ? "#888" : theme.colors.textMuted) : "white"}
                 style={styles.checkoutIcon}
               />
               <Text
@@ -881,34 +905,44 @@ export default function CarrinhoScreen({ navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (theme, isDark, insets) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: theme.colors.background,
+    backgroundColor: theme.colors.background || (isDark ? "#0F0F0F" : "#FFFFFF"),
   },
   header: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: 16,
-    paddingBottom: 16,
+    paddingBottom: 14,
     borderBottomWidth: 1,
-    borderBottomColor: theme.colors.border,
-    backgroundColor: theme.colors.background,
+    borderBottomColor: isDark ? "#222226" : "#F0F0F0",
+    backgroundColor: isDark ? "#141416" : "#FFFFFF",
     zIndex: 10,
   },
   backButton: {
-    padding: 8,
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: isDark ? "rgba(255, 255, 255, 0.08)" : "rgba(0, 0, 0, 0.04)",
+    justifyContent: "center",
+    alignItems: "center",
   },
   headerTitle: {
     flex: 1,
     textAlign: "center",
-    fontSize: 18,
-    fontWeight: "600",
-    color: theme.colors.foreground,
+    fontSize: 17,
+    fontWeight: "700",
+    color: isDark ? "#FFFFFF" : "#1A1A1A",
   },
   clearButton: {
-    padding: 8,
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: isDark ? "rgba(244, 67, 54, 0.12)" : "rgba(244, 67, 54, 0.06)",
+    justifyContent: "center",
+    alignItems: "center",
   },
   loadingContainer: {
     flex: 1,
@@ -917,8 +951,8 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     marginTop: 12,
-    fontSize: 16,
-    color: theme.colors.textMuted,
+    fontSize: 15,
+    color: isDark ? "#8A8A90" : theme.colors.textMuted,
   },
   emptyContainer: {
     flex: 1,
@@ -926,29 +960,42 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: 32,
   },
+  emptyIconCircle: {
+    width: 96,
+    height: 96,
+    borderRadius: 48,
+    backgroundColor: isDark ? "rgba(255, 255, 255, 0.06)" : "#F5F7FA",
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 20,
+  },
   emptyText: {
-    fontSize: 20,
-    fontWeight: "600",
-    color: theme.colors.foreground,
-    marginTop: 16,
+    fontSize: 19,
+    fontWeight: "700",
+    color: isDark ? "#F2F2F5" : "#1A1A1A",
     marginBottom: 8,
   },
   emptySubtext: {
     fontSize: 14,
-    color: theme.colors.textMuted,
+    color: isDark ? "#8A8A90" : theme.colors.textMuted,
     textAlign: "center",
     marginBottom: 24,
   },
   continueShoppingButton: {
-    backgroundColor: theme.colors.primary,
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 8,
+    backgroundColor: theme.colors.primary || "#7C4DFF",
+    paddingHorizontal: 28,
+    paddingVertical: 14,
+    borderRadius: 24,
+    shadowColor: theme.colors.primary || "#7C4DFF",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
   },
   continueShoppingText: {
     color: "white",
-    fontSize: 16,
-    fontWeight: "600",
+    fontSize: 15,
+    fontWeight: "700",
   },
   scrollContainer: {
     flex: 1,
@@ -956,29 +1003,37 @@ const styles = StyleSheet.create({
   itemsHeader: {
     paddingHorizontal: 16,
     paddingVertical: 12,
-    backgroundColor: "white",
+    backgroundColor: isDark ? "#121214" : "#F8F9FA",
     borderBottomWidth: 1,
-    borderBottomColor: "#f0f0f0",
+    borderBottomColor: isDark ? "#222226" : "#F0F0F0",
   },
   itemsCount: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: "600",
-    color: theme.colors.foreground,
+    color: isDark ? "#D0D0D5" : theme.colors.foreground,
   },
   cartItem: {
     flexDirection: "row",
-    backgroundColor: "white",
-    padding: 16,
-    marginVertical: 1,
-    borderBottomWidth: 1,
-    borderBottomColor: "#f0f0f0",
+    backgroundColor: isDark ? "#1A1A1E" : "#FFFFFF",
+    padding: 14,
+    marginVertical: 4,
+    marginHorizontal: 12,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: isDark ? "#282830" : "rgba(0,0,0,0.06)",
+    shadowColor: isDark ? "#000" : "rgba(0,0,0,0.06)",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: isDark ? 0.3 : 0.05,
+    shadowRadius: 6,
+    elevation: 2,
   },
   itemImageContainer: {
-    width: 80,
-    height: 80,
-    borderRadius: 8,
+    width: 72,
+    height: 72,
+    borderRadius: 10,
     overflow: "hidden",
-    marginRight: 16,
+    marginRight: 14,
+    backgroundColor: isDark ? "#121214" : "#F0F0F4",
   },
   itemImage: {
     width: "100%",
@@ -987,7 +1042,7 @@ const styles = StyleSheet.create({
   noImageContainer: {
     width: "100%",
     height: "100%",
-    backgroundColor: "#f0f0f0",
+    backgroundColor: isDark ? "#16161A" : "#F0F0F4",
     justifyContent: "center",
     alignItems: "center",
   },
@@ -996,45 +1051,48 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   itemName: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: "600",
-    color: theme.colors.foreground,
+    color: isDark ? "#F2F2F5" : theme.colors.foreground,
     marginBottom: 4,
   },
   itemCategory: {
     fontSize: 12,
-    color: theme.colors.textMuted,
+    color: isDark ? "#8A8A90" : theme.colors.textMuted,
+    marginBottom: 2,
   },
   itemPrice: {
     fontSize: 14,
-    color: theme.colors.primary,
-    fontWeight: "500",
+    color: theme.colors.primary || "#7C4DFF",
+    fontWeight: "700",
   },
   quantityContainer: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#f0f0f0",
-    borderRadius: 6,
-    padding: 2,
+    backgroundColor: isDark ? "#121214" : "#F0F0F0",
+    borderRadius: 8,
+    padding: 3,
     alignSelf: "flex-start",
+    marginTop: 6,
   },
   quantityButton: {
-    width: 32,
-    height: 32,
+    width: 28,
+    height: 28,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "white",
-    borderRadius: 4,
+    backgroundColor: isDark ? "#25252B" : "#FFFFFF",
+    borderRadius: 6,
   },
   quantityButtonDisabled: {
-    backgroundColor: "#e0e0e0",
+    backgroundColor: isDark ? "#18181C" : "#E5E5EA",
   },
   quantityText: {
-    fontSize: 16,
-    fontWeight: "600",
-    marginHorizontal: 16,
-    minWidth: 24,
+    fontSize: 14,
+    fontWeight: "700",
+    marginHorizontal: 12,
+    minWidth: 20,
     textAlign: "center",
+    color: isDark ? "#FFFFFF" : "#1A1A1A",
   },
   itemActions: {
     alignItems: "flex-end",
@@ -1042,20 +1100,21 @@ const styles = StyleSheet.create({
     marginLeft: 12,
   },
   itemTotal: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: theme.colors.primary,
-    marginBottom: 16,
+    fontSize: 15,
+    fontWeight: "800",
+    color: theme.colors.primary || "#7C4DFF",
+    marginBottom: 12,
   },
   removeButton: {
-    padding: 8,
+    padding: 6,
   },
   footer: {
-    backgroundColor: "white",
+    backgroundColor: isDark ? "#141416" : "#FFFFFF",
     paddingHorizontal: 16,
-    paddingVertical: 16,
+    paddingTop: 16,
+    paddingBottom: 24,
     borderTopWidth: 1,
-    borderTopColor: theme.colors.border,
+    borderTopColor: isDark ? "#222226" : "#F0F0F0",
   },
   summarySection: {
     marginBottom: 16,
@@ -1068,11 +1127,12 @@ const styles = StyleSheet.create({
   },
   summaryLabel: {
     fontSize: 14,
-    color: theme.colors.textMuted,
+    color: isDark ? "#8A8A90" : theme.colors.textMuted,
   },
   summaryValue: {
     fontSize: 14,
-    color: theme.colors.foreground,
+    fontWeight: "600",
+    color: isDark ? "#F2F2F5" : theme.colors.foreground,
   },
   totalRow: {
     flexDirection: "row",
@@ -1080,28 +1140,33 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingTop: 12,
     borderTopWidth: 1,
-    borderTopColor: "#f0f0f0",
+    borderTopColor: isDark ? "#222226" : "#F0F0F0",
   },
   totalLabel: {
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: "600",
-    color: theme.colors.foreground,
+    color: isDark ? "#FFFFFF" : "#1A1A1A",
   },
   totalValue: {
-    fontSize: 20,
-    fontWeight: "bold",
-    color: theme.colors.primary,
+    fontSize: 22,
+    fontWeight: "800",
+    color: theme.colors.primary || "#7C4DFF",
   },
   checkoutButton: {
-    backgroundColor: theme.colors.primary,
+    backgroundColor: theme.colors.primary || "#7C4DFF",
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
     paddingVertical: 16,
-    borderRadius: 12,
+    borderRadius: 14,
+    shadowColor: theme.colors.primary || "#7C4DFF",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
   },
   checkoutButtonDisabled: {
-    backgroundColor: "#e0e0e0",
+    backgroundColor: isDark ? "#24242A" : "#E5E5EA",
   },
   checkoutIcon: {
     marginRight: 8,
@@ -1109,21 +1174,21 @@ const styles = StyleSheet.create({
   checkoutText: {
     color: "white",
     fontSize: 16,
-    fontWeight: "600",
+    fontWeight: "700",
   },
   checkoutTextDisabled: {
-    color: theme.colors.textMuted,
+    color: isDark ? "#666" : theme.colors.textMuted,
   },
   captionText: {
     fontSize: 12,
-    color: theme.colors.textMuted,
+    color: isDark ? "#8A8A90" : theme.colors.textMuted,
   },
   sectionHeader: {
     fontSize: 16,
-    fontWeight: "600",
-    color: theme.colors.foreground,
+    fontWeight: "700",
+    color: isDark ? "#FFFFFF" : "#1A1A1A",
     marginHorizontal: 16,
     marginVertical: 12,
-    marginTop: 20,
+    marginTop: 18,
   },
 });

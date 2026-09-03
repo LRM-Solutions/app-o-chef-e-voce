@@ -9,7 +9,7 @@ import {
   Alert,
 } from "react-native";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
-import { theme } from "../utils/theme";
+import { useTheme } from "../utils/ThemeContext";
 import { getUserEnderecos, createEndereco } from "../api/enderecosApi";
 import { getUserId } from "../api/authApi";
 import {
@@ -23,6 +23,10 @@ export default function EnderecoSelector({
   onEnderecoSelect,
   selectedEnderecoId,
 }) {
+  const { theme, themeMode } = useTheme();
+  const isDark = theme?.isDarkMode ?? (themeMode === "dark");
+  const styles = getStyles(theme, isDark);
+
   const [enderecos, setEnderecos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -328,7 +332,7 @@ export default function EnderecoSelector({
             <TextInput
               style={[styles.input, styles.cepInput]}
               placeholder="CEP *"
-              placeholderTextColor="#999"
+              placeholderTextColor={isDark ? "#777" : "#999"}
               value={formData.cep}
               onChangeText={handleCepChange}
               keyboardType="numeric"
@@ -336,7 +340,7 @@ export default function EnderecoSelector({
             />
             {loadingCep && (
               <View style={styles.cepLoading}>
-                <ActivityIndicator size="small" color={theme.colors.primary} />
+                <ActivityIndicator size="small" color={theme.colors.primary || "#7C4DFF"} />
               </View>
             )}
           </View>
@@ -349,7 +353,7 @@ export default function EnderecoSelector({
                 loadingCep && styles.inputDisabled,
               ]}
               placeholder="Rua *"
-              placeholderTextColor="#999"
+              placeholderTextColor={isDark ? "#777" : "#999"}
               value={formData.rua}
               onChangeText={(text) => setFormData({ ...formData, rua: text })}
               editable={!loadingCep}
@@ -361,7 +365,7 @@ export default function EnderecoSelector({
                 loadingCep && styles.inputDisabled,
               ]}
               placeholder="Nº *"
-              placeholderTextColor="#999"
+              placeholderTextColor={isDark ? "#777" : "#999"}
               value={formData.numero}
               onChangeText={(text) =>
                 setFormData({
@@ -377,7 +381,7 @@ export default function EnderecoSelector({
           <TextInput
             style={[styles.input, loadingCep && styles.inputDisabled]}
             placeholder="Complemento (opcional)"
-            placeholderTextColor="#999"
+            placeholderTextColor={isDark ? "#777" : "#999"}
             value={formData.complemento}
             onChangeText={(text) =>
               setFormData({ ...formData, complemento: text })
@@ -388,7 +392,7 @@ export default function EnderecoSelector({
           <TextInput
             style={[styles.input, loadingCep && styles.inputDisabled]}
             placeholder="Bairro *"
-            placeholderTextColor="#999"
+            placeholderTextColor={isDark ? "#777" : "#999"}
             value={formData.bairro}
             onChangeText={(text) => setFormData({ ...formData, bairro: text })}
             editable={!loadingCep}
@@ -402,7 +406,7 @@ export default function EnderecoSelector({
                 loadingCep && styles.inputDisabled,
               ]}
               placeholder="Cidade *"
-              placeholderTextColor="#999"
+              placeholderTextColor={isDark ? "#777" : "#999"}
               value={formData.cidade}
               onChangeText={(text) =>
                 setFormData({ ...formData, cidade: text })
@@ -416,12 +420,12 @@ export default function EnderecoSelector({
                 loadingCep && styles.inputDisabled,
               ]}
               placeholder="UF *"
-              placeholderTextColor="#999"
+              placeholderTextColor={isDark ? "#777" : "#999"}
               value={formData.estado}
               onChangeText={(text) =>
                 setFormData({
                   ...formData,
-                  estado: text.toUpperCase().replace(/[^A-Z]/g, ""),
+                  estado: text.toUpperCase().slice(0, 2),
                 })
               }
               maxLength={2}
@@ -453,20 +457,20 @@ export default function EnderecoSelector({
   );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (theme, isDark) => StyleSheet.create({
   container: {
-    backgroundColor: "white",
-    margin: 16,
-    borderRadius: 12,
+    backgroundColor: isDark ? "#1A1A1E" : "white",
+    marginHorizontal: 12,
+    marginVertical: 6,
+    borderRadius: 14,
     padding: 16,
-    shadowColor: "#000000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.08,
-    shadowRadius: 4,
-    elevation: 3,
+    borderWidth: 1,
+    borderColor: isDark ? "#282830" : "rgba(0,0,0,0.06)",
+    shadowColor: isDark ? "#000" : "#000000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: isDark ? 0.3 : 0.06,
+    shadowRadius: 6,
+    elevation: 2,
   },
   header: {
     flexDirection: "row",
@@ -475,13 +479,15 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 16,
-    fontWeight: "600",
-    color: theme.colors.foreground,
+    fontWeight: "700",
+    color: isDark ? "#FFFFFF" : theme.colors.foreground,
     marginLeft: 8,
     flex: 1,
   },
   addButton: {
-    padding: 4,
+    padding: 6,
+    borderRadius: 14,
+    backgroundColor: isDark ? "rgba(124, 77, 255, 0.15)" : "rgba(124, 77, 255, 0.08)",
   },
   loadingContainer: {
     flexDirection: "row",
@@ -491,23 +497,23 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     marginLeft: 8,
-    color: theme.colors.muted,
+    color: isDark ? "#8A8A90" : theme.colors.muted,
   },
   enderecosList: {
-    gap: 12,
+    gap: 10,
   },
   enderecoItem: {
     flexDirection: "row",
     alignItems: "center",
     padding: 12,
     borderWidth: 1,
-    borderColor: "#e0e0e0",
-    borderRadius: 8,
-    backgroundColor: "#f9f9f9",
+    borderColor: isDark ? "#2A2A32" : "#e0e0e0",
+    borderRadius: 10,
+    backgroundColor: isDark ? "#121214" : "#f9f9f9",
   },
   enderecoItemSelected: {
-    borderColor: theme.colors.primary,
-    backgroundColor: `${theme.colors.primary}10`,
+    borderColor: theme.colors.primary || "#7C4DFF",
+    backgroundColor: isDark ? "rgba(124, 77, 255, 0.15)" : "rgba(124, 77, 255, 0.08)",
   },
   enderecoContent: {
     flexDirection: "row",
@@ -516,13 +522,13 @@ const styles = StyleSheet.create({
   },
   enderecoText: {
     fontSize: 14,
-    color: theme.colors.foreground,
+    color: isDark ? "#E0E0E5" : theme.colors.foreground,
     marginLeft: 8,
     flex: 1,
   },
   enderecoTextSelected: {
-    color: theme.colors.primary,
-    fontWeight: "500",
+    color: theme.colors.primary || "#7C4DFF",
+    fontWeight: "600",
   },
   formContainer: {
     gap: 12,
@@ -532,32 +538,33 @@ const styles = StyleSheet.create({
     padding: 8,
   },
   cancelButtonText: {
-    color: theme.colors.primary,
+    color: theme.colors.primary || "#7C4DFF",
     fontSize: 14,
-    fontWeight: "500",
+    fontWeight: "600",
   },
   formTitle: {
     fontSize: 16,
-    fontWeight: "600",
-    color: theme.colors.foreground,
+    fontWeight: "700",
+    color: isDark ? "#FFFFFF" : theme.colors.foreground,
     marginBottom: 8,
   },
   inputRow: {
     flexDirection: "row",
-    gap: 12,
+    gap: 10,
   },
   input: {
     borderWidth: 1,
-    borderColor: "#e0e0e0",
-    borderRadius: 8,
+    borderColor: isDark ? "#2A2A32" : "#e0e0e0",
+    borderRadius: 10,
     paddingHorizontal: 12,
     paddingVertical: 10,
     fontSize: 14,
-    backgroundColor: "white",
+    backgroundColor: isDark ? "#121214" : "white",
+    color: isDark ? "#FFFFFF" : "#1A1A1A",
   },
   inputDisabled: {
-    backgroundColor: "#f5f5f5",
-    color: "#999",
+    backgroundColor: isDark ? "#18181C" : "#f5f5f5",
+    color: isDark ? "#777" : "#999",
   },
   inputFlex: {
     flex: 1,
@@ -567,10 +574,10 @@ const styles = StyleSheet.create({
   },
   cepContainer: {
     position: "relative",
-    marginBottom: 12,
+    marginBottom: 4,
   },
   cepInput: {
-    paddingRight: 40, // Espaço para o loading
+    paddingRight: 40,
   },
   cepLoading: {
     position: "absolute",
@@ -578,12 +585,12 @@ const styles = StyleSheet.create({
     top: 12,
   },
   createButton: {
-    backgroundColor: theme.colors.primary,
+    backgroundColor: theme.colors.primary || "#7C4DFF",
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    paddingVertical: 12,
-    borderRadius: 8,
+    paddingVertical: 14,
+    borderRadius: 12,
     marginTop: 8,
   },
   createButtonDisabled: {
@@ -591,8 +598,8 @@ const styles = StyleSheet.create({
   },
   createButtonText: {
     color: "white",
-    fontSize: 14,
-    fontWeight: "600",
+    fontSize: 15,
+    fontWeight: "700",
     marginLeft: 8,
   },
 });
