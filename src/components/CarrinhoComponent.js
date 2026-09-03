@@ -451,7 +451,7 @@ const getStyles = (theme, isDark) => StyleSheet.create({
   loadingText: {
     marginTop: 12,
     fontSize: 15,
-    color: isDark ? "#8A8A90" : theme.colors.muted,
+    color: isDark ? "#8A8A90" : "#6B7280",
   },
   emptyContainer: {
     flex: 1,
@@ -532,11 +532,6 @@ const getStyles = (theme, isDark) => StyleSheet.create({
     color: isDark ? "#8A8A90" : "#6B7280",
     marginBottom: 4,
     fontStyle: "italic",
-  },
-  itemPrice: {
-    fontSize: 12,
-    color: isDark ? "#8A8A90" : theme.colors.muted,
-    marginBottom: 6,
   },
   quantityContainer: {
     flexDirection: "row",

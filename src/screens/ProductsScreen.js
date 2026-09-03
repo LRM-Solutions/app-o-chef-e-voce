@@ -508,11 +508,11 @@ const getStyles = (theme, itemWidth, isDark) => StyleSheet.create({
     flexGrow: 1,
   },
   emptyText: {
-    fontSize: 15,
-    fontWeight: "500",
-    color: isDark ? "#A0A0A5" : theme.colors.muted || "#6B7280",
+    fontSize: 16,
+    fontWeight: "600",
+    color: isDark ? "#E5E7EB" : "#374151",
     textAlign: "center",
-    maxWidth: 260,
-    lineHeight: 22,
+    maxWidth: 280,
+    lineHeight: 24,
   },
 });

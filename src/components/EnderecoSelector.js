@@ -497,7 +497,7 @@ const getStyles = (theme, isDark) => StyleSheet.create({
   },
   loadingText: {
     marginLeft: 8,
-    color: isDark ? "#8A8A90" : theme.colors.muted,
+    color: isDark ? "#8A8A90" : "#6B7280",
   },
   enderecosList: {
     gap: 10,

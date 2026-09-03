@@ -313,7 +313,7 @@ const styles = StyleSheet.create({
   },
   methodDescription: {
     fontSize: 12,
-    color: theme.colors.muted,
+    color: "#6B7280",
     marginTop: 2,
   },
   paymentDetails: {
