@@ -1153,6 +1153,7 @@ const getStyles = (theme, isDark, insets) => StyleSheet.create({
   },
   deliveryMethodContainer: {
     marginVertical: 12,
+    paddingHorizontal: 16,
   },
   deliveryTabs: {
     flexDirection: "row",
