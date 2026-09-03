@@ -323,11 +323,6 @@ const getStyles = (theme, itemWidth, isDark) => StyleSheet.create({
   categoryChipSelected: {
     backgroundColor: theme.colors.primary || "#7C4DFF",
     borderColor: theme.colors.primary || "#7C4DFF",
-    shadowColor: theme.colors.primary || "#7C4DFF",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: isDark ? 0.4 : 0.25,
-    shadowRadius: 8,
-    elevation: 4,
   },
   categoryChipText: {
     fontSize: theme.fontSizes?.sm || 13,

@@ -88,7 +88,7 @@ export default function CarrinhoComponent({ visible, onClose, onGoToCart }) {
     setConfirmModal({
       visible: true,
       title: "Remover Produto",
-      message: `Deseja remover "${productName}" do seu carrinho da Sans Company?`,
+      message: `Deseja remover "${productName}" do carrinho?`,
       confirmText: "Remover",
       onConfirm: async () => {
         try {
@@ -134,7 +134,7 @@ export default function CarrinhoComponent({ visible, onClose, onGoToCart }) {
     setConfirmModal({
       visible: true,
       title: "Remover Voucher",
-      message: `Deseja remover o voucher "${voucherName}" do seu carrinho da Sans Company?`,
+      message: `Deseja remover o voucher "${voucherName}" do carrinho?`,
       confirmText: "Remover",
       onConfirm: async () => {
         try {
@@ -154,6 +154,38 @@ export default function CarrinhoComponent({ visible, onClose, onGoToCart }) {
             type: "error",
             text1: "Erro",
             text2: "Não foi possível remover o voucher",
+            visibilityTime: 3000,
+          });
+        }
+      },
+    });
+  };
+
+  const handleClearCart = () => {
+    setConfirmModal({
+      visible: true,
+      title: "Limpar Carrinho",
+      message: "Tem certeza que deseja remover todos os itens do carrinho?",
+      confirmText: "Limpar",
+      onConfirm: async () => {
+        try {
+          setConfirmModal((prev) => ({ ...prev, loading: true }));
+          await CartService.clearAllCart();
+          await loadCartItems();
+          setConfirmModal((prev) => ({ ...prev, visible: false, loading: false }));
+          Toast.show({
+            type: "success",
+            text1: "Carrinho limpo com sucesso!",
+            visibilityTime: 2000,
+          });
+          onClose(); // Retorna para a loja ao fechar
+        } catch (error) {
+          console.error("Erro ao limpar carrinho:", error);
+          setConfirmModal((prev) => ({ ...prev, loading: false }));
+          Toast.show({
+            type: "error",
+            text1: "Erro",
+            text2: "Não foi possível limpar o carrinho",
             visibilityTime: 3000,
           });
         }
@@ -337,6 +369,13 @@ export default function CarrinhoComponent({ visible, onClose, onGoToCart }) {
             <Text style={styles.emptySubtext}>
               Adicione produtos ou vouchers para ver aqui
             </Text>
+            <TouchableOpacity
+              style={styles.emptyButton}
+              onPress={onClose}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.emptyButtonText}>Explorar Produtos</Text>
+            </TouchableOpacity>
           </View>
         ) : (
           <>
@@ -478,6 +517,23 @@ const getStyles = (theme, isDark) => StyleSheet.create({
     fontSize: 14,
     color: isDark ? "#8A8A90" : "#6B7280",
     textAlign: "center",
+    marginBottom: 20,
+  },
+  emptyButton: {
+    backgroundColor: theme.colors.primary || "#7C4DFF",
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 12,
+    shadowColor: theme.colors.primary || "#7C4DFF",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  emptyButtonText: {
+    color: "#FFFFFF",
+    fontSize: 14,
+    fontWeight: "700",
   },
   scrollContainer: {
     flex: 1,

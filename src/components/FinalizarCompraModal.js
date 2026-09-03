@@ -60,28 +60,30 @@ export default function FinalizarCompraModal({
             </View>
           </View>
           {/* Endereço */}
-          <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <MaterialIcons
-                name="location-on"
-                size={20}
-                color={theme.colors.primary}
-              />
-              <Text style={styles.sectionTitle}>Endereço de Entrega</Text>
+          {endereco && frete?.serviceCode !== "PICKUP" && frete?.serviceCode !== "VOUCHER_DIGITAL" && (
+            <View style={styles.section}>
+              <View style={styles.sectionHeader}>
+                <MaterialIcons
+                  name="location-on"
+                  size={20}
+                  color={theme.colors.primary}
+                />
+                <Text style={styles.sectionTitle}>Endereço de Entrega</Text>
+              </View>
+              <View style={styles.enderecoCard}>
+                <Text style={styles.enderecoText}>
+                  {endereco.rua}, {endereco.numero}
+                </Text>
+                <Text style={styles.enderecoText}>
+                  {endereco.bairro}, {endereco.cidade}/{endereco.estado}
+                </Text>
+                {endereco.complemento && (
+                  <Text style={styles.enderecoText}>{endereco.complemento}</Text>
+                )}
+              </View>
             </View>
-            <View style={styles.enderecoCard}>
-              <Text style={styles.enderecoText}>
-                {endereco.rua}, {endereco.numero}
-              </Text>
-              <Text style={styles.enderecoText}>
-                {endereco.bairro}, {endereco.cidade}/{endereco.estado}
-              </Text>
-              {endereco.complemento && (
-                <Text style={styles.enderecoText}>{endereco.complemento}</Text>
-              )}
-            </View>
-          </View>
-          {/* Frete - sempre mostrar se há endereço */}
+          )}
+          {/* Frete - sempre mostrar */}
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <MaterialIcons

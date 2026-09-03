@@ -37,6 +37,7 @@ export default function CarrinhoScreen({ navigation }) {
   const [voucherCartItems, setVoucherCartItems] = useState([]);
   const [loading, setLoading] = useState(false);
   const [total, setTotal] = useState(0);
+  const [deliveryMethod, setDeliveryMethod] = useState("DELIVERY"); // "DELIVERY" ou "PICKUP"
   const [selectedEndereco, setSelectedEndereco] = useState(null);
   const [selectedFrete, setSelectedFrete] = useState(null);
   const [paymentData, setPaymentData] = useState({});
@@ -89,7 +90,7 @@ export default function CarrinhoScreen({ navigation }) {
 
   // Calcula o total incluindo frete
   const getTotalComFrete = () => {
-    const freteValue = selectedFrete?.preco || 0;
+    const freteValue = deliveryMethod === "PICKUP" ? 0 : (selectedFrete?.preco || 0);
     return total + freteValue;
   };
 
@@ -447,14 +448,24 @@ export default function CarrinhoScreen({ navigation }) {
 
       // Verificar se há apenas vouchers (frete grátis)
       const apenasVouchers = produtos.length === 0 && vouchers.length > 0;
-      const taxaEntrega = apenasVouchers ? 0 : selectedFrete?.preco || 0.0;
+      let taxaEntrega = 0;
+      let modalidadeEntrega = "DELIVERY"; // padrão
+
+      if (!apenasVouchers) {
+        if (deliveryMethod === "DELIVERY") {
+          taxaEntrega = selectedFrete?.preco || 0.0;
+        } else {
+          taxaEntrega = 0.0;
+          modalidadeEntrega = "PICKUP";
+        }
+      }
 
       const pedidoPayload = {
-        ...(selectedEndereco?.endereco_id && { endereco_id: selectedEndereco.endereco_id }),
+        ...(selectedEndereco?.endereco_id && deliveryMethod === "DELIVERY" && { endereco_id: selectedEndereco.endereco_id }),
         status: "PENDENTE",
         statusEntrega: "PENDENTE",
         statusPagamento: "PENDING",
-        observacoes: "", // Pode ser expandido futuramente
+        observacoes: modalidadeEntrega === "PICKUP" ? "Retirar na Barbearia" : "",
         taxa_entrega: taxaEntrega,
         produtos: produtos,
         vouchers: vouchers,
@@ -516,16 +527,25 @@ export default function CarrinhoScreen({ navigation }) {
       );
 
       // Para vouchers, criar um objeto de frete simulado se não houver
-      const freteParaModal =
-        apenasVouchers && !selectedFrete
-          ? {
-              serviceCode: "VOUCHER_DIGITAL",
-              serviceDescription: "Entrega Digital",
-              carrier: "Email",
-              preco: 0,
-              deliveryTime: "Imediata",
-            }
-          : selectedFrete;
+      let freteParaModal = selectedFrete;
+      
+      if (apenasVouchers) {
+        freteParaModal = {
+          serviceCode: "VOUCHER_DIGITAL",
+          serviceDescription: "Entrega Digital",
+          carrier: "Email",
+          preco: 0,
+          deliveryTime: "Imediata",
+        };
+      } else if (deliveryMethod === "PICKUP") {
+        freteParaModal = {
+          serviceCode: "PICKUP",
+          serviceDescription: "Retirar na Barbearia",
+          carrier: "Barbearia",
+          preco: 0,
+          deliveryTime: "Imediata",
+        };
+      }
 
       const dadosPedido = {
         pedidoId: pedidoResponse.pedido_id,
@@ -704,9 +724,24 @@ export default function CarrinhoScreen({ navigation }) {
 
   const isCheckoutValid = () => {
     if (cartItems.length === 0 && voucherCartItems.length === 0) return false;
-    if (cartItems.length > 0) {
-      if (!selectedEndereco || !selectedFrete) return false;
+
+    // Se tiver apenas vouchers, não precisa validar endereço e frete (é entrega digital)
+    const apenasVouchers = cartItems.length === 0 && voucherCartItems.length > 0;
+
+    if (!apenasVouchers) {
+      if (deliveryMethod === "DELIVERY") {
+        if (!selectedEndereco || !selectedFrete) return false;
+      }
     }
+
+    if (
+      !paymentData.payer_email ||
+      !paymentData.payer_identification_number ||
+      paymentData.payer_identification_number.length !== 11
+    ) {
+      return false;
+    }
+
     return true;
   };
 
@@ -845,21 +880,79 @@ export default function CarrinhoScreen({ navigation }) {
           </>
         )}
 
-        {/* Seleção de Endereço */}
-        <EnderecoSelector
-          onEnderecoSelect={handleEnderecoSelect}
-          selectedEnderecoId={selectedEndereco?.endereco_id}
-        />
+        {/* Modalidade de Entrega */}
+        {cartItems.length > 0 && (
+          <View style={styles.deliveryMethodContainer}>
+            <Text style={styles.sectionHeader}>Forma de Entrega</Text>
+            <View style={styles.deliveryTabs}>
+              <TouchableOpacity
+                style={[
+                  styles.deliveryTab,
+                  deliveryMethod === "DELIVERY" && styles.deliveryTabActive,
+                ]}
+                onPress={() => setDeliveryMethod("DELIVERY")}
+                activeOpacity={0.8}
+              >
+                <MaterialIcons
+                  name="local-shipping"
+                  size={20}
+                  color={deliveryMethod === "DELIVERY" ? "#FFFFFF" : (isDark ? "#8A8A90" : "#6B7280")}
+                />
+                <Text
+                  style={[
+                    styles.deliveryTabText,
+                    deliveryMethod === "DELIVERY" && styles.deliveryTabTextActive,
+                  ]}
+                >
+                  Receber em Casa
+                </Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity
+                style={[
+                  styles.deliveryTab,
+                  deliveryMethod === "PICKUP" && styles.deliveryTabActive,
+                ]}
+                onPress={() => setDeliveryMethod("PICKUP")}
+                activeOpacity={0.8}
+              >
+                <MaterialIcons
+                  name="storefront"
+                  size={20}
+                  color={deliveryMethod === "PICKUP" ? "#FFFFFF" : (isDark ? "#8A8A90" : "#6B7280")}
+                />
+                <Text
+                  style={[
+                    styles.deliveryTabText,
+                    deliveryMethod === "PICKUP" && styles.deliveryTabTextActive,
+                  ]}
+                >
+                  Retirar na Barbearia
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
 
-        {/* Seleção de Frete */}
-        {selectedEndereco && (
-          <FreteSelector
-            endereco={selectedEndereco}
-            cartItems={cartItems}
-            voucherCartItems={voucherCartItems}
-            onFreteSelect={setSelectedFrete}
-            selectedFrete={selectedFrete}
-          />
+        {/* Seleção de Endereço (Apenas se Delivery) */}
+        {cartItems.length > 0 && deliveryMethod === "DELIVERY" && (
+          <>
+            <EnderecoSelector
+              onEnderecoSelect={handleEnderecoSelect}
+              selectedEnderecoId={selectedEndereco?.endereco_id}
+            />
+
+            {/* Seleção de Frete */}
+            {selectedEndereco && (
+              <FreteSelector
+                endereco={selectedEndereco}
+                cartItems={cartItems}
+                voucherCartItems={voucherCartItems}
+                onFreteSelect={setSelectedFrete}
+                selectedFrete={selectedFrete}
+              />
+            )}
+          </>
         )}
 
         {/* Dados para Pagamento */}
@@ -876,7 +969,9 @@ export default function CarrinhoScreen({ navigation }) {
           <View style={styles.summaryRow}>
             <Text style={styles.summaryLabel}>Entrega:</Text>
             <Text style={styles.summaryValue}>
-              {selectedFrete
+              {deliveryMethod === "PICKUP"
+                ? "Grátis (Retirada)"
+                : selectedFrete
                 ? formatPrice(selectedFrete.preco)
                 : "Selecione o endereço"}
             </Text>
@@ -1055,6 +1150,41 @@ const getStyles = (theme, isDark, insets) => StyleSheet.create({
     fontSize: 14,
     fontWeight: "600",
     color: isDark ? "#D0D0D5" : theme.colors.foreground,
+  },
+  deliveryMethodContainer: {
+    marginVertical: 12,
+  },
+  deliveryTabs: {
+    flexDirection: "row",
+    backgroundColor: isDark ? "#121214" : "#F0F0F0",
+    borderRadius: 10,
+    padding: 3,
+    marginTop: 6,
+  },
+  deliveryTab: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 8,
+    borderRadius: 8,
+    gap: 6,
+  },
+  deliveryTabActive: {
+    backgroundColor: theme.colors.primary || "#7C4DFF",
+    shadowColor: theme.colors.primary || "#7C4DFF",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.15,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  deliveryTabText: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: isDark ? "#8A8A90" : "#6B7280",
+  },
+  deliveryTabTextActive: {
+    color: "#FFFFFF",
   },
   cartItem: {
     flexDirection: "row",
