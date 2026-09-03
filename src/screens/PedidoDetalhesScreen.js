@@ -280,13 +280,19 @@ export default function PedidoDetalhesScreen({ route, navigation }) {
 
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <MaterialIcons name="location-on" size={20} color={theme.colors.primary} />
-            <Text style={styles.sectionTitle}>Endereço de Entrega</Text>
+            <MaterialIcons name={pedido.endereco ? "location-on" : "storefront"} size={20} color={theme.colors.primary} />
+            <Text style={styles.sectionTitle}>{pedido.endereco ? "Endereço de Entrega" : "Retirada"}</Text>
           </View>
           <View style={styles.enderecoCard}>
-            <Text style={styles.enderecoText}>{pedido.endereco.rua}, {pedido.endereco.numero}</Text>
-            <Text style={styles.enderecoText}>{pedido.endereco.bairro}, {pedido.endereco.cidade}/{pedido.endereco.estado}</Text>
-            <Text style={styles.enderecoText}>CEP: {pedido.endereco.cep}</Text>
+            {pedido.endereco ? (
+              <>
+                <Text style={styles.enderecoText}>{pedido.endereco.rua}, {pedido.endereco.numero}</Text>
+                <Text style={styles.enderecoText}>{pedido.endereco.bairro}, {pedido.endereco.cidade}/{pedido.endereco.estado}</Text>
+                <Text style={styles.enderecoText}>CEP: {pedido.endereco.cep}</Text>
+              </>
+            ) : (
+              <Text style={styles.enderecoText}>Retirar na Barbearia</Text>
+            )}
           </View>
         </View>
 

@@ -128,16 +128,17 @@ const MeusPedidosScreen = ({ navigation }) => {
           </View>
         </View>
 
-        {/* Endereço de Entrega */}
+        {/* Endereço de Entrega ou Retirada */}
         <View style={styles.enderecoSection}>
           <MaterialIcons
-            name="location-on"
+            name={item.endereco ? "location-on" : "storefront"}
             size={16}
             color={theme.colors.textMuted}
           />
           <Text style={styles.enderecoText}>
-            {item.endereco.rua}, {item.endereco.numero} - {item.endereco.bairro}
-            {item.endereco.complemento ? `, ${item.endereco.complemento}` : ""}
+            {item.endereco
+              ? `${item.endereco.rua}, ${item.endereco.numero} - ${item.endereco.bairro}${item.endereco.complemento ? `, ${item.endereco.complemento}` : ""}`
+              : "Retirar na Barbearia"}
           </Text>
         </View>
 
