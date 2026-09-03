@@ -158,9 +158,9 @@ export default function ProductsScreen({ navigation }) {
             {item.product_name || "Produto sem nome"}
           </Text>
 
-          <View style={styles.priceAndActionRow}>
+          <View style={styles.priceContainer}>
             {hasPromo ? (
-              <View style={styles.priceContainer}>
+              <View>
                 <Text style={styles.dePriceText}>
                   De {formatPrice(item.product_price)}
                 </Text>
@@ -172,21 +172,13 @@ export default function ProductsScreen({ navigation }) {
                 </View>
               </View>
             ) : (
-              <View style={styles.priceContainer}>
-                <Text style={styles.regularPriceLabel}>Preço</Text>
+              <View>
+                <Text style={styles.regularPriceLabel}>Por</Text>
                 <Text style={styles.productPrice}>
                   {formatPrice(item.product_price)}
                 </Text>
               </View>
             )}
-
-            <View style={styles.cardActionIcon}>
-              <MaterialIcons
-                name="arrow-forward"
-                size={14}
-                color={isDark ? "#A0A0B0" : "#6B7280"}
-              />
-            </View>
           </View>
         </View>
       </TouchableOpacity>
@@ -459,13 +451,7 @@ const getStyles = (theme, itemWidth, isDark) => StyleSheet.create({
     lineHeight: 18,
     minHeight: 36,
   },
-  priceAndActionRow: {
-    flexDirection: "row",
-    alignItems: "flex-end",
-    justifyContent: "space-between",
-  },
   priceContainer: {
-    flex: 1,
     justifyContent: "flex-end",
   },
   dePriceText: {
@@ -502,15 +488,6 @@ const getStyles = (theme, itemWidth, isDark) => StyleSheet.create({
     fontSize: 16,
     fontWeight: "800",
     color: theme.colors.primary || "#7C4DFF",
-  },
-  cardActionIcon: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.04)",
-    justifyContent: "center",
-    alignItems: "center",
-    marginLeft: 6,
   },
   emptyContainer: {
     alignItems: "center",

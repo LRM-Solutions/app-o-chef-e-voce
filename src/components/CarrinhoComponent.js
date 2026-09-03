@@ -16,6 +16,7 @@ import { formatPrice, getProductMainImage } from "../api/products";
 import { formatVoucherPrice, getVoucherMainImage } from "../api/vouchers";
 import Toast from "react-native-toast-message";
 import { SafeAreaView } from "react-native-safe-area-context";
+import ConfirmModal from "./ConfirmModal";
 
 export default function CarrinhoComponent({ visible, onClose, onGoToCart }) {
   const { theme, themeMode } = useTheme();
@@ -26,6 +27,14 @@ export default function CarrinhoComponent({ visible, onClose, onGoToCart }) {
   const [voucherCartItems, setVoucherCartItems] = useState([]);
   const [loading, setLoading] = useState(false);
   const [total, setTotal] = useState(0);
+  const [confirmModal, setConfirmModal] = useState({
+    visible: false,
+    title: "",
+    message: "",
+    confirmText: "Remover",
+    onConfirm: null,
+    loading: false,
+  });
 
   useEffect(() => {
     if (visible) {
@@ -75,24 +84,35 @@ export default function CarrinhoComponent({ visible, onClose, onGoToCart }) {
     }
   };
 
-  const handleRemoveItem = async (productId) => {
-    try {
-      await CartService.removeFromCart(productId);
-      await loadCartItems();
-      Toast.show({
-        type: "success",
-        text1: "Produto removido",
-        visibilityTime: 2000,
-      });
-    } catch (error) {
-      console.error("Erro ao remover item:", error);
-      Toast.show({
-        type: "error",
-        text1: "Erro",
-        text2: "Não foi possível remover o produto",
-        visibilityTime: 3000,
-      });
-    }
+  const handleRemoveItem = (productId, productName) => {
+    setConfirmModal({
+      visible: true,
+      title: "Remover Produto",
+      message: `Deseja remover "${productName}" do seu carrinho da Sans Company?`,
+      confirmText: "Remover",
+      onConfirm: async () => {
+        try {
+          setConfirmModal((prev) => ({ ...prev, loading: true }));
+          await CartService.removeFromCart(productId);
+          await loadCartItems();
+          setConfirmModal((prev) => ({ ...prev, visible: false, loading: false }));
+          Toast.show({
+            type: "success",
+            text1: "Produto removido",
+            visibilityTime: 2000,
+          });
+        } catch (error) {
+          console.error("Erro ao remover item:", error);
+          setConfirmModal((prev) => ({ ...prev, loading: false }));
+          Toast.show({
+            type: "error",
+            text1: "Erro",
+            text2: "Não foi possível remover o produto",
+            visibilityTime: 3000,
+          });
+        }
+      },
+    });
   };
 
   const handleUpdateVoucherQuantity = async (voucherId, newQuantity) => {
@@ -110,24 +130,35 @@ export default function CarrinhoComponent({ visible, onClose, onGoToCart }) {
     }
   };
 
-  const handleRemoveVoucher = async (voucherId) => {
-    try {
-      await CartService.removeVoucherFromCart(voucherId);
-      await loadCartItems();
-      Toast.show({
-        type: "success",
-        text1: "Voucher removido",
-        visibilityTime: 2000,
-      });
-    } catch (error) {
-      console.error("Erro ao remover voucher:", error);
-      Toast.show({
-        type: "error",
-        text1: "Erro",
-        text2: "Não foi possível remover o voucher",
-        visibilityTime: 3000,
-      });
-    }
+  const handleRemoveVoucher = (voucherId, voucherName) => {
+    setConfirmModal({
+      visible: true,
+      title: "Remover Voucher",
+      message: `Deseja remover o voucher "${voucherName}" do seu carrinho da Sans Company?`,
+      confirmText: "Remover",
+      onConfirm: async () => {
+        try {
+          setConfirmModal((prev) => ({ ...prev, loading: true }));
+          await CartService.removeVoucherFromCart(voucherId);
+          await loadCartItems();
+          setConfirmModal((prev) => ({ ...prev, visible: false, loading: false }));
+          Toast.show({
+            type: "success",
+            text1: "Voucher removido",
+            visibilityTime: 2000,
+          });
+        } catch (error) {
+          console.error("Erro ao remover voucher:", error);
+          setConfirmModal((prev) => ({ ...prev, loading: false }));
+          Toast.show({
+            type: "error",
+            text1: "Erro",
+            text2: "Não foi possível remover o voucher",
+            visibilityTime: 3000,
+          });
+        }
+      },
+    });
   };
 
   const CartItem = ({ item }) => {
@@ -201,7 +232,7 @@ export default function CarrinhoComponent({ visible, onClose, onGoToCart }) {
           <Text style={styles.itemTotal}>{formatPrice(item.total_price)}</Text>
           <TouchableOpacity
             style={styles.removeButton}
-            onPress={() => handleRemoveItem(item.product_id)}
+            onPress={() => handleRemoveItem(item.product_id, item.product_name)}
           >
             <MaterialIcons name="delete" size={18} color="#f44336" />
           </TouchableOpacity>
@@ -273,7 +304,7 @@ export default function CarrinhoComponent({ visible, onClose, onGoToCart }) {
           </Text>
           <TouchableOpacity
             style={styles.removeButton}
-            onPress={() => handleRemoveVoucher(item.voucher_id)}
+            onPress={() => handleRemoveVoucher(item.voucher_id, item.voucher_name)}
           >
             <MaterialIcons name="delete" size={18} color="#f44336" />
           </TouchableOpacity>
@@ -380,6 +411,19 @@ export default function CarrinhoComponent({ visible, onClose, onGoToCart }) {
             </View>
           </>
         )}
+
+        {/* Modal de Confirmação para Remoção */}
+        <ConfirmModal
+          visible={confirmModal.visible}
+          title={confirmModal.title}
+          message={confirmModal.message}
+          confirmText={confirmModal.confirmText}
+          loading={confirmModal.loading}
+          onConfirm={confirmModal.onConfirm}
+          onCancel={() =>
+            setConfirmModal((prev) => ({ ...prev, visible: false }))
+          }
+        />
       </SafeAreaView>
     </Modal>
   );

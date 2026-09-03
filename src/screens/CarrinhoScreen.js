@@ -21,6 +21,7 @@ import EnderecoSelector from "../components/EnderecoSelector";
 import FreteSelector from "../components/FreteSelector";
 import PaymentDataSelector from "../components/PaymentDataSelector";
 import FinalizarCompraModal from "../components/FinalizarCompraModal";
+import ConfirmModal from "../components/ConfirmModal";
 import { createPedido } from "../api/pedidosApi";
 import { createPayment, getNotificationUrl } from "../api/paymentsApi";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -42,6 +43,16 @@ export default function CarrinhoScreen({ navigation }) {
   const [processing, setProcessing] = useState(false);
   const [showFinalizarModal, setShowFinalizarModal] = useState(false);
   const [pedidoConfirmado, setPedidoConfirmado] = useState(null);
+  const [confirmModal, setConfirmModal] = useState({
+    visible: false,
+    title: "",
+    message: "",
+    confirmText: "Confirmar",
+    confirmColor: "#EF4444",
+    iconName: "delete-outline",
+    onConfirm: null,
+    loading: false,
+  });
 
   useEffect(() => {
     loadCartItems();
@@ -102,53 +113,46 @@ export default function CarrinhoScreen({ navigation }) {
     }
   };
 
-  const handleRemoveItem = async (productId, productName) => {
-    const doRemove = async () => {
-      try {
-        await CartService.removeFromCart(productId);
-        await loadCartItems();
-        Toast.show({
-          type: "success",
-          text1: "Produto removido",
-          visibilityTime: 2000,
-        });
-      } catch (error) {
-        console.error("Erro ao remover item:", error);
-        Toast.show({
-          type: "error",
-          text1: "Erro",
-          text2: "Não foi possível remover o produto",
-          visibilityTime: 3000,
-        });
-      }
-    };
+  const handleRemoveItem = (productId, productName) => {
+    setConfirmModal({
+      visible: true,
+      title: "Remover Produto",
+      message: `Deseja remover "${productName}" do seu carrinho da Sans Company?`,
+      confirmText: "Remover",
+      iconName: "delete-outline",
+      confirmColor: "#EF4444",
+      onConfirm: async () => {
+        try {
+          setConfirmModal((prev) => ({ ...prev, loading: true }));
+          const updatedItems = await CartService.removeFromCart(productId);
+          await loadCartItems();
+          setConfirmModal((prev) => ({ ...prev, visible: false, loading: false }));
+          Toast.show({
+            type: "success",
+            text1: "Produto removido",
+            visibilityTime: 2000,
+          });
 
-    if (Platform.OS === "web") {
-      const confirmRemove = window.confirm(
-        `Deseja remover "${productName}" do carrinho?`
-      );
-      if (confirmRemove) {
-        await doRemove();
-      }
-      return;
-    }
-
-    Alert.alert(
-      "Remover Produto",
-      `Deseja remover "${productName}" do carrinho?`,
-      [
-        {
-          text: "Cancelar",
-          style: "cancel",
-        },
-        {
-          text: "Remover",
-          style: "destructive",
-          onPress: doRemove,
-        },
-      ],
-      { cancelable: true }
-    );
+          // Se esvaziou o carrinho, redireciona para a loja
+          const remainingVouchers = await CartService.getVoucherCartItems();
+          if (
+            (!updatedItems || updatedItems.length === 0) &&
+            (!remainingVouchers || remainingVouchers.length === 0)
+          ) {
+            navigation.navigate("MainTabs", { screen: "Loja" });
+          }
+        } catch (error) {
+          console.error("Erro ao remover item:", error);
+          setConfirmModal((prev) => ({ ...prev, loading: false }));
+          Toast.show({
+            type: "error",
+            text1: "Erro",
+            text2: "Não foi possível remover o produto",
+            visibilityTime: 3000,
+          });
+        }
+      },
+    });
   };
 
   const handleUpdateVoucherQuantity = async (voucherId, newQuantity) => {
@@ -171,102 +175,82 @@ export default function CarrinhoScreen({ navigation }) {
     }
   };
 
-  const handleRemoveVoucher = async (voucherId, voucherName) => {
-    const doRemove = async () => {
-      try {
-        await CartService.removeVoucherFromCart(voucherId);
-        await loadCartItems();
-        Toast.show({
-          type: "success",
-          text1: "Voucher removido",
-          visibilityTime: 2000,
-        });
-      } catch (error) {
-        console.error("Erro ao remover voucher:", error);
-        Toast.show({
-          type: "error",
-          text1: "Erro",
-          text2: "Não foi possível remover o voucher",
-          visibilityTime: 3000,
-        });
-      }
-    };
+  const handleRemoveVoucher = (voucherId, voucherName) => {
+    setConfirmModal({
+      visible: true,
+      title: "Remover Voucher",
+      message: `Deseja remover o voucher "${voucherName}" do seu carrinho da Sans Company?`,
+      confirmText: "Remover",
+      iconName: "delete-outline",
+      confirmColor: "#EF4444",
+      onConfirm: async () => {
+        try {
+          setConfirmModal((prev) => ({ ...prev, loading: true }));
+          const updatedVouchers = await CartService.removeVoucherFromCart(voucherId);
+          await loadCartItems();
+          setConfirmModal((prev) => ({ ...prev, visible: false, loading: false }));
+          Toast.show({
+            type: "success",
+            text1: "Voucher removido",
+            visibilityTime: 2000,
+          });
 
-    if (Platform.OS === "web") {
-      const confirmRemove = window.confirm(
-        `Deseja remover "${voucherName}" do carrinho?`
-      );
-      if (confirmRemove) {
-        await doRemove();
-      }
-      return;
-    }
-
-    Alert.alert(
-      "Remover Voucher",
-      `Deseja remover "${voucherName}" do carrinho?`,
-      [
-        {
-          text: "Cancelar",
-          style: "cancel",
-        },
-        {
-          text: "Remover",
-          style: "destructive",
-          onPress: doRemove,
-        },
-      ],
-      { cancelable: true }
-    );
+          // Se esvaziou o carrinho, redireciona para a loja
+          const remainingProducts = await CartService.getCartItems();
+          if (
+            (!updatedVouchers || updatedVouchers.length === 0) &&
+            (!remainingProducts || remainingProducts.length === 0)
+          ) {
+            navigation.navigate("MainTabs", { screen: "Loja" });
+          }
+        } catch (error) {
+          console.error("Erro ao remover voucher:", error);
+          setConfirmModal((prev) => ({ ...prev, loading: false }));
+          Toast.show({
+            type: "error",
+            text1: "Erro",
+            text2: "Não foi possível remover o voucher",
+            visibilityTime: 3000,
+          });
+        }
+      },
+    });
   };
 
   const handleClearCart = () => {
-    const doClear = async () => {
-      try {
-        await CartService.clearAllCart();
-        await loadCartItems();
-        Toast.show({
-          type: "success",
-          text1: "Carrinho limpo",
-          visibilityTime: 2000,
-        });
-      } catch (error) {
-        console.error("Erro ao limpar carrinho:", error);
-        Toast.show({
-          type: "error",
-          text1: "Erro",
-          text2: "Não foi possível limpar o carrinho",
-          visibilityTime: 3000,
-        });
-      }
-    };
-
-    if (Platform.OS === "web") {
-      const confirmClear = window.confirm(
-        "Deseja remover todos os produtos e vouchers do carrinho?"
-      );
-      if (confirmClear) {
-        doClear();
-      }
-      return;
-    }
-
-    Alert.alert(
-      "Limpar Carrinho",
-      "Deseja remover todos os produtos e vouchers do carrinho?",
-      [
-        {
-          text: "Cancelar",
-          style: "cancel",
-        },
-        {
-          text: "Limpar",
-          style: "destructive",
-          onPress: doClear,
-        },
-      ],
-      { cancelable: true }
-    );
+    setConfirmModal({
+      visible: true,
+      title: "Limpar Carrinho",
+      message:
+        "Tem certeza que deseja remover todos os itens do seu carrinho da Sans Company?",
+      confirmText: "Limpar Carrinho",
+      iconName: "delete-sweep",
+      confirmColor: "#EF4444",
+      onConfirm: async () => {
+        try {
+          setConfirmModal((prev) => ({ ...prev, loading: true }));
+          await CartService.clearAllCart();
+          await loadCartItems();
+          setConfirmModal((prev) => ({ ...prev, visible: false, loading: false }));
+          navigation.navigate("MainTabs", { screen: "Loja" });
+          Toast.show({
+            type: "success",
+            text1: "Carrinho limpo",
+            text2: "Você foi redirecionado para a loja",
+            visibilityTime: 2500,
+          });
+        } catch (error) {
+          console.error("Erro ao limpar carrinho:", error);
+          setConfirmModal((prev) => ({ ...prev, loading: false }));
+          Toast.show({
+            type: "error",
+            text1: "Erro",
+            text2: "Não foi possível limpar o carrinho",
+            visibilityTime: 3000,
+          });
+        }
+      },
+    });
   };
 
   const handleEnderecoSelect = (endereco) => {
@@ -756,24 +740,75 @@ export default function CarrinhoScreen({ navigation }) {
 
   if (cartItems.length === 0 && voucherCartItems.length === 0) {
     return (
-      <View style={styles.emptyContainer}>
-        <View style={styles.emptyIconCircle}>
-          <MaterialIcons
-            name="remove-shopping-cart"
-            size={48}
-            color={isDark ? "rgba(255,255,255,0.3)" : "rgba(0,0,0,0.3)"}
-          />
-        </View>
-        <Text style={styles.emptyText}>Seu carrinho está vazio</Text>
-        <Text style={styles.emptySubtext}>
-          Adicione produtos ou vouchers para finalizar sua compra
-        </Text>
-        <TouchableOpacity
-          style={styles.continueShoppingButton}
-          onPress={() => navigation.navigate("Loja")}
+      <View style={styles.container}>
+        {/* Header com botão de voltar para nunca travar o usuário */}
+        <View
+          style={[
+            styles.header,
+            {
+              paddingTop:
+                (Platform.OS === "ios"
+                  ? insets.top || 44
+                  : insets.top || 20) + 4,
+            },
+          ]}
         >
-          <Text style={styles.continueShoppingText}>Continuar Comprando</Text>
-        </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => {
+              if (navigation.canGoBack()) {
+                navigation.goBack();
+              } else {
+                navigation.navigate("MainTabs", { screen: "Loja" });
+              }
+            }}
+            activeOpacity={0.7}
+          >
+            <MaterialIcons
+              name="arrow-back"
+              size={22}
+              color={isDark ? "#FFFFFF" : "#1A1A1A"}
+            />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Meu Carrinho</Text>
+          <View style={{ width: 40 }} />
+        </View>
+
+        <View style={styles.emptyContainer}>
+          <View style={styles.emptyIconCircle}>
+            <MaterialIcons
+              name="remove-shopping-cart"
+              size={48}
+              color={isDark ? "rgba(255,255,255,0.3)" : "rgba(0,0,0,0.3)"}
+            />
+          </View>
+          <Text style={styles.emptyText}>Seu carrinho está vazio</Text>
+          <Text style={styles.emptySubtext}>
+            Adicione produtos ou serviços da Sans Company para finalizar sua compra
+          </Text>
+          <TouchableOpacity
+            style={styles.continueShoppingButton}
+            onPress={() => navigation.navigate("MainTabs", { screen: "Loja" })}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.continueShoppingText}>Ir para a Loja</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Modal de Confirmação */}
+        <ConfirmModal
+          visible={confirmModal.visible}
+          title={confirmModal.title}
+          message={confirmModal.message}
+          confirmText={confirmModal.confirmText}
+          confirmColor={confirmModal.confirmColor}
+          iconName={confirmModal.iconName}
+          loading={confirmModal.loading}
+          onConfirm={confirmModal.onConfirm}
+          onCancel={() =>
+            setConfirmModal((prev) => ({ ...prev, visible: false }))
+          }
+        />
       </View>
     );
   }
@@ -905,7 +940,7 @@ export default function CarrinhoScreen({ navigation }) {
         </TouchableOpacity>
       </View>
 
-      {/* Modal de Confirmação */}
+      {/* Modal de Finalizar Compra */}
       <FinalizarCompraModal
         visible={showFinalizarModal}
         onClose={handleCloseModal}
@@ -913,6 +948,21 @@ export default function CarrinhoScreen({ navigation }) {
         onPagarDepois={handlePagarDepois}
         pedidoData={pedidoConfirmado}
         loading={processing}
+      />
+
+      {/* Modal de Confirmação para Remoção / Limpeza */}
+      <ConfirmModal
+        visible={confirmModal.visible}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        confirmText={confirmModal.confirmText}
+        confirmColor={confirmModal.confirmColor}
+        iconName={confirmModal.iconName}
+        loading={confirmModal.loading}
+        onConfirm={confirmModal.onConfirm}
+        onCancel={() =>
+          setConfirmModal((prev) => ({ ...prev, visible: false }))
+        }
       />
     </View>
   );
