@@ -47,15 +47,17 @@ export default function ProductsScreen({ navigation }) {
     loadData();
   }, []);
 
-  const loadData = async () => {
+  const loadData = async (isPull = false) => {
     try {
-      setLoading(true);
+      if (!isPull) {
+        setLoading(true);
+      }
       const [productsData, categoriesData] = await Promise.all([
         getProducts(),
         getCategories(),
       ]);
-      setProducts(productsData);
-      setCategories(["Todos", ...categoriesData]);
+      setProducts(productsData || []);
+      setCategories(["Todos", ...(categoriesData || [])]);
     } catch (error) {
       console.error("Erro ao carregar dados da loja:", error);
       Toast.show({
@@ -65,15 +67,17 @@ export default function ProductsScreen({ navigation }) {
         visibilityTime: 4000,
       });
     } finally {
-      setLoading(false);
+      if (!isPull) {
+        setLoading(false);
+      }
     }
   };
 
-  const onRefresh = async () => {
+  const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    await loadData();
+    await loadData(true);
     setRefreshing(false);
-  };
+  }, []);
 
   const navigateToProduct = (productId) => {
     navigation.navigate("SingleProduct", { productId });
@@ -143,43 +147,36 @@ export default function ProductsScreen({ navigation }) {
             {item.product_name || "Produto sem nome"}
           </Text>
 
-          {hasPromo ? (
-            <View style={styles.promoPriceSection}>
-              <Text style={styles.dePriceText}>
-                De {formatPrice(item.product_price)}
-              </Text>
-              <View style={styles.priceRow}>
+          <View style={styles.priceAndActionRow}>
+            {hasPromo ? (
+              <View style={styles.priceContainer}>
+                <Text style={styles.dePriceText}>
+                  De {formatPrice(item.product_price)}
+                </Text>
                 <View style={styles.porRow}>
                   <Text style={styles.porLabel}>Por </Text>
                   <Text style={styles.productPricePromo}>
                     {formatPrice(item.promotional_price)}
                   </Text>
                 </View>
-                <View style={styles.stockStatus}>
-                  <View
-                    style={[
-                      styles.stockIndicator,
-                      { backgroundColor: inStock ? "#4CAF50" : "#f44336" },
-                    ]}
-                  />
-                </View>
               </View>
-            </View>
-          ) : (
-            <View style={styles.priceRow}>
-              <Text style={styles.productPrice}>
-                {formatPrice(item.product_price)}
-              </Text>
-              <View style={styles.stockStatus}>
-                <View
-                  style={[
-                    styles.stockIndicator,
-                    { backgroundColor: inStock ? "#4CAF50" : "#f44336" },
-                  ]}
-                />
+            ) : (
+              <View style={styles.priceContainer}>
+                <Text style={styles.regularPriceLabel}>Preço</Text>
+                <Text style={styles.productPrice}>
+                  {formatPrice(item.product_price)}
+                </Text>
               </View>
+            )}
+
+            <View style={styles.cardActionIcon}>
+              <MaterialIcons
+                name="arrow-forward"
+                size={14}
+                color={isDark ? "#A0A0B0" : "#6B7280"}
+              />
             </View>
-          )}
+          </View>
         </View>
       </TouchableOpacity>
     );
@@ -272,10 +269,14 @@ export default function ProductsScreen({ navigation }) {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            colors={[theme.colors.primary]}
-            tintColor={theme.colors.primary}
+            colors={[theme.colors.primary || "#7C4DFF"]}
+            tintColor={theme.colors.primary || "#7C4DFF"}
+            progressViewOffset={10}
           />
         }
+        alwaysBounceVertical={true}
+        bounces={true}
+        overScrollMode="always"
         ListEmptyComponent={renderEmpty}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={
@@ -363,7 +364,7 @@ const getStyles = (theme, itemWidth, isDark) => StyleSheet.create({
   imageContainer: {
     position: "relative",
     width: "100%",
-    height: itemWidth,
+    aspectRatio: 1,
     backgroundColor: isDark ? "#121214" : "#F7F7F9",
     borderTopLeftRadius: 16,
     borderTopRightRadius: 16,
@@ -436,7 +437,7 @@ const getStyles = (theme, itemWidth, isDark) => StyleSheet.create({
     textTransform: "uppercase",
   },
   productInfo: {
-    padding: 14,
+    padding: 12,
   },
   productName: {
     fontSize: 13,
@@ -444,9 +445,16 @@ const getStyles = (theme, itemWidth, isDark) => StyleSheet.create({
     color: isDark ? "#F2F2F5" : "#1A1A1A",
     marginBottom: 8,
     lineHeight: 18,
+    minHeight: 36,
   },
-  promoPriceSection: {
-    marginTop: 0,
+  priceAndActionRow: {
+    flexDirection: "row",
+    alignItems: "flex-end",
+    justifyContent: "space-between",
+  },
+  priceContainer: {
+    flex: 1,
+    justifyContent: "flex-end",
   },
   dePriceText: {
     fontSize: 11,
@@ -470,28 +478,27 @@ const getStyles = (theme, itemWidth, isDark) => StyleSheet.create({
     fontWeight: "900",
     color: isDark ? "#FF5252" : "#D32F2F",
   },
-  priceRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+  regularPriceLabel: {
+    fontSize: 10,
+    fontWeight: "600",
+    color: isDark ? "#8E8E93" : "#8E8E93",
+    textTransform: "uppercase",
+    letterSpacing: 0.3,
+    marginBottom: 1,
   },
   productPrice: {
     fontSize: 16,
     fontWeight: "800",
     color: theme.colors.primary || "#7C4DFF",
   },
-  stockStatus: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.04)",
+  cardActionIcon: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.04)",
     justifyContent: "center",
     alignItems: "center",
-  },
-  stockIndicator: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+    marginLeft: 6,
   },
   emptyContainer: {
     alignItems: "center",
