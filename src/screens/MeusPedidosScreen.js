@@ -133,12 +133,17 @@ const MeusPedidosScreen = ({ navigation }) => {
           <MaterialIcons
             name={item.endereco ? "location-on" : "storefront"}
             size={16}
-            color={theme.colors.textMuted}
+            color={item.endereco ? theme.colors.textMuted : theme.colors.primary}
           />
-          <Text style={styles.enderecoText}>
+          <Text
+            style={[
+              styles.enderecoText,
+              !item.endereco && { color: theme.colors.primary, fontWeight: "600" },
+            ]}
+          >
             {item.endereco
               ? `${item.endereco.rua}, ${item.endereco.numero} - ${item.endereco.bairro}${item.endereco.complemento ? `, ${item.endereco.complemento}` : ""}`
-              : "Retirar na Barbearia"}
+              : "Seu produto está pronto para retirar na loja"}
           </Text>
         </View>
 

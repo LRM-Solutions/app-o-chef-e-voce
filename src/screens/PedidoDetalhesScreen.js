@@ -239,6 +239,11 @@ export default function PedidoDetalhesScreen({ route, navigation }) {
   const statusEntrega = formatarStatusEntrega(pedido.statusEntrega);
   const statusPagamento = formatarStatusPagamento(pedido.statusPagamento);
   const total = calcularTotalPedido(pedido);
+  const isRetirada = Boolean(
+    !pedido.endereco ||
+    pedido.endereco_id === null ||
+    (pedido.observacoes && pedido.observacoes.toLowerCase().includes("retirar"))
+  );
 
   return (
     <SafeAreaView style={styles.container} edges={["top"]}>
@@ -265,11 +270,21 @@ export default function PedidoDetalhesScreen({ route, navigation }) {
         </View>
 
         <View style={styles.statusContainer}>
-          <View style={styles.statusCard}>
-            <MaterialIcons name={statusEntrega.icon} size={24} color={statusEntrega.color} />
-            <Text style={styles.statusCardTitle}>Entrega</Text>
-            <Text style={[styles.statusCardValue, { color: statusEntrega.color }]}>{statusEntrega.text}</Text>
-          </View>
+          {isRetirada ? (
+            <View style={styles.statusCard}>
+              <MaterialIcons name="storefront" size={24} color={theme.colors.primary} />
+              <Text style={styles.statusCardTitle}>Retirada</Text>
+              <Text style={[styles.statusCardValue, { color: theme.colors.primary, textAlign: "center" }]}>
+                Pronto para Retirar
+              </Text>
+            </View>
+          ) : (
+            <View style={styles.statusCard}>
+              <MaterialIcons name={statusEntrega.icon} size={24} color={statusEntrega.color} />
+              <Text style={styles.statusCardTitle}>Entrega</Text>
+              <Text style={[styles.statusCardValue, { color: statusEntrega.color }]}>{statusEntrega.text}</Text>
+            </View>
+          )}
 
           <View style={styles.statusCard}>
             <MaterialIcons name={statusPagamento.icon} size={24} color={statusPagamento.color} />
@@ -278,10 +293,19 @@ export default function PedidoDetalhesScreen({ route, navigation }) {
           </View>
         </View>
 
+        {isRetirada && (
+          <View style={styles.retiradaBanner}>
+            <MaterialIcons name="check-circle" size={22} color={theme.colors.primary} />
+            <Text style={styles.retiradaBannerText}>
+              Seu produto está pronto para retirar na loja!
+            </Text>
+          </View>
+        )}
+
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <MaterialIcons name={pedido.endereco ? "location-on" : "storefront"} size={20} color={theme.colors.primary} />
-            <Text style={styles.sectionTitle}>{pedido.endereco ? "Endereço de Entrega" : "Retirada"}</Text>
+            <Text style={styles.sectionTitle}>{pedido.endereco ? "Endereço de Entrega" : "Local de Retirada"}</Text>
           </View>
           <View style={styles.enderecoCard}>
             {pedido.endereco ? (
@@ -291,7 +315,12 @@ export default function PedidoDetalhesScreen({ route, navigation }) {
                 <Text style={styles.enderecoText}>CEP: {pedido.endereco.cep}</Text>
               </>
             ) : (
-              <Text style={styles.enderecoText}>Retirar na Barbearia</Text>
+              <>
+                <Text style={[styles.enderecoText, { fontWeight: "700" }]}>Retirar na Barbearia Sans</Text>
+                <Text style={[styles.enderecoText, { color: theme.colors.textMuted, marginTop: 4 }]}>
+                  Apresente o número deste pedido (#{pedido.pedido_id}) na recepção para retirar seus itens.
+                </Text>
+              </>
             )}
           </View>
         </View>
@@ -422,6 +451,23 @@ const getStyles = (theme, isDarkMode) => StyleSheet.create({
   statusCard: { flex: 1, backgroundColor: theme.colors.card, padding: 16, borderRadius: 12, alignItems: "center", ...(isDarkMode ? {} : theme.shadows.sm) },
   statusCardTitle: { fontSize: 12, color: theme.colors.textMuted, marginTop: 8 },
   statusCardValue: { fontSize: 14, fontWeight: "600", marginTop: 4 },
+  retiradaBanner: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    marginTop: 16,
+    padding: 14,
+    borderRadius: 12,
+    backgroundColor: isDarkMode ? "#1f1d2e" : "#f5f3ff",
+    borderWidth: 1,
+    borderColor: isDarkMode ? "#3e3859" : "#ddd6fe",
+  },
+  retiradaBannerText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: isDarkMode ? "#c4b5fd" : "#6d28d9",
+    flex: 1,
+  },
   enderecoCard: { backgroundColor: theme.colors.card, padding: 16, borderRadius: 12, ...(isDarkMode ? {} : theme.shadows.sm) },
   enderecoText: { fontSize: 14, color: theme.colors.foreground, lineHeight: 20 },
   itemCard: {
