@@ -149,7 +149,7 @@ const getStyles = (theme, isDark) => StyleSheet.create({
   detailsTitle: {
     fontSize: 14,
     fontWeight: "500",
-    color: isDark ? "#A0A0A5" : theme.colors.muted,
+    color: isDark ? "#A0A0B0" : "#6B7280",
     marginBottom: 4,
   },
   inputGroup: {

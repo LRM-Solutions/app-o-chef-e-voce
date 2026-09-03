@@ -314,7 +314,11 @@ export default function FreteSelector({
 
       {/* Informação do endereço */}
       <View style={styles.enderecoInfo}>
-        <MaterialIcons name="place" size={16} color={theme.colors.muted} />
+        <MaterialIcons
+          name="place"
+          size={16}
+          color={isDark ? "#8A8A90" : "#6B7280"}
+        />
         <Text style={styles.enderecoTexto} numberOfLines={2}>
           {endereco.rua}, {endereco.numero} - {endereco.bairro},{" "}
           {endereco.cidade}/{endereco.estado}
@@ -357,12 +361,12 @@ const getStyles = (theme, isDark) => StyleSheet.create({
   },
   headerTextDisabled: {
     fontSize: 16,
-    color: isDark ? "#777" : theme.colors.muted,
+    color: isDark ? "#777" : "#6B7280",
     marginLeft: 12,
   },
   freteInfo: {
     fontSize: 14,
-    color: isDark ? "#8A8A90" : theme.colors.muted,
+    color: isDark ? "#A0A0B0" : "#4B5563",
     marginTop: 2,
   },
   headerActions: {
@@ -405,12 +409,12 @@ const getStyles = (theme, isDark) => StyleSheet.create({
   },
   opcaoCarrier: {
     fontSize: 12,
-    color: isDark ? "#8A8A90" : theme.colors.muted,
+    color: isDark ? "#8A8A90" : "#6B7280",
     marginBottom: 2,
   },
   opcaoPrazo: {
     fontSize: 12,
-    color: isDark ? "#8A8A90" : theme.colors.muted,
+    color: isDark ? "#8A8A90" : "#6B7280",
   },
   enderecoInfo: {
     flexDirection: "row",
@@ -420,7 +424,7 @@ const getStyles = (theme, isDark) => StyleSheet.create({
   },
   enderecoTexto: {
     fontSize: 12,
-    color: isDark ? "#8A8A90" : theme.colors.muted,
+    color: isDark ? "#8A8A90" : "#6B7280",
     marginLeft: 8,
     flex: 1,
   },

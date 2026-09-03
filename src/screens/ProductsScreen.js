@@ -273,8 +273,9 @@ export default function ProductsScreen({ navigation }) {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            colors={[theme.colors.primary || "#7C4DFF"]}
-            tintColor={theme.colors.primary || "#7C4DFF"}
+            colors={[isDark ? "#A855F7" : (theme.colors.primary || "#7C4DFF")]}
+            tintColor={isDark ? "#FFFFFF" : (theme.colors.primary || "#7C4DFF")}
+            progressBackgroundColor={isDark ? "#24242A" : "#FFFFFF"}
           />
         }
         alwaysBounceVertical={true}

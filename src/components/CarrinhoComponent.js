@@ -180,22 +180,6 @@ export default function CarrinhoComponent({ visible, onClose, onGoToCart }) {
           <Text style={styles.itemName} numberOfLines={2}>
             {item.product_name}
           </Text>
-          {item.promotional_price &&
-          Number(item.promotional_price) > 0 &&
-          Number(item.promotional_price) < Number(item.product_price) ? (
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
-              <Text style={[styles.itemPrice, { color: isDark ? "#FF5252" : "#D32F2F" }]}>
-                {formatPrice(item.promotional_price)}
-              </Text>
-              <Text style={{ fontSize: 12, color: "#8E8E93", textDecorationLine: "line-through" }}>
-                {formatPrice(item.product_price)}
-              </Text>
-            </View>
-          ) : (
-            <Text style={styles.itemPrice}>
-              {formatPrice(item.product_price)}
-            </Text>
-          )}
 
           <View style={styles.quantityContainer}>
             <TouchableOpacity
@@ -262,9 +246,6 @@ export default function CarrinhoComponent({ visible, onClose, onGoToCart }) {
           </Text>
           <Text style={styles.partnerName}>
             {item.partner?.partner_name || "Parceiro"}
-          </Text>
-          <Text style={styles.itemPrice}>
-            {formatVoucherPrice(item.voucher_price)}
           </Text>
 
           <View style={styles.quantityContainer}>
@@ -495,7 +476,7 @@ const getStyles = (theme, isDark) => StyleSheet.create({
   },
   emptySubtext: {
     fontSize: 14,
-    color: isDark ? "#8A8A90" : theme.colors.muted,
+    color: isDark ? "#8A8A90" : "#6B7280",
     textAlign: "center",
   },
   scrollContainer: {
@@ -548,7 +529,7 @@ const getStyles = (theme, isDark) => StyleSheet.create({
   },
   partnerName: {
     fontSize: 12,
-    color: isDark ? "#8A8A90" : theme.colors.muted,
+    color: isDark ? "#8A8A90" : "#6B7280",
     marginBottom: 4,
     fontStyle: "italic",
   },
@@ -645,7 +626,7 @@ const getStyles = (theme, isDark) => StyleSheet.create({
   },
   captionText: {
     fontSize: 12,
-    color: isDark ? "#8A8A90" : theme.colors.muted,
+    color: isDark ? "#9CA3AF" : "#6B7280",
     textAlign: "center",
     marginTop: 10,
     lineHeight: 16,

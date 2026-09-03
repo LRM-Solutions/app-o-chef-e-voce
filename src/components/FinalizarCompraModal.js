@@ -154,14 +154,18 @@ export default function FinalizarCompraModal({
               <MaterialIcons
                 name="security"
                 size={16}
-                color={theme.colors.muted}
+                color={isDark ? "#8A8A90" : "#6B7280"}
               />
               <Text style={styles.infoText}>
                 Pagamento processado com segurança pelo Mercado Pago
               </Text>
             </View>
             <View style={styles.infoItem}>
-              <MaterialIcons name="info" size={16} color={theme.colors.muted} />
+              <MaterialIcons
+                name="info"
+                size={16}
+                color={isDark ? "#8A8A90" : "#6B7280"}
+              />
               <Text style={styles.infoText}>
                 Você pode acompanhar o status do seu pedido na aba "Meus
                 Pedidos"
@@ -313,7 +317,7 @@ const getStyles = (theme, isDark) => StyleSheet.create({
   },
   freteLabel: {
     fontSize: 14,
-    color: isDark ? "#8A8A90" : theme.colors.muted,
+    color: isDark ? "#8A8A90" : "#6B7280",
   },
   freteValue: {
     fontSize: 14,
@@ -340,7 +344,7 @@ const getStyles = (theme, isDark) => StyleSheet.create({
   },
   pagamentoLabel: {
     fontSize: 14,
-    color: isDark ? "#8A8A90" : theme.colors.muted,
+    color: isDark ? "#8A8A90" : "#6B7280",
   },
   pagamentoValue: {
     fontSize: 14,
@@ -376,7 +380,7 @@ const getStyles = (theme, isDark) => StyleSheet.create({
   },
   infoText: {
     fontSize: 12,
-    color: isDark ? "#8A8A90" : theme.colors.muted,
+    color: isDark ? "#8A8A90" : "#6B7280",
     marginLeft: 8,
     flex: 1,
     lineHeight: 16,
@@ -428,7 +432,7 @@ const getStyles = (theme, isDark) => StyleSheet.create({
   },
   captionText: {
     fontSize: 12,
-    color: isDark ? "#8A8A90" : theme.colors.muted,
+    color: isDark ? "#9CA3AF" : "#6B7280",
     textAlign: "center",
     lineHeight: 16,
   },
