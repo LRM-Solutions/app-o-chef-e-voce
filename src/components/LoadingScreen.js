@@ -9,33 +9,35 @@ export default function LoadingScreen() {
   const { theme } = useTheme();
   const styles = getStyles(theme);
   
-  const scaleAnim = useRef(new Animated.Value(0.8)).current;
-  const opacityAnim = useRef(new Animated.Value(0)).current;
+  const scaleAnim = useRef(new Animated.Value(Platform.OS === 'android' ? 1 : 0.8)).current;
+  const opacityAnim = useRef(new Animated.Value(Platform.OS === 'android' ? 1 : 0)).current;
   const rotateAnim = useRef(new Animated.Value(0)).current;
   const pulseAnim = useRef(new Animated.Value(1)).current;
-  const textOpacity = useRef(new Animated.Value(0)).current;
+  const textOpacity = useRef(new Animated.Value(Platform.OS === 'android' ? 1 : 0)).current;
 
   useEffect(() => {
-    // Entrance animations
-    Animated.parallel([
-      Animated.timing(scaleAnim, {
-        toValue: 1,
-        duration: 800,
-        easing: Easing.out(Easing.back(1.5)),
-        useNativeDriver: true,
-      }),
-      Animated.timing(opacityAnim, {
-        toValue: 1,
-        duration: 600,
-        useNativeDriver: true,
-      }),
-      Animated.timing(textOpacity, {
-        toValue: 1,
-        duration: 800,
-        delay: 300,
-        useNativeDriver: true,
-      }),
-    ]).start();
+    // Entrance animations (somente se não for Android, pois o Android tem a scale em 1 direto)
+    if (Platform.OS !== 'android') {
+      Animated.parallel([
+        Animated.timing(scaleAnim, {
+          toValue: 1,
+          duration: 800,
+          easing: Easing.out(Easing.back(1.5)),
+          useNativeDriver: true,
+        }),
+        Animated.timing(opacityAnim, {
+          toValue: 1,
+          duration: 600,
+          useNativeDriver: true,
+        }),
+        Animated.timing(textOpacity, {
+          toValue: 1,
+          duration: 800,
+          delay: 300,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }
 
     // Subtle continuous rotation for ring/glow effect
     Animated.loop(

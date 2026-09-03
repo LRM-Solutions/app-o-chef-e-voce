@@ -117,7 +117,7 @@ const RootNavigator = () => {
     <Stack.Navigator 
       screenOptions={{ 
         headerShown: false,
-        animationEnabled: true,
+        animationEnabled: Platform.OS !== 'android',
         ...(Platform.OS === 'web' && {
           cardStyleInterpolator: ({ current: { progress } }) => ({
             cardStyle: {

@@ -112,6 +112,7 @@ const Navigator = () => {
         <Stack.Navigator
           screenOptions={{
             headerShown: false,
+            animationEnabled: Platform.OS !== 'android',
             cardStyle: { backgroundColor: theme.colors.background },
           }}
         >
